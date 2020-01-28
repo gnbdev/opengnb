@@ -1,0 +1,15 @@
+如果打算自行组建网络，可以在Linux下执行 gnb_initkey_linux_x86_64.sh，脚本将以 conf_tpl/ 下的配置为模板在 conf/ 目录下 快速生成3个节点，并且为这3个节点创建通讯的公私钥。
+
+执行完 gnb_initkey_linux_x86_64.sh 后 ./conf 会有 1001，1002，1003 3个 已经配置好的节点目录，这些节点已经配置了公共index 的地址，把这些配置目录，连同 bin sh 目录下的文件拷贝到要部署GNB节点的机器上，用sh/ 目录下对应平台的脚本启动节点。
+
+例如有 A B C 3台 Linux 主机需要部署GNB节点
+在目录 gnb/ 下执行 gnb_initkey_linux_x86_64.sh 得到 ./conf/1001 ./conf/1002 ./conf/1003 三个配置好的目录
+
+把整个 gnb/ 目录 拷贝到 主机 A B C 上，
+
+A 主机 上执行 ./sh/gnb_linux_x86_64.sh debug 1001
+B 主机 上执行 ./sh/gnb_linux_x86_64.sh debug 1002
+C 主机 上执行 ./sh/gnb_linux_x86_64.sh debug 1003
+
+确认执行运行正常后，可以把脚本参数 debug 改为 start 让进行在后台运行。
+
