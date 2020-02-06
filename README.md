@@ -22,3 +22,5 @@ FreeBSD_AMD64
 OpenBSD_AMD64
 Windows7_X86_64
 OpenWRT
+
+[GNBFrontend](https://github.com/XyloseYuthy/GNBFrontend "GNBFrontend")是由志愿者开发维护的开源的GNB的图形界面前端。
