@@ -17,6 +17,8 @@ net to net 模式还可以将分散世界各地不同的局域网组成一个可
 
 ![net to net](images/net_to_net.jpeg)
 
+![net to net setup](images/net_to_net_setup.jpeg)
+
 深藏在内网中通过nat方式联网的计算机需要部署在公网的index节点找到其他同样处于内网中的主机建立点对点的虚拟链路。
 
 GNB的index节点的角色类似于BT协议中的Tracker，由一部分GNB网络志愿者提供。在绝大多数情况下index节点仅为GNB网内主机提供地址索引，不会为GNB节点中转数据。
