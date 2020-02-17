@@ -19,6 +19,16 @@ GNB_BINARY=Linux_x86_64
 #GNB_BINARY=openwrt/ramips-mt76x8
 
 
+
+mkdir -p ${GNB_DIR}/conf/1001/ed25519/
+mkdir -p ${GNB_DIR}/conf/1002/ed25519/
+mkdir -p ${GNB_DIR}/conf/1003/ed25519/
+
+mkdir -p ${GNB_DIR}/conf/1001/security/
+mkdir -p ${GNB_DIR}/conf/1002/security/
+mkdir -p ${GNB_DIR}/conf/1003/security/
+
+
 cp -r ${GNB_DIR}/conf_tpl/* ${GNB_DIR}/conf
 
 
