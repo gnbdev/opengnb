@@ -42,7 +42,8 @@ debug_gnb(){
 }
 
 stop_gnb() {
-	kill -9 `cat ${GNB_DIR}/conf/$gnb_nodeid/gnb_es.pid`
+	#kill -9 `cat ${GNB_DIR}/conf/$gnb_nodeid/gnb_es.pid`
+	killall -9 gnb_es
 	kill -9 `cat ${GNB_DIR}/conf/$gnb_nodeid/gnb.pid`
 }
 

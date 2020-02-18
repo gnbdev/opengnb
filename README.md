@@ -1,6 +1,7 @@
 # GNB
 [GNB](https://github.com/gnbdev/gnb "GNB")是一个开源的去中心化的具有极致内网穿透能力的通过P2P进行三层网络交换的VPN。
-
+[gnb_udp_over_tcp](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp")是一个为GNB开发的通过tcp链路中转UDP分组转发的服务，也可以为其他基于UDP协议的服务中转数据。
+[GNBFrontend](https://github.com/XyloseYuthy/GNBFrontend "GNBFrontend")是由志愿者开发维护的开源的GNB的图形界面前端。
 出于安全考虑，GNB项目相关代码会开源。
 
 ## 内网穿透 P2P VPN VPN
@@ -55,6 +56,26 @@ GNB用C语言开发，编译时不需要引用第三方库文件，可以方便�
 GNB目前支持的操作系统及平台有 Linux_x86_64，Windows10_x86_64， macOS，FreeBSD_AMD64，OpenBSD_AMD64，树莓派，OpenWRT；大至服务器环境，桌面系统，小至仅有32M内存的OpenWRT路由器都能很好的运行GNB网络。
 
 
-[gnb_udp_over_tcp](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp")是一个为GNB开发的通过tcp链路中转UDP分组转发的服务，也可以为其他基于UDP协议的服务中转数据。
+## gnb的命令行参数
 
-[GNBFrontend](https://github.com/XyloseYuthy/GNBFrontend "GNBFrontend")是由志愿者开发维护的开源的GNB的图形界面前端。
+执行`gnb -h`可以看到gnb在当前平台所支持的参数，由于 gnb ver 1.2 还有一些细节在调整，这里只对一些已经明确固定下来的参数进行解释
+
+gnb ver 1.2 的开发还在进行中
+
+|参数|说明|明细|
+|-|-|-|
+|-c, --conf|config path|指定gnb node的目录，这个在启动gnb时参数是必须的，不可少的|
+|-i, --ifname|TUN Device NAME|指定虚拟网卡的的名字，这在macOS和windows上是无效的，这些系统对虚拟网卡的命名有自己的规则|
+|-4, --ipv4-only|Use IPv4 Only|禁用ipv6，gnb将不通过ipv6地址收发数据，gnb开启的虚拟网卡不会绑定ipv6地址，由于禁用了ipv6，因此gnb可以设置小于1280的mtu,对于一些限制比较多的网络环境可以利用这个特性尝试使用更小的mtu|
+|-6, --ipv6-only|Use IPv6 Only|禁用ipv4，gnb将不通过ipv4地址收发数据，gnb开启的虚拟网卡不会绑定ipv4地址|
+|--log-file-path|log file path|指定输出文件日志的路径，如果不指定将不会产生日志文件，当前gnb的日志系统可定制化程度不高|
+|--mtu|TUN Device MTU ipv4 532, ipv6 1280|虚拟网卡的mtu，在比较糟糕的网络环境下ipv4可以设为532,ipv6不可小于1280|
+|--crypto|ip frame crypto 'xor' or 'rc4' or 'none' default is 'xor'|设定gnb传输数据的加密算法，选择'none'就是不加密，默认是xor使得在CPU运算能力很弱的硬件上也可以有较高的数据吞吐能力。未来会支持aes算法。两个gnb节点必须保持相同的加密算法才可以正常通讯。|
+|--crypto-key-update-interval|'hour' or 'minute' or none default is 'none'|gnb的节点之间可以通过时钟同步变更密钥，这依赖与节点的时钟必须保持较精确的同步，由于考虑到实际环境中一些节点时钟可能2无法及时同步时间，因此这个选项默认是不启用，如果运行gnb的节点能够保证同步时钟，可以考虑选择一个同步更新密钥的间隔，这可以提升一点通讯的安全性。关于加密的部分，将来会有专门的文章介绍|
+|--multi-index-type|'simple-fault-tolerant' or 'simple-load-balance' default is 'simple-fault-tolerant'|如果设置了多个index节点，那么可以选择一个选取index节点的方式，负载均衡或在容错模式，这个选项目前还不完善，容错模式只能在交换了通讯密钥的节点之间进行|
+|--multi-forward-type|'simple-fault-tolerant' or 'simple-load-balance' default is 'simple-fault-tolerant'|如果有多个forward节点，可以选择一个forward节点的方式，负载均衡或在容错模式|
+|--set-socket-if-name|example: 'eth0', 'eno1', only for unix-like os|在unix-like系统上可以让gnb的数据通过指定物理网卡发送，这里需要用户输入物理网卡的名字，Windows不支持这个特性，也看不到该选项|
+|--set-if-dump|'dump the interface data frame 'on' or 'off' default is 'off'|把经过gnb开启的虚拟网卡的ip分组在日志中输出，这样方便调试系统|     
+|--disabled-tun|disabled TUN Device, index node only|不启动虚拟网卡，仅作为gnb index服务启动，由于没有启动虚拟网卡，因此设了这个选项时不需要用root权限去启动gnb|
+|--pid-file|pid file|指定保存gnb进程id的文件，方便通过脚本去kill进程，如果不指定这个文件，pid文件将保存在当前节点的配置目录下|  
+|--node-cache-file|node address cache file|gnb会定期把成功连通的节点的ip地址和端口记录在一个缓存文件中，gnb进程在退出后，这些地址信息不会消失，重新启动进程时会读入这些数据，这样新启动gnb进程就可能不需通过index 节点查询曾经成功连接过的节点的地址信息|
