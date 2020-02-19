@@ -58,6 +58,12 @@ GNB用C语言开发，编译时不需要引用第三方库文件，可以方便�
 
 GNB目前支持的操作系统及平台有 Linux_x86_64，Windows10_x86_64， macOS，FreeBSD_AMD64，OpenBSD_AMD64，树莓派，OpenWRT；大至服务器环境，桌面系统，小至仅有32M内存的OpenWRT路由器都能很好的运行GNB网络。
 
+以下一些GNB的技术文档：
+
+[GNB Linux 部署说明](docs/gnb_for_linux_manual.md)
+
+[GNB 配置图图解](docs/gnb_setup.md)
+
 
 ## gnb的命令行参数
 
