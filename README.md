@@ -1,13 +1,13 @@
 # GNB
-[GNB](https://github.com/gnbdev/gnb "GNB")是一个开源的去中心化的具有极致内网穿透能力的通过P2P进行三层网络交换的VPN。
+[GNB](https://gitee.com/gnbdev/gnb "GNB")是一个开源的去中心化的具有极致内网穿透能力的通过P2P进行三层网络交换的VPN。
 
-[gnb_udp_over_tcp](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp")是一个为GNB开发的通过tcp链路中转UDP分组转发的服务，也可以为其他基于UDP协议的服务中转数据。
+[gnb_udp_over_tcp](https://gitee.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp")是一个为GNB开发的通过tcp链路中转UDP分组转发的服务，也可以为其他基于UDP协议的服务中转数据。
 
 [GNBFrontend](https://github.com/XyloseYuthy/GNBFrontend "GNBFrontend")是由志愿者开发维护的开源的GNB的图形界面前端。
 
 出于安全考虑，GNB项目相关代码会以开源方式发布, [source code](src/)  会逐步公开。
 
-## 内网穿透 P2P VPN VPN
+## 内网穿透 P2P VPN
 
 GNB独有的去中心化组网技术可以将分布在世界不同地方的计算机组成一个虚拟局域网，即使这些计算机深藏于没有公网ip的局域网里，并且不需要公网服务器中转就可以实现TCP/IP通讯。
 
@@ -29,7 +29,7 @@ GNB的index节点的角色类似于BT协议中的Tracker，由一部分GNB网络
 
 一部分志愿者提供的GNB的`forward`节点可以为极端情况下暂时无法进行点对点通信的主机进行数据中转，而GNB主机之间的非对称数据加密使得`forward`节点无法窥探中转的数据。
 
-在无法建立点对点通信的极端情况下，是否通过公网 forward 节点中转数据和使用哪个可信任的 forward 节点中转数据，完全取决在主机的拥有者对GNB 节点的设置。事实上，即便处于极其复杂的网络环境，GNB优越链路能力也可以随时随地建立虚拟数据链路，GNB甚至会为网络中的主机创建多个虚拟链路，择速度最优路径发送数据分组。
+在无法建立点对点通信的极端情况下，是否通过公网`forward`节点中转数据和使用哪个可信任的 forward 节点中转数据，完全取决在主机的拥有者对GNB 节点的设置。事实上，即便处于极其复杂的网络环境，GNB优越链路能力也可以随时随地建立虚拟数据链路，GNB甚至会为网络中的主机创建多个虚拟链路，择速度最优路径发送数据分组。
 
 在GNB网络中的主机拥有唯一独立的虚拟 ipv4 和 ipv6 地址，因而基于GNB网络开发各种网络通信应用同样也可以实现去中心化。假如要基于GNB网络开发一个即时通讯系统，由于已经能够明确知道每个对端主机的虚拟ip地址及通信公钥，因而可以不需要搭建一个复杂的中转服务器就能直接把消息发送到对端的主机。
 
@@ -72,6 +72,7 @@ GNB目前支持的操作系统及平台有 Linux_x86_64，Windows10_x86_64， ma
 
 [GNB 配置图图解](docs/gnb_setup.md)
 
+[GNB 的诊断功能](docs/gnb_diagnose.md)
 
 ## gnb的命令行参数
 
