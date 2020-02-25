@@ -8,11 +8,13 @@ cd /d %~dp0
 set nodeid=%1
 
 if defined nodeid (
+
     echo nodeid is !nodeid!
+
 ) else (
 
     echo nodeid is NULL
-	goto FINISH
+    goto FINISH
 
 )
 
