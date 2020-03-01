@@ -22,6 +22,12 @@ GNB_BINARY=openwrt/mvebu-cortexa9
 gnb_op_cmd=$1
 gnb_nodeid=$2
 
+if [ "$USER" != "root" ]; then
+    sudo $0 $*
+    exit $?
+fi
+
+
 show_usage(){
     echo "usage: $0 start|stop|restart node"
     echo "example: $0 start" 1001
@@ -32,13 +38,13 @@ show_usage(){
 
 start_gnb() {
     nohup ${GNB_DIR}/bin/$GNB_BINARY/gnb_es -s -b "${GNB_DIR}/conf/$gnb_nodeid/gnb.map" --dump-address --upnp --pid-file=${GNB_DIR}/conf/$gnb_nodeid/gnb_es.pid    > /dev/null 2>&1 &
-    nohup ${GNB_DIR}/bin/$GNB_BINARY/gnb -i "GNB_TUN_$gnb_nodeid" -c "${GNB_DIR}/conf/$gnb_nodeid" --port_detect_start=1000 --port_detect_end=65535  > /dev/null 2>&1 &
+    nohup ${GNB_DIR}/bin/$GNB_BINARY/gnb -i "GNB_TUN_$gnb_nodeid" -c "${GNB_DIR}/conf/$gnb_nodeid" --port-detect-start=500 --port-detect-end=65535  > /dev/null 2>&1 &
 }
 
 
 debug_gnb(){
     nohup ${GNB_DIR}/bin/$GNB_BINARY/gnb_es -s -b "${GNB_DIR}/conf/$gnb_nodeid/gnb.map" --dump-address --upnp     > /dev/null 2>&1 &
-    ${GNB_DIR}/bin/$GNB_BINARY/gnb -i "GNB_TUN_$gnb_nodeid" -c "${GNB_DIR}/conf/$gnb_nodeid" --port_detect_start=1000 --port_detect_end=65535 --set-if-dump=on
+    ${GNB_DIR}/bin/$GNB_BINARY/gnb -i "GNB_TUN_$gnb_nodeid" -c "${GNB_DIR}/conf/$gnb_nodeid" --port-detect-start=500 --port-detect-end=65535 --set-if-dump=on
 }
 
 stop_gnb() {
@@ -47,7 +53,6 @@ stop_gnb() {
     killall -9 gnb
     killall -9 gnb_es
 }
-
 
 if [ -z "$gnb_op_cmd" ] || [ -z "$gnb_nodeid" ]; then
     show_usage
@@ -58,6 +63,12 @@ fi
 if [ ! -d "${GNB_DIR}/conf/$gnb_nodeid" ]; then
     echo "node '$gnb_nodeid' directory '${GNB_DIR}/conf/$gnb_nodeid' not found"
     exit;
+fi
+
+
+if [ "$USER" != "root" ]; then
+    sudo $0 $*
+    exit $?
 fi
 
 
