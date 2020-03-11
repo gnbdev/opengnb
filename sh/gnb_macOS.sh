@@ -23,11 +23,6 @@ GNB_BINARY=macOS
 gnb_op_cmd=$1
 gnb_nodeid=$2
 
-if [ "$USER" != "root" ]; then
-    sudo $0 $*
-    exit $?
-fi
-
 show_usage(){
     echo "usage: $0 start|stop|restart node"
     echo "example: $0 start" 1001
