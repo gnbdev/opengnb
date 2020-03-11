@@ -67,12 +67,6 @@ if [ ! -d "${GNB_DIR}/conf/$gnb_nodeid" ]; then
 fi
 
 
-if [ "$USER" != "root" ]; then
-    sudo $0 $*
-    exit $?
-fi
-
-
 if [ "$gnb_op_cmd" = "stop" ] ; then
 
     stop_gnb
