@@ -15,7 +15,7 @@
 
 #define GNB_MAX_PAYLOAD_SIZE 64*1024
 
-gnb_payload16_t* gnb_payload16_init(char type,uint32_t data_size){
+gnb_payload16_t* gnb_payload16_init(char type,uint16_t data_size){
 
 	gnb_payload16_t *gnb_payload16 = (gnb_payload16_t *)malloc(sizeof(gnb_payload16_t) + sizeof(char)*data_size);
 
@@ -28,7 +28,7 @@ gnb_payload16_t* gnb_payload16_init(char type,uint32_t data_size){
 	return gnb_payload16;
 }
 
-gnb_payload16_t* gnb_payload16_create(char type, void *data, uint32_t data_size) {
+gnb_payload16_t* gnb_payload16_create(char type, void *data, uint16_t data_size) {
 
 	gnb_payload16_t *gnb_payload16 = gnb_payload16_init(type,data_size);
 
@@ -37,7 +37,6 @@ gnb_payload16_t* gnb_payload16_create(char type, void *data, uint32_t data_size)
 	return gnb_payload16;
 
 }
-
 
 gnb_payload16_t *gnb_payload16_dup(gnb_payload16_t *gnb_payload16_in){
 
@@ -51,27 +50,24 @@ gnb_payload16_t *gnb_payload16_dup(gnb_payload16_t *gnb_payload16_in){
 
 }
 
-
-uint32_t gnb_payload16_set_size(gnb_payload16_t *gnb_payload16, uint32_t new_size){
+uint16_t gnb_payload16_set_size(gnb_payload16_t *gnb_payload16, uint16_t new_size){
 
 	gnb_payload16->size = htons(new_size);
 
 	return new_size;
 }
 
-uint32_t gnb_payload16_size(gnb_payload16_t *gnb_payload16){
+uint16_t gnb_payload16_size(gnb_payload16_t *gnb_payload16){
 	uint16_t size = ntohs(gnb_payload16->size);
 	return size;
 }
 
-
-uint32_t gnb_payload16_set_data_len(gnb_payload16_t *gnb_payload16, uint32_t new_len){
+uint16_t gnb_payload16_set_data_len(gnb_payload16_t *gnb_payload16, uint16_t new_len){
 	gnb_payload16->size = htons(new_len+GNB_PAYLOAD16_HEAD_SIZE);
 	return new_len;
 }
 
-
-uint32_t gnb_payload16_data_len(gnb_payload16_t *gnb_payload16){
+uint16_t gnb_payload16_data_len(gnb_payload16_t *gnb_payload16){
 	uint16_t size = ntohs(gnb_payload16->size) - GNB_PAYLOAD16_HEAD_SIZE;
 	return size;
 }
@@ -81,7 +77,7 @@ void gnb_payload16_free(gnb_payload16_t *gnb_payload16){
 }
 
 
-gnb_payload16_ctx_t* gnb_payload16_ctx_init(uint32_t max_payload_size){
+gnb_payload16_ctx_t* gnb_payload16_ctx_init(uint16_t max_payload_size){
 
 	gnb_payload16_ctx_t *gnb_payload16_ctx = (gnb_payload16_ctx_t*)malloc(sizeof(gnb_payload16_ctx_t));
 

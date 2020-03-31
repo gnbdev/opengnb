@@ -18,21 +18,21 @@ typedef struct _gnb_payload16_t{
 
 #define GNB_PAYLOAD16_HEAD_SIZE 4
 
-gnb_payload16_t* gnb_payload16_init(char type,uint32_t data_size);
+gnb_payload16_t* gnb_payload16_init(char type,uint16_t data_size);
 
-gnb_payload16_t* gnb_payload16_create(char type, void *data, uint32_t data_size);
+gnb_payload16_t* gnb_payload16_create(char type, void *data, uint16_t data_size);
 
 gnb_payload16_t *gnb_payload16_dup(gnb_payload16_t *gnb_payload16_in);
 
 void gnb_payload16_free(gnb_payload16_t *gnb_payload16);
 
-uint32_t gnb_payload16_set_size(gnb_payload16_t *gnb_payload16, uint32_t new_size);
+uint16_t gnb_payload16_set_size(gnb_payload16_t *gnb_payload16, uint16_t new_size);
 
-uint32_t gnb_payload16_size(gnb_payload16_t *gnb_payload16);
+uint16_t gnb_payload16_size(gnb_payload16_t *gnb_payload16);
 
-uint32_t gnb_payload16_set_data_len(gnb_payload16_t *gnb_payload16, uint32_t new_len);
+uint16_t gnb_payload16_set_data_len(gnb_payload16_t *gnb_payload16, uint16_t new_len);
 
-uint32_t gnb_payload16_data_len(gnb_payload16_t *gnb_payload16);
+uint16_t gnb_payload16_data_len(gnb_payload16_t *gnb_payload16);
 
 typedef struct _gnb_payload16_ctx_t{
 
@@ -52,7 +52,7 @@ typedef struct _gnb_payload16_ctx_t{
 
 }gnb_payload16_ctx_t;
 
-gnb_payload16_ctx_t* gnb_payload16_ctx_init(uint32_t max_payload_size);
+gnb_payload16_ctx_t* gnb_payload16_ctx_init(uint16_t max_payload_size);
 
 void gnb_payload16_ctx_free(gnb_payload16_ctx_t *gnb_payload16_ctx);
 
