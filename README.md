@@ -1,5 +1,5 @@
 # GNB
-[GNB](https://gitee.com/gnbdev/gnb "GNB")是一个开源的去中心化的具有极致内网穿透能力的通过P2P进行三层网络交换的VPN。
+[GNB](https://gitee.com/gnbdev/gnb "GNB")是一个开源的去中心化的具有极致内网穿透能力的通过P2P进行三层网络交换的虚拟组网系统。
 
 [gnb_udp_over_tcp](https://gitee.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp")是一个为GNB开发的通过tcp链路中转UDP分组转发的服务，也可以为其他基于UDP协议的服务中转数据。
 
@@ -81,6 +81,7 @@ GNB目前支持的操作系统及平台有 Linux_x86_64，Windows10_x86_64， ma
 |参数|说明|明细|
 |-|-|-|
 |-c, --conf|config path|指定gnb node的目录，这个在启动gnb时参数是必须的，不可少的|
+|-d, --daemon|daemon|作为daemon进程启动，Windows不支持这个选项|
 |-i, --ifname|TUN Device NAME|指定虚拟网卡的的名字，这在macOS和windows上是无效的，这些系统对虚拟网卡的命名有自己的规则|
 |-4, --ipv4-only|Use IPv4 Only|禁用ipv6，gnb将不通过ipv6地址收发数据，gnb开启的虚拟网卡不会绑定ipv6地址，由于禁用了ipv6，因此gnb可以设置小于1280的mtu,对于一些限制比较多的网络环境可以利用这个特性尝试使用更小的mtu|
 |-6, --ipv6-only|Use IPv6 Only|禁用ipv4，gnb将不通过ipv4地址收发数据，gnb开启的虚拟网卡不会绑定ipv4地址|
@@ -93,6 +94,7 @@ GNB目前支持的操作系统及平台有 Linux_x86_64，Windows10_x86_64， ma
 |--set-socket-if-name|example: 'eth0', 'eno1', only for unix-like os|在unix-like系统上可以让gnb的数据通过指定物理网卡发送，这里需要用户输入物理网卡的名字，Windows不支持这个特性，也看不到该选项|
 |--set-if-dump|'dump the interface data frame 'on' or 'off' default is 'off'|把经过gnb开启的虚拟网卡的ip分组在日志中输出，这样方便调试系统|     
 |--disabled-tun|disabled TUN Device, index node only|不启动虚拟网卡，仅作为gnb index服务启动，由于没有启动虚拟网卡，因此设了这个选项时不需要用root权限去启动gnb|
+|--disabled-keyless-fwd|disabled keyless forward|禁用未经交换公钥转发分组的特性|
 |--pid-file|pid file|指定保存gnb进程id的文件，方便通过脚本去kill进程，如果不指定这个文件，pid文件将保存在当前节点的配置目录下|  
 |--node-cache-file|node address cache file|gnb会定期把成功连通的节点的ip地址和端口记录在一个缓存文件中，gnb进程在退出后，这些地址信息不会消失，重新启动进程时会读入这些数据，这样新启动gnb进程就可能不需通过index 节点查询曾经成功连接过的节点的地址信息|
 
