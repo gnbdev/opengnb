@@ -66,6 +66,8 @@ GNB用C语言开发，编译时不需要引用第三方库文件，可以方便�
 
 GNB目前支持的操作系统及平台有 Linux_x86_64，Windows10_x86_64， macOS，FreeBSD_AMD64，OpenBSD_AMD64，树莓派，OpenWRT；大至服务器环境，桌面系统，小至仅有32M内存的OpenWRT路由器都能很好的运行GNB网络。
 
+由[《铜豌豆 Linux》](https://www.atzlinux.com)项目为本项目自制了 Linux 下的 deb 格式软件包，详情请访问[Linux_quick_start.txt](Linux_quick_start.txt)。
+
 以下是一些GNB的技术文档：
 
 [GNB Linux 部署说明](docs/gnb_for_linux_manual.md)
@@ -77,6 +79,7 @@ GNB目前支持的操作系统及平台有 Linux_x86_64，Windows10_x86_64， ma
 ## gnb的命令行参数
 
 执行`gnb -h`可以看到gnb在当前平台所支持的参数，由于 gnb ver 1.2 还有一些细节在调整，这里只对一些已经明确固定下来的参数进行解释
+
 
 |参数|说明|明细|
 |-|-|-|
@@ -91,14 +94,13 @@ GNB目前支持的操作系统及平台有 Linux_x86_64，Windows10_x86_64， ma
 |--crypto-key-update-interval|'hour' or 'minute' or none default is 'none'|gnb的节点之间可以通过时钟同步变更密钥，这依赖与节点的时钟必须保持较精确的同步，由于考虑到实际环境中一些节点时钟可能2无法及时同步时间，因此这个选项默认是不启用，如果运行gnb的节点能够保证同步时钟，可以考虑选择一个同步更新密钥的间隔，这可以提升一点通讯的安全性。关于加密的部分，将来会有专门的文章介绍|
 |--multi-index-type|'simple-fault-tolerant' or 'simple-load-balance' default is 'simple-fault-tolerant'|如果设置了多个index节点，那么可以选择一个选取index节点的方式，负载均衡或在容错模式，这个选项目前还不完善，容错模式只能在交换了通讯密钥的节点之间进行|
 |--multi-forward-type|'simple-fault-tolerant' or 'simple-load-balance' default is 'simple-fault-tolerant'|如果有多个forward节点，可以选择一个forward节点的方式，负载均衡或在容错模式|
+|--enabled-multi-socket|enabled multi socket|开启多端口探测|
 |--set-socket-if-name|example: 'eth0', 'eno1', only for unix-like os|在unix-like系统上可以让gnb的数据通过指定物理网卡发送，这里需要用户输入物理网卡的名字，Windows不支持这个特性，也看不到该选项|
-|--set-if-dump|'dump the interface data frame 'on' or 'off' default is 'off'|把经过gnb开启的虚拟网卡的ip分组在日志中输出，这样方便调试系统|
+|--if-dump|'dump the interface data frame 'on' or 'off' default is 'off'|把经过gnb开启的虚拟网卡的ip分组在日志中输出，这样方便调试系统|
 |--disabled-tun|disabled TUN Device, index node only|不启动虚拟网卡，仅作为gnb index服务启动，由于没有启动虚拟网卡，因此设了这个选项时不需要用root权限去启动gnb|
-|--disabled-keyless-fwd|disabled keyless forward|禁用未经交换公钥转发分组的特性|
+|--disabled-ufwd|disabled universal forward|禁用通用转发分组的特性|
 |--pid-file|pid file|指定保存gnb进程id的文件，方便通过脚本去kill进程，如果不指定这个文件，pid文件将保存在当前节点的配置目录下|
 |--node-cache-file|node address cache file|gnb会定期把成功连通的节点的ip地址和端口记录在一个缓存文件中，gnb进程在退出后，这些地址信息不会消失，重新启动进程时会读入这些数据，这样新启动gnb进程就可能不需通过index 节点查询曾经成功连接过的节点的地址信息|
-|--log-udp4|send log to the address ipv4 default is '127.0.0.1:9000'|设置接收日志的udp地址和端口|
-|--log-udp-type|the log udp type 'binary' or 'text' default is 'binary'|日志类型|
 
 
 
