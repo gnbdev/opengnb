@@ -1,11 +1,16 @@
 #ifndef gnb_node_type_h
 #define gnb_node_type_h
 
+#include "stdint.h"
+
 #include "gnb_address_type.h"
 
 typedef struct _gnb_node_t{
 
 	uint32_t uuid32;
+
+	uint64_t in_bytes;
+	uint64_t out_bytes;
 
 	#define GNB_NODE_TYPE_STD               (0x0)
 	#define GNB_NODE_TYPE_IDX               (0x1)
@@ -26,6 +31,10 @@ typedef struct _gnb_node_t{
 	struct sockaddr_in  udp_sockaddr4;
 	struct sockaddr_in6 udp_sockaddr6;
 
+	uint8_t            socket6_idx;
+	uint8_t            socket4_idx;
+
+
 	#define GNB_NODE_STATIC_ADDRESS_NUM   6
 	#define GNB_NODE_DYNAMIC_ADDRESS_NUM 16
 	#define GNB_NODE_RESOLV_ADDRESS_NUM   6
@@ -43,6 +52,13 @@ typedef struct _gnb_node_t{
 	//handle_push_addr_frame时更新, 及在启动时加载自文件缓存
 	unsigned char push_address_block[sizeof(gnb_address_list_t) + sizeof(gnb_address_t)*GNB_NODE_PUSH_ADDRESS_NUM];
 
+
+	unsigned char detect_address4_block[sizeof(gnb_address_list_t) + sizeof(gnb_address_t)*3];
+	uint8_t         detect_address4_idx;
+	struct in_addr  detect_addr4;
+	uint16_t        detect_port4;
+
+
 	#define GNB_NODE_MAX_DETECT_TIMES 32
 	int detect_count;
 
@@ -57,8 +73,8 @@ typedef struct _gnb_node_t{
 	//初始值为 GNB_NODE_STATUS_UNREACHABL, 实现ping pong 后用 GNB_NODE_STATUS_IPV4  GNB_NODE_STATUS_IPV6 置位
 	unsigned int udp_addr_status;
 
-	uint64_t addr6_ping_latency_usec;
-	uint64_t addr4_ping_latency_usec;
+	int64_t addr6_ping_latency_usec;
+	int64_t addr4_ping_latency_usec;
 
 	//上次node发来 ping4 或 pong4 时间戳
 	int addr4_update_ts_sec;
@@ -76,13 +92,13 @@ typedef struct _gnb_node_t{
 
 	unsigned char key512[64];
 
+
 	//上次向 index 节点查询的时间戳
 	uint64_t last_request_addr_sec;
 
 	uint64_t last_push_addr_sec;
 
-	uint64_t last_ultra_detect_sec;
-
+	uint64_t last_detect_sec;
 
 
 }gnb_node_t;

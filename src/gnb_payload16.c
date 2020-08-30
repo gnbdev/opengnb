@@ -10,10 +10,7 @@
 #include <ws2tcpip.h>
 #endif
 
-
 #include "gnb_payload16.h"
-
-#define GNB_MAX_PAYLOAD_SIZE 64*1024
 
 gnb_payload16_t* gnb_payload16_init(char type,uint16_t data_size){
 
@@ -28,7 +25,7 @@ gnb_payload16_t* gnb_payload16_init(char type,uint16_t data_size){
 	return gnb_payload16;
 }
 
-gnb_payload16_t* gnb_payload16_create(char type, void *data, uint16_t data_size) {
+gnb_payload16_t* gnb_payload16_create(char type, void *data, uint16_t data_size){
 
 	gnb_payload16_t *gnb_payload16 = gnb_payload16_init(type,data_size);
 

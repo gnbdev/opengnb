@@ -7,6 +7,7 @@
 
 #include <stdint.h>
 #include <time.h>
+#include <unistd.h>
 
 int64_t gnb_timestamp_sec();
 
@@ -17,7 +18,7 @@ uint64_t gnb_timestamp_usec();
  例子，休眠 100 毫秒
  gnb_sleep(0, 100*1000000l);
  */
-void gnb_sleep(long sec, long nanosec);
+//void gnb_sleep(long sec, long nanosec);
 
 //format:"%Y_%m_%d_%H.%M.%S"
 void gnb_now_timef(const char *format, char *buffer, size_t buffer_size);

@@ -20,6 +20,9 @@ typedef struct _gnb_address_t{
 
 	int  type; //AF_INET AF_INET6
 
+	//更新该地址的 socket 索引
+	uint8_t            socket_idx;
+
 	//最后更新时间
 	uint64_t ts_sec;
 
@@ -73,7 +76,7 @@ typedef struct _gnb_sockaddress_t{
     #define m_in4 addr.in
     #define m_in6 addr.in6
 
-	//在确定 addr_type 是 AF_INET 或 AF_INET6 后，就能确定这个长度了，可以去掉
+	//在确定 addr_type 是 AF_INET 或 AF_INET6 后，就能确定这个长度了，可以去掉这个成员
 	socklen_t socklen;
 
 }gnb_sockaddress_t;

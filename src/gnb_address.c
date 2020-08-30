@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 #include "gnb_platform.h"
 
@@ -24,6 +25,7 @@
 
 #include "gnb_address.h"
 
+uint8_t gnb_addr_secure = 0;
 
 unsigned long long gnb_htonll(unsigned long long val){
 
@@ -167,11 +169,14 @@ void gnb_address_list_update(gnb_address_list_t *address_list, gnb_address_t *ad
 
 finish:
 
-if ( 0 == address_list->array[idx].port ){
-		address_list->num += 1;
-		if( address_list->num > address_list->size ){
+	if ( 0 == address_list->array[idx].port ){
+
+		if( address_list->num < address_list->size ){
+			address_list->num += 1;
+		}else if(address_list->num > address_list->size){
 			address_list->num = address_list->size;
 		}
+
 	}
 
 	memcpy( &address_list->array[idx], address, sizeof(gnb_address_t) );
@@ -199,40 +204,127 @@ void gnb_set_address6(gnb_address_t *address, struct sockaddr_in6 *in6){
 }
 
 
-char * gnb_get_address4string(void *byte4, char *dest){
+char * gnb_get_address4string(void *byte4, char *dest, uint8_t addr_secure){
+
 	inet_ntop(AF_INET, byte4, dest, INET_ADDRSTRLEN);
+
+	char *p;
+
+	if(addr_secure){
+
+		p = dest;
+
+		while( '\0' != *p ){
+
+			if( '.' == *p ){
+				break;
+			}
+
+			*p = '*';
+
+			p++;
+
+		}
+
+	}
+
 	return dest;
 }
 
 
-char * gnb_get_address6string(void *byte16, char *dest){
+char * gnb_get_address6string(void *byte16, char *dest, uint8_t addr_secure){
+
 	inet_ntop(AF_INET6, byte16, dest, INET6_ADDRSTRLEN);
+
+	char *p;
+
+	if(addr_secure){
+
+		p = dest;
+
+		while( '\0' != *p ){
+
+			if( ':' == *p ){
+				break;
+			}
+
+			*p = '*';
+
+			p++;
+
+		}
+
+	}
+
 	return dest;
 }
 
 
-char * gnb_get_socket4string(struct sockaddr_in *in, char *dest){
+char * gnb_get_socket4string(struct sockaddr_in *in, char *dest, uint8_t addr_secure){
 	char buf[INET_ADDRSTRLEN];
 	inet_ntop(AF_INET, &in->sin_addr, buf, INET_ADDRSTRLEN);
 	snprintf(dest, GNB_IP_PORT_STRING_SIZE,"%s:%d",buf,ntohs(in->sin_port));
+
+	char *p;
+
+	if(addr_secure){
+
+		p = dest;
+
+		while( '\0' != *p ){
+
+			if( '.' == *p ){
+				break;
+			}
+
+			*p = '*';
+
+			p++;
+
+		}
+
+	}
+
 	return dest;
 }
 
 
-char * gnb_get_socket6string(struct sockaddr_in6 *in6, char *dest){
+char * gnb_get_socket6string(struct sockaddr_in6 *in6, char *dest, uint8_t addr_secure){
+
 	char buf[INET6_ADDRSTRLEN];
 	inet_ntop(AF_INET6, &in6->sin6_addr, buf, INET6_ADDRSTRLEN);
 	snprintf(dest, GNB_IP_PORT_STRING_SIZE,"[%s:%d]",buf,ntohs(in6->sin6_port));
+
+	char *p;
+
+	if(addr_secure){
+
+		p = dest+1;
+
+		while( '\0' != *p ){
+
+			if( ':' == *p ){
+				break;
+			}
+
+			*p = '*';
+
+			p++;
+
+		}
+
+	}
+
 	return dest;
 }
 
 
-char * gnb_get_sockaddress_string(gnb_sockaddress_t *sockaddress, char *dest){
+char * gnb_get_sockaddress_string(gnb_sockaddress_t *sockaddress, char *dest, uint8_t addr_secure){
 
 	if ( AF_INET6 == sockaddress->addr_type ){
-		dest = gnb_get_socket6string(&sockaddress->addr.in6,dest);
+		dest = gnb_get_socket6string(&sockaddress->addr.in6,dest,addr_secure);
 	}else if ( AF_INET == sockaddress->addr_type ){
-		dest = gnb_get_socket4string(&sockaddress->addr.in,dest);
+		dest = gnb_get_socket4string(&sockaddress->addr.in,dest,addr_secure);
 	}
 
 	return dest;
@@ -240,18 +332,41 @@ char * gnb_get_sockaddress_string(gnb_sockaddress_t *sockaddress, char *dest){
 }
 
 
-char * gnb_get_ip_port_string(gnb_address_t *address, char *dest){
+char * gnb_get_ip_port_string(gnb_address_t *address, char *dest, uint8_t addr_secure){
 
 	char buf[INET6_ADDRSTRLEN];
+
+	char *p;
+
+	p = dest;
 
 	if ( AF_INET6 == address->type ){
 		inet_ntop(AF_INET6, &address->address.addr6, buf, INET6_ADDRSTRLEN);
 		snprintf(dest, GNB_IP_PORT_STRING_SIZE,"[%s:%d]",buf,ntohs(address->port));
+		p++;
 	}else if( AF_INET == address->type ){
 		inet_ntop(AF_INET, &address->address.addr4, buf, INET_ADDRSTRLEN);
 		snprintf(dest, GNB_IP_PORT_STRING_SIZE,"%s:%d",buf,ntohs(address->port));
 	}else{
 		snprintf(dest, GNB_IP_PORT_STRING_SIZE,"NONE_ADDRESS");
+	}
+
+	if(addr_secure){
+
+
+
+		while( '\0' != *p ){
+
+			if( '.' == *p || ':' == *p ){
+				break;
+			}
+
+			*p = '*';
+
+			p++;
+
+		}
+
 	}
 
 	return dest;
@@ -346,3 +461,72 @@ void gnb_set_sockaddress6(gnb_sockaddress_t *sockaddress, int protocol, const ch
 }
 
 
+gnb_address_t gnb_get_address4_from_string(const char *sockaddress4_string){
+
+	gnb_address_t address;
+
+	memset(&address,0,sizeof(gnb_address_t));
+
+	unsigned long int ul;
+
+	char sockaddress4_string_copy[16];
+
+	int sockaddress4_string_len = strlen(sockaddress4_string);
+
+	memcpy(sockaddress4_string_copy, sockaddress4_string, sockaddress4_string_len);
+
+	int i;
+
+	char *p = sockaddress4_string_copy;
+
+	for( i=0; i<sockaddress4_string_len; i++){
+
+		if ( ':' == *p ){
+			*p = '\0';
+			break;
+		}
+
+		p++;
+
+	}
+
+	p++;
+
+	ul = strtoul(p, NULL, 10);
+
+	if( ULONG_MAX == ul ){
+    	return address;
+	}
+
+	inet_pton(AF_INET, sockaddress4_string_copy, &address.address.addr4);
+
+	uint16_t port = (uint16_t)ul;
+	address.port = htons(port);
+
+	address.type = AF_INET;
+
+	return address;
+
+}
+
+char* gnb_hide_adrress_string(char*adrress_string){
+
+	char *p;
+
+	p = adrress_string;
+
+	while( '\0' != *p ){
+
+		if( '.' == *p || ':' == *p ){
+			break;
+		}
+
+		*p = '*';
+
+		p++;
+
+	}
+
+	return adrress_string;
+
+}

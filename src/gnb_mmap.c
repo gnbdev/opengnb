@@ -48,7 +48,7 @@ gnb_mmap_block_t* gnb_mmap_create(const char *filename, size_t block_size, int m
 	gnb_mmap_block_t *mmap_block;
 
 	int fd;
-
+	void *block;
 	int oflag;
 
 	int prot;
@@ -72,30 +72,36 @@ gnb_mmap_block_t* gnb_mmap_create(const char *filename, size_t block_size, int m
 		}
 	}
 
-	mmap_block = (gnb_mmap_block_t *)malloc(sizeof(gnb_mmap_block_t));
-
-	snprintf(mmap_block->filename, PATH_MAX, "%s", filename);
-
-	mmap_block->fd = fd;
-	mmap_block->block_size = block_size;
-	mmap_block->mmap_type = mmap_type;
-
 	if ( mmap_type & GNB_MMAP_TYPE_READWRITE){
 		prot = PROT_READ|PROT_WRITE;
 	}else{
 		prot = PROT_READ;
 	}
 
-	mmap_block->block = mmap(NULL, block_size, prot, MAP_SHARED, mmap_block->fd, 0);
+	block = mmap(NULL, block_size, prot, MAP_SHARED, fd, 0);
 
-	if ( mmap_type & GNB_MMAP_TYPE_CREATE){
-		memset(mmap_block->block,0,block_size);
+	if( NULL==block ){
+		close(fd);
+		return NULL;
 	}
 
+	mmap_block = (gnb_mmap_block_t *)malloc(sizeof(gnb_mmap_block_t));
+
+	snprintf(mmap_block->filename, PATH_MAX, "%s", filename);
+
+	mmap_block->fd = fd;
+	mmap_block->block = block;
+	mmap_block->block_size = block_size;
+	mmap_block->mmap_type = mmap_type;
+
+	if ( mmap_type & GNB_MMAP_TYPE_CREATE ){
+		memset(mmap_block->block,0,block_size);
+	}
 
 	return mmap_block;
 
 }
+
 
 void gnb_mmap_release(gnb_mmap_block_t *mmap_block){
 
@@ -114,7 +120,6 @@ void gnb_mmap_release(gnb_mmap_block_t *mmap_block){
 #endif
 
 
-
 #ifdef _WIN32
 #include "gnb_binary.h"
 gnb_mmap_block_t* gnb_mmap_create(const char *filename, size_t block_size, int mmap_type){
@@ -122,6 +127,8 @@ gnb_mmap_block_t* gnb_mmap_create(const char *filename, size_t block_size, int m
 	char mapping_buffer[PATH_MAX];
 
 	char *mapping_name;
+
+	void *block;
 
 	mapping_name = gnb_bin2hex_string((void *)filename, strlen(filename), mapping_buffer);
 
@@ -165,7 +172,7 @@ gnb_mmap_block_t* gnb_mmap_create(const char *filename, size_t block_size, int m
 		return NULL;
 	}
 
-	HANDLE map_handle          = CreateFileMapping(
+	HANDLE map_handle = CreateFileMapping(
 	    file_descriptor,
 	    NULL,
 		oflag4,
@@ -177,25 +184,27 @@ gnb_mmap_block_t* gnb_mmap_create(const char *filename, size_t block_size, int m
 		return NULL;
 	}
 
+	block = MapViewOfFile(map_handle,prot,0,0,block_size);
+
+	if( NULL==block ){
+	    CloseHandle(map_handle);
+	    CloseHandle(file_descriptor);
+		return NULL;
+	}
+
 	mmap_block = (gnb_mmap_block_t *)malloc(sizeof(gnb_mmap_block_t));
 
 	snprintf(mmap_block->filename, PATH_MAX, "%s", filename);
 
 	mmap_block->file_descriptor = file_descriptor;
-
 	mmap_block->map_handle = map_handle;
-
+	mmap_block->block = block;
 	mmap_block->block_size = block_size;
-
-	mmap_block->block = MapViewOfFile(
-		mmap_block->map_handle,
-		prot,
-        0,
-        0,
-		mmap_block->block_size);
-
-
 	mmap_block->mmap_type = mmap_type;
+
+	if ( mmap_type & GNB_MMAP_TYPE_CREATE ){
+		memset(mmap_block->block,0,block_size);
+	}
 
 	return mmap_block;
 

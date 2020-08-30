@@ -18,6 +18,8 @@ typedef struct _gnb_payload16_t{
 
 #define GNB_PAYLOAD16_HEAD_SIZE 4
 
+#define GNB_MAX_PAYLOAD_SIZE 65535
+
 gnb_payload16_t* gnb_payload16_init(char type,uint16_t data_size);
 
 gnb_payload16_t* gnb_payload16_create(char type, void *data, uint16_t data_size);

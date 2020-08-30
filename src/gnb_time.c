@@ -7,8 +7,9 @@
 
 #include <windows.h>
 
-//unistd.h 定义了 _POSIX_THREAD_SAFE_FUNCTIONS 使得 localtime_r 有效
-#include <unistd.h>
+#define  _POSIX_C_SOURCE 1
+//使得 localtime_r 等函数有效
+
 #endif
 
 #include <time.h>
