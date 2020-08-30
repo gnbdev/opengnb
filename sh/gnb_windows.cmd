@@ -18,7 +18,7 @@ if defined nodeid (
 
 start ..\bin\Window10_x86_64\gnb_es.exe -s -b ..\conf\!nodeid!\gnb.map --dump-address --upnp
 
-..\bin\Window10_x86_64\gnb.exe -i WindowsTun -c ..\conf\!nodeid! --port_detect_start=1000 --port_detect_end=65535
+..\bin\Window10_x86_64\gnb.exe -i WindowsTun -c ..\conf\!nodeid!
 
 :FINISH
 

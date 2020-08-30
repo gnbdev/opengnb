@@ -34,14 +34,14 @@ show_usage(){
 start_gnb() {
 	${GNB_DIR}/sh/dig_wan6.sh
 	${GNB_DIR}/bin/$GNB_BINARY/gnb_es -d -b "${GNB_DIR}/conf/$gnb_nodeid/gnb.map" --dump-address --upnp --pid-file=${GNB_DIR}/conf/$gnb_nodeid/gnb_es.pid --resolv --wan-address6-file=/tmp/wan6_addr.dump
-	${GNB_DIR}/bin/$GNB_BINARY/gnb -d -i "GNB_TUN_$gnb_nodeid" -c "${GNB_DIR}/conf/$gnb_nodeid" --port-detect-start=500 --port-detect-end=65535
+	${GNB_DIR}/bin/$GNB_BINARY/gnb -d -i "GNB_TUN_$gnb_nodeid" -c "${GNB_DIR}/conf/$gnb_nodeid"
 }
 
 
 debug_gnb(){
 	${GNB_DIR}/sh/dig_wan6.sh
 	${GNB_DIR}/bin/$GNB_BINARY/gnb_es -d -b "${GNB_DIR}/conf/$gnb_nodeid/gnb.map" --dump-address --upnp --resolv --wan-address6-file=/tmp/wan6_addr.dump
-	${GNB_DIR}/bin/$GNB_BINARY/gnb -i "GNB_TUN_$gnb_nodeid" -c "${GNB_DIR}/conf/$gnb_nodeid" --port-detect-start=500 --port-detect-end=65535 --set-if-dump=on
+	${GNB_DIR}/bin/$GNB_BINARY/gnb -i "GNB_TUN_$gnb_nodeid" -c "${GNB_DIR}/conf/$gnb_nodeid" --if-dump=on
 }
 
 
