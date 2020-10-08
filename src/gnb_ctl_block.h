@@ -100,6 +100,8 @@ ssize_t gnb_ctl_file_size(const char *filename);
 
 gnb_ctl_block_t *gnb_ctl_block_build(void *memory,size_t node_num);
 
+void gnb_ctl_block_build_finish(void *memory);
+
 gnb_ctl_block_t *gnb_ctl_block_setup(void *memory);
 
 

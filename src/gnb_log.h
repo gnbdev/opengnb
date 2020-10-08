@@ -8,7 +8,6 @@
 gnb_log_ctx_t* gnb_log_ctx_create();
 
 
-
 #define GNB_LOG_TYPE_STD   0
 #define GNB_LOG_TYPE_DEBUG 1
 #define GNB_LOG_TYPE_ERROR 2
@@ -36,31 +35,23 @@ DEBUG  level = 3
 */
 
 
-void gnb_logf(gnb_log_ctx_t *log_ctx, uint8_t log_type, uint8_t log_id, uint8_t level, const char *format, ...);
+void gnb_logf(gnb_log_ctx_t *log, uint8_t log_type, uint8_t log_id, uint8_t level, const char *format, ...);
 
-int gnb_log_udp_open(gnb_log_ctx_t *log_ctx);
+int gnb_log_udp_open(gnb_log_ctx_t *log);
 
-int gnb_log_file_rotate(gnb_log_ctx_t *log_ctx);
-
-
-int gnb_log_udp_set_addr4(gnb_log_ctx_t *log_ctx, char *ip, uint16_t port4);
-int gnb_log_udp_set_addr6(gnb_log_ctx_t *log_ctx, char *ip, uint16_t port6);
+int gnb_log_file_rotate(gnb_log_ctx_t *log);
 
 
-int gnb_log_udp_set_addr4_string(gnb_log_ctx_t *log_ctx, char *sockaddress4_string);
+int gnb_log_udp_set_addr4(gnb_log_ctx_t *log, char *ip, uint16_t port4);
+int gnb_log_udp_set_addr6(gnb_log_ctx_t *log, char *ip, uint16_t port6);
 
 
-#if 0
-#define GNB_STD1(log,log_id,format,...)    gnb_logf(log,GNB_LOG_TYPE_STD,   log_id, 1, format, ##__VA_ARGS__)
-#define GNB_DEBUG1(log,log_id,format,...)  gnb_logf(log,GNB_LOG_TYPE_DEBUG, log_id, 1, format, ##__VA_ARGS__)
-#define GNB_ERROR1(log,log_id,format,...)  gnb_logf(log,GNB_LOG_TYPE_ERROR, log_id, 1, format, ##__VA_ARGS__)
-#endif
-
+int gnb_log_udp_set_addr4_string(gnb_log_ctx_t *log, char *sockaddress4_string);
 
 
 #define GNB_STD1(log,log_id,format,...)                                                          \
         do{                                                                                      \
-			if ( GNB_LOG_OUTPUT_NONE != log->output_type &&                                      \
+			if ( NULL != log && GNB_LOG_OUTPUT_NONE != log->output_type &&                       \
 				 (log->config_table[log_id].console_level >= GNB_LOG_LEVEL1 ||                   \
                   log->config_table[log_id].file_level    >= GNB_LOG_LEVEL1 ||                   \
 				  log->config_table[log_id].udp_level     >= GNB_LOG_LEVEL1)                     \
@@ -72,7 +63,7 @@ int gnb_log_udp_set_addr4_string(gnb_log_ctx_t *log_ctx, char *sockaddress4_stri
 
 #define GNB_STD2(log,log_id,format,...)                                                          \
         do{                                                                                      \
-			if ( GNB_LOG_OUTPUT_NONE != log->output_type &&                                      \
+			if ( NULL != log && GNB_LOG_OUTPUT_NONE != log->output_type &&                       \
 				 (log->config_table[log_id].console_level >= GNB_LOG_LEVEL2 ||                   \
                   log->config_table[log_id].file_level    >= GNB_LOG_LEVEL2 ||                   \
 				  log->config_table[log_id].udp_level     >= GNB_LOG_LEVEL2)                     \
@@ -83,7 +74,7 @@ int gnb_log_udp_set_addr4_string(gnb_log_ctx_t *log_ctx, char *sockaddress4_stri
 
 #define GNB_STD3(log,log_id,format,...)                                                          \
         do{                                                                                      \
-			if ( GNB_LOG_OUTPUT_NONE != log->output_type &&                                      \
+			if ( NULL != log && GNB_LOG_OUTPUT_NONE != log->output_type &&                       \
 				 (log->config_table[log_id].console_level >= GNB_LOG_LEVEL3 ||                   \
                   log->config_table[log_id].file_level    >= GNB_LOG_LEVEL3 ||                   \
 				  log->config_table[log_id].udp_level     >= GNB_LOG_LEVEL3)                     \
@@ -97,7 +88,7 @@ int gnb_log_udp_set_addr4_string(gnb_log_ctx_t *log_ctx, char *sockaddress4_stri
 
 #define GNB_DEBUG1(log,log_id,format,...)                                                        \
         do{                                                                                      \
-			if ( GNB_LOG_OUTPUT_NONE != log->output_type &&                                      \
+			if ( NULL != log && GNB_LOG_OUTPUT_NONE != log->output_type &&                       \
 				 (log->config_table[log_id].console_level >= GNB_LOG_LEVEL1 ||                   \
                   log->config_table[log_id].file_level    >= GNB_LOG_LEVEL1 ||                   \
 				  log->config_table[log_id].udp_level     >= GNB_LOG_LEVEL1)                     \
@@ -109,7 +100,7 @@ int gnb_log_udp_set_addr4_string(gnb_log_ctx_t *log_ctx, char *sockaddress4_stri
 
 #define GNB_DEBUG2(log,log_id,format,...)                                                        \
         do{                                                                                      \
-			if ( GNB_LOG_OUTPUT_NONE != log->output_type &&                                      \
+			if ( NULL != log && GNB_LOG_OUTPUT_NONE != log->output_type &&                       \
 				 (log->config_table[log_id].console_level >= GNB_LOG_LEVEL2 ||                   \
                   log->config_table[log_id].file_level    >= GNB_LOG_LEVEL2 ||                   \
 				  log->config_table[log_id].udp_level     >= GNB_LOG_LEVEL2)                     \
@@ -120,7 +111,7 @@ int gnb_log_udp_set_addr4_string(gnb_log_ctx_t *log_ctx, char *sockaddress4_stri
 
 #define GNB_DEBUG3(log,log_id,format,...)                                                        \
         do{                                                                                      \
-			if ( GNB_LOG_OUTPUT_NONE != log->output_type &&                                      \
+			if ( NULL != log && GNB_LOG_OUTPUT_NONE != log->output_type &&                       \
 				 (log->config_table[log_id].console_level >= GNB_LOG_LEVEL3 ||                   \
                   log->config_table[log_id].file_level    >= GNB_LOG_LEVEL3 ||                   \
 				  log->config_table[log_id].udp_level     >= GNB_LOG_LEVEL3)                     \
@@ -134,7 +125,7 @@ int gnb_log_udp_set_addr4_string(gnb_log_ctx_t *log_ctx, char *sockaddress4_stri
 
 #define GNB_ERROR1(log,log_id,format,...)                                                        \
         do{                                                                                      \
-			if ( GNB_LOG_OUTPUT_NONE != log->output_type &&                                      \
+			if ( NULL != log && GNB_LOG_OUTPUT_NONE != log->output_type &&                       \
 				 (log->config_table[log_id].console_level >= GNB_LOG_LEVEL1 ||                   \
                   log->config_table[log_id].file_level    >= GNB_LOG_LEVEL1 ||                   \
 				  log->config_table[log_id].udp_level     >= GNB_LOG_LEVEL1)                     \
@@ -146,7 +137,7 @@ int gnb_log_udp_set_addr4_string(gnb_log_ctx_t *log_ctx, char *sockaddress4_stri
 
 #define GNB_ERROR2(log,log_id,format,...)                                                        \
         do{                                                                                      \
-			if ( GNB_LOG_OUTPUT_NONE != log->output_type &&                                      \
+			if ( NULL != log && GNB_LOG_OUTPUT_NONE != log->output_type &&                       \
 				 (log->config_table[log_id].console_level >= GNB_LOG_LEVEL2 ||                   \
                   log->config_table[log_id].file_level    >= GNB_LOG_LEVEL2 ||                   \
 				  log->config_table[log_id].udp_level     >= GNB_LOG_LEVEL2)                     \
@@ -157,7 +148,7 @@ int gnb_log_udp_set_addr4_string(gnb_log_ctx_t *log_ctx, char *sockaddress4_stri
 
 #define GNB_ERROR3(log,log_id,format,...)                                                        \
         do{                                                                                      \
-			if ( GNB_LOG_OUTPUT_NONE != log->output_type &&                                      \
+			if ( NULL != log && GNB_LOG_OUTPUT_NONE != log->output_type &&                       \
 				 (log->config_table[log_id].console_level >= GNB_LOG_LEVEL3 ||                   \
                   log->config_table[log_id].file_level    >= GNB_LOG_LEVEL3 ||                   \
 				  log->config_table[log_id].udp_level     >= GNB_LOG_LEVEL3)                     \

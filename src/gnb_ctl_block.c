@@ -98,16 +98,20 @@ gnb_ctl_block_t *gnb_ctl_block_build(void *memory, size_t node_num){
 	snprintf((char *)ctl_block->node_zone->name,    8, "%s", "NODE");
 	ctl_block->node_zone->node_num = node_num;
 
+	return ctl_block;
+
+}
+
+
+void gnb_ctl_block_build_finish(void *memory){
+
 	//最后写入 mem magic number 确定共享内存初始化完成
 	char *mem_magic_number = memory;
 	mem_magic_number[0] = 'G';
 	mem_magic_number[1] = 'N';
 	mem_magic_number[2] = 'B';
 
-	return ctl_block;
-
 }
-
 
 
 gnb_ctl_block_t *gnb_ctl_block_setup(void *memory){
