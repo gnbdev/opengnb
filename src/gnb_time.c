@@ -18,7 +18,7 @@
 #include "gnb_time.h"
 
 /*秒*/
-int64_t gnb_timestamp_sec(){
+uint64_t gnb_timestamp_sec(){
     int ret;
     struct timeval cur_time;
     uint64_t u64;

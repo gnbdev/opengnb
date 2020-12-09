@@ -10,6 +10,7 @@
 
 #include "gnb_mmap.h"
 
+#include "gnb_time.h"
 
 #include "gnb_block.h"
 
@@ -105,7 +106,13 @@ gnb_ctl_block_t *gnb_ctl_block_build(void *memory, size_t node_num){
 
 void gnb_ctl_block_build_finish(void *memory){
 
-	//最后写入 mem magic number 确定共享内存初始化完成
+	gnb_ctl_block_t ctl_block_st;
+
+	gnb_ctl_block_setup(&ctl_block_st, memory);
+
+	ctl_block_st.status_zone->keep_alive_ts_sec = gnb_timestamp_sec();
+
+	//写入 GNB 确定共享内存初始化完成
 	char *mem_magic_number = memory;
 	mem_magic_number[0] = 'G';
 	mem_magic_number[1] = 'N';
@@ -114,11 +121,9 @@ void gnb_ctl_block_build_finish(void *memory){
 }
 
 
-gnb_ctl_block_t *gnb_ctl_block_setup(void *memory){
+void gnb_ctl_block_setup(gnb_ctl_block_t *ctl_block, void *memory){
 
 	gnb_block32_t *block;
-
-	gnb_ctl_block_t *ctl_block = (gnb_ctl_block_t *)malloc(sizeof(gnb_ctl_block_t));
 
 	ctl_block->entry_table256 = memory;
 
@@ -137,12 +142,77 @@ gnb_ctl_block_t *gnb_ctl_block_setup(void *memory){
 	block = memory + ctl_block->entry_table256[GNB_CTL_NODE];
 	ctl_block->node_zone = (gnb_ctl_node_zone_t *)block->data;
 
-	return ctl_block;
+}
+
+
+gnb_ctl_block_t *gnb_get_ctl_block(const char *ctl_block_file, int flag){
+
+	ssize_t ctl_file_size = 0;
+
+	uint64_t now_sec;
+
+	gnb_mmap_block_t *mmap_block;
+
+	void *memory;
+
+	char *mem_magic_number;
+
+	gnb_ctl_block_t *ctl_block;
+
+	ctl_file_size = gnb_ctl_file_size(ctl_block_file);
+
+	if ( ctl_file_size < (ssize_t)MIN_CTL_BLOCK_FILE_SIZE ){
+		return NULL;
+	}
+
+	mmap_block = gnb_mmap_create(ctl_block_file, ctl_file_size, GNB_MMAP_TYPE_READWRITE);
+
+	if ( NULL == mmap_block ){
+		return NULL;
+	}
+
+	memory = gnb_mmap_get_block(mmap_block);
+
+	mem_magic_number = (char *)memory;
+
+	if ( 'G' != mem_magic_number[0] || 'N' != mem_magic_number[1] || 'B' != mem_magic_number[2] ){
+		return NULL;
+	}
+
+	now_sec = gnb_timestamp_sec();
+
+	ctl_block = (gnb_ctl_block_t *)malloc(sizeof(gnb_ctl_block_t));
+
+	gnb_ctl_block_setup(ctl_block, memory);
+
+	ctl_block->mmap_block = mmap_block;
+
+	if ( now_sec < ctl_block->status_zone->keep_alive_ts_sec ){
+		goto finish_error;
+	}
+
+	if ( now_sec == ctl_block->status_zone->keep_alive_ts_sec ){
+		return ctl_block;
+	}
+
+	if ( (now_sec - ctl_block->status_zone->keep_alive_ts_sec) < GNB_CTL_KEEP_ALIVE_TS ){
+		return ctl_block;
+	}
+
+finish_error:
+
+	gnb_mmap_release(mmap_block);
+
+	free(ctl_block);
+
+	return NULL;
 
 }
 
 
 
+
+#if 0
 gnb_ctl_block_t *gnb_ctl_block_init_readwrite(const char *ctl_block_file){
 
 	gnb_ctl_block_t *ctl_block;
@@ -169,13 +239,17 @@ gnb_ctl_block_t *gnb_ctl_block_init_readwrite(const char *ctl_block_file){
 		return NULL;
 	}
 
-	ctl_block = gnb_ctl_block_setup(memory);
+	ctl_block = (gnb_ctl_block_t *)malloc(sizeof(gnb_ctl_block_t));
+
+	gnb_ctl_block_setup(ctl_block, memory);
 
 	return ctl_block;
 
 }
+#endif
 
 
+#if 0
 gnb_ctl_block_t *gnb_ctl_block_init_readonly(const char *ctl_block_file){
 
 	gnb_ctl_block_t *ctl_block;
@@ -202,8 +276,13 @@ gnb_ctl_block_t *gnb_ctl_block_init_readonly(const char *ctl_block_file){
 		return NULL;
 	}
 
-	ctl_block = gnb_ctl_block_setup(memory);
+	ctl_block = (gnb_ctl_block_t *)malloc(sizeof(gnb_ctl_block_t));
+
+	gnb_ctl_block_setup(ctl_block, memory);
 
 	return ctl_block;
+
 }
+#endif
+
 

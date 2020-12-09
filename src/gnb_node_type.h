@@ -66,9 +66,15 @@ typedef struct _gnb_node_t{
 	uint64_t ping_ts_sec;
 	uint64_t ping_ts_usec;
 
-	#define GNB_NODE_STATUS_UNREACHABL  (0x0)
-	#define GNB_NODE_STATUS_IPV4        (0x1)
-	#define GNB_NODE_STATUS_IPV6        (0x1 << 1)
+	#define GNB_NODE_STATUS_UNREACHABL   (0x0)
+	#define GNB_NODE_STATUS_IPV4_PING    (0x1)
+	#define GNB_NODE_STATUS_IPV6_PING    (0x1 << 1)
+
+	#define GNB_NODE_STATUS_IPV4_PONG    (0x1 << 2)
+	#define GNB_NODE_STATUS_IPV6_PONG    (0x1 << 3)
+
+	#define GNB_NODE_STATUS_IPV4_STATIC  (0x1 << 2)
+	#define GNB_NODE_STATUS_IPV6_STATIC  (0x1 << 3)
 
 	//初始值为 GNB_NODE_STATUS_UNREACHABL, 实现ping pong 后用 GNB_NODE_STATUS_IPV4  GNB_NODE_STATUS_IPV6 置位
 	unsigned int udp_addr_status;
