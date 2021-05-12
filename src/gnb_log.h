@@ -13,12 +13,14 @@ gnb_log_ctx_t* gnb_log_ctx_create();
 #define GNB_LOG_TYPE_ERROR 2
 
 
-//level 越大，日志信息越详细,0不输出日志，暂时未用
+//log level越大，日志信息越详细,0不输出日志
+
+#define GNB_LOG_LEVEL_NOTSET    0xFF
+
 #define GNB_LOG_LEVEL0          0
 #define GNB_LOG_LEVEL1          1
 #define GNB_LOG_LEVEL2          2
 #define GNB_LOG_LEVEL3          3
-
 
 
 /*
@@ -28,10 +30,10 @@ STD DEBUG ERROR 只是作为一种日志的内置标签，不通过 level 细分
 
 要控制 debug 输出，可以让STD 使用小的level，DEBUG用高的level
 
+//GNB_LOG_TYPE_STD    level = 1
+//GNB_LOG_TYPE_ERROR  level = 2
+//GNB_LOG_TYPE_DEBUG  level = 3
 
-STD    level = 1
-ERROR  level = 2
-DEBUG  level = 3
 */
 
 
@@ -49,7 +51,7 @@ int gnb_log_udp_set_addr6(gnb_log_ctx_t *log, char *ip, uint16_t port6);
 int gnb_log_udp_set_addr4_string(gnb_log_ctx_t *log, char *sockaddress4_string);
 
 
-#define GNB_STD1(log,log_id,format,...)                                                          \
+#define GNB_LOG1(log,log_id,format,...)                                                          \
         do{                                                                                      \
 			if ( NULL != log && GNB_LOG_OUTPUT_NONE != log->output_type &&                       \
 				 (log->config_table[log_id].console_level >= GNB_LOG_LEVEL1 ||                   \
@@ -61,7 +63,7 @@ int gnb_log_udp_set_addr4_string(gnb_log_ctx_t *log, char *sockaddress4_string);
         }while(0);
 
 
-#define GNB_STD2(log,log_id,format,...)                                                          \
+#define GNB_LOG2(log,log_id,format,...)                                                          \
         do{                                                                                      \
 			if ( NULL != log && GNB_LOG_OUTPUT_NONE != log->output_type &&                       \
 				 (log->config_table[log_id].console_level >= GNB_LOG_LEVEL2 ||                   \
@@ -72,7 +74,7 @@ int gnb_log_udp_set_addr4_string(gnb_log_ctx_t *log, char *sockaddress4_string);
 			}                                                                                    \
         }while(0);
 
-#define GNB_STD3(log,log_id,format,...)                                                          \
+#define GNB_LOG3(log,log_id,format,...)                                                          \
         do{                                                                                      \
 			if ( NULL != log && GNB_LOG_OUTPUT_NONE != log->output_type &&                       \
 				 (log->config_table[log_id].console_level >= GNB_LOG_LEVEL3 ||                   \

@@ -9,7 +9,7 @@ typedef struct _gnb_hash32_bucket_t{
 }gnb_hash32_bucket_t;
 
 
-//murmurhash from nginx
+//murmurhash, from nginx
 uint32_t gnb_hash(unsigned char *data, size_t len){
 
     uint32_t  h, k;
@@ -99,7 +99,7 @@ void gnb_hash32_release(gnb_hash32_map_t *hash32_map){
 
 
 gnb_kv32_t *gnb_kv32_create(gnb_hash32_map_t *hash32_map, u_char *key, uint32_t key_len, u_char *value, uint32_t value_len){
-    
+
     uint32_t r_key_len;
     uint32_t r_value_len;
     
@@ -133,7 +133,7 @@ gnb_kv32_t *gnb_kv32_create(gnb_hash32_map_t *hash32_map, u_char *key, uint32_t 
         memcpy(kv->value->data, value, value_len);
         kv->value->size = value_len;
     } else {
-        //直接存 void *
+        //直接存 void*
         GNB_BLOCK_VOID(kv->value) = value;
         kv->value->size = 0;
     }
@@ -149,8 +149,8 @@ void gnb_kv32_release(gnb_hash32_map_t *hash_map, gnb_kv32_t *kv){
 }
 
 
-gnb_kv32_t *gnb_hash32_put(gnb_hash32_map_t *hash32_map, u_char *key, uint32_t key_len, void *value, uint32_t value_len){
-    
+gnb_kv32_t *gnb_hash32_set(gnb_hash32_map_t *hash32_map, u_char *key, uint32_t key_len, void *value, uint32_t value_len){
+
     gnb_kv32_t *kv = NULL;
 
     uint32_t hashcode = gnb_hash(key, key_len);
@@ -182,11 +182,25 @@ gnb_kv32_t *gnb_hash32_put(gnb_hash32_map_t *hash32_map, u_char *key, uint32_t k
 
             kv = kv_chain;
 
+#if 0
             if (pre_kv_chain != kv_chain) {
                 pre_kv_chain->nex = gnb_kv32_create(hash32_map, key, key_len, value, value_len);
             }
-            
+#endif
+
+#if 1
+            if ( 0 != value_len ){
+                 memcpy(kv->value->data, value, value_len);
+                 kv->value->size = value_len;
+            } else {
+                 //直接存 void*
+                 GNB_BLOCK_VOID(kv->value) = value;
+                 kv->value->size = 0;
+            }
+#endif
+
             break;
+
         }
 
         pre_kv_chain = kv_chain;
@@ -239,10 +253,24 @@ int gnb_hash32_store(gnb_hash32_map_t *hash32_map, u_char *key, uint32_t key_len
         if ( !memcmp(kv_chain->key->data, key, key_len) ) {
             
             gnb_kv32_release(hash32_map, kv_chain);
-            
+
+#if 0
             if (pre_kv_chain != kv_chain) {
                 pre_kv_chain->nex = gnb_kv32_create(hash32_map, key, key_len, value, value_len);
             }
+#endif
+
+#if 1
+            if ( bucket->kv_chain != kv_chain ) {
+
+            	pre_kv_chain->nex = gnb_kv32_create(hash32_map, key, key_len, value, value_len);
+
+            } else {
+
+            	bucket->kv_chain = gnb_kv32_create(hash32_map, key, key_len, value, value_len);
+            }
+#endif
+
 
             break;
         }

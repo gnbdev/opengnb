@@ -45,9 +45,9 @@ typedef struct _gnb_payload16_ctx_t{
 
 	unsigned char buffer[2];
 
-    //传入payload
+	//传入payload
 	gnb_payload16_t *gnb_payload16;
-    //传入的 payload 内存块大小
+	//传入的 payload 内存块大小
 	uint32_t max_payload_size;
 
 	void *udata;
@@ -63,5 +63,6 @@ typedef int (*gnb_payload16_handle_cb_t)(gnb_payload16_t *gnb_payload16, void *c
 int gnb_payload16_handle(void *data, size_t data_size, gnb_payload16_ctx_t *gnb_payload16_ctx, gnb_payload16_handle_cb_t cb);
 
 #define GNB_PAYLOAD16_FRAME_SIZE(payload) gnb_payload16_size(payload)
+#define GNB_PAYLOAD16_DATA_SIZE(payload)  gnb_payload16_data_len(payload)
 
 #endif

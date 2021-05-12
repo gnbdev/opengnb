@@ -3,11 +3,9 @@
 
 [gnb_udp_over_tcp](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp")是一个为GNB开发的通过tcp链路中转UDP分组转发的服务，也可以为其他基于UDP协议的服务中转数据。
 
-[GNBFrontend](https://github.com/XyloseYuthy/GNBFrontend "GNBFrontend")是由志愿者开发维护的开源的GNB的图形界面前端。
-
 出于安全考虑，GNB项目相关代码会以开源方式发布, [source code](src/)  会逐步公开。
 
-## 内网穿透 P2P VPN
+## 内网穿透 P2P虚拟组网
 
 GNB独有的去中心化组网技术可以将分布在世界不同地方的计算机组成一个虚拟局域网，即使这些计算机深藏于没有公网ip的局域网里，并且不需要公网服务器中转就可以实现TCP/IP通讯。
 

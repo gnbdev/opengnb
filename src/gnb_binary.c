@@ -199,4 +199,3 @@ char * gnb_get_hex_string128(void *byte64, char *dest){
 
 }
 
-

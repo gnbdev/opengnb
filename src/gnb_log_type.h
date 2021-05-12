@@ -15,7 +15,6 @@
 #endif
 
 
-
 typedef struct _gnb_log_config_t {
 
     char log_name[20];
@@ -28,7 +27,9 @@ typedef struct _gnb_log_config_t {
 
 }gnb_log_config_t;
 
+
 #define GNB_MAX_LOG_ID 128
+
 
 typedef struct _gnb_log_ctx_t {
 
@@ -83,4 +84,3 @@ typedef struct _gnb_log_ctx_t {
 
 
 #endif
-

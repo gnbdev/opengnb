@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <limits.h>
 
-
 #ifdef _WIN32
 
 #ifndef NAME_MAX
@@ -14,10 +13,11 @@
 #endif
 
 
-#define GNB_CRYPTO_TPYE_NONE (0x1)
-#define GNB_CRYPTO_TPYE_XOR  (0x1 << 1)
-#define GNB_CRYPTO_TPYE_RC4  (0x1 << 2)
-#define GNB_CRYPTO_TPYE_AES  (0x1 << 3)
+#define GNB_PF_TYPE_CRYPTO_NONE    0x0
+#define GNB_PF_TYPE_CRYPTO_XOR     0x01
+#define GNB_PF_TYPE_CRYPTO_RC4     0x02
+#define GNB_PF_TYPE_CRYPTO_AES     0x03
+
 
 #define GNB_CRYPTO_KEY_UPDATE_INTERVAL_NONE    0x0
 #define GNB_CRYPTO_KEY_UPDATE_INTERVAL_MINUTE  0x1
@@ -47,9 +47,16 @@ typedef struct _gnb_conf_t {
 
 	char log_path[PATH_MAX];
 
-	uint8_t log_console_level;
-	uint8_t log_file_level;
-	uint8_t log_udp_level;
+	uint8_t console_log_level;
+	uint8_t file_log_level;
+	uint8_t udp_log_level;
+
+	uint8_t core_log_level;
+	uint8_t pf_log_level;
+	uint8_t main_log_level;
+	uint8_t node_log_level;
+	uint8_t index_log_level;
+	uint8_t detect_log_level;
 
 	uint8_t log_udp_type;
 
@@ -57,13 +64,14 @@ typedef struct _gnb_conf_t {
 
 	char ifname[256];
 
-	//由 IFNAMSIZ 定义为16
+	//根据 IFNAMSIZ 定义为16
 	char socket_ifname[16];
 
 	int mtu;
 
 	unsigned char crypto_type;
 	unsigned char crypto_key_update_interval;
+	unsigned char crypto_passcode[4];
 
 	unsigned char multi_index_type;
 	unsigned char multi_forward_type;
@@ -82,8 +90,7 @@ typedef struct _gnb_conf_t {
 
 	uint8_t activate_tun;
 
-	uint8_t ufwd;
-
+	uint8_t fwdu0;
 	unsigned char ufwd_passcode[4];
 
 

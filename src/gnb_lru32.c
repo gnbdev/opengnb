@@ -120,7 +120,7 @@ void* gnb_lru32_put(gnb_lru32_t *lru, unsigned char *key, uint32_t key_len, void
     
     gnb_doubly_linked_list_add(lru->doubly_linked_list, lru_node->dl_node);
 
-    gnb_hash32_put(lru->lru_node_map, key, (uint32_t)key_len, lru_node, 0);
+    gnb_hash32_set(lru->lru_node_map, key, (uint32_t)key_len, lru_node, 0);
     lru_node->kv = gnb_hash32_get(lru->lru_node_map, key, (uint32_t)key_len);
     
     gnb_doubly_linked_list_node_set(lru_node->dl_node,lru_node);
@@ -170,7 +170,7 @@ void gnb_lru32_store(gnb_lru32_t *lru, unsigned char *key, uint32_t key_len, voi
     
     gnb_doubly_linked_list_add(lru->doubly_linked_list, lru_node->dl_node);
 
-    gnb_hash32_put(lru->lru_node_map, key, (uint32_t)key_len, lru_node, 0);
+    gnb_hash32_set(lru->lru_node_map, key, (uint32_t)key_len, lru_node, 0);
     lru_node->kv = gnb_hash32_get(lru->lru_node_map, key, (uint32_t)key_len);
     
     gnb_doubly_linked_list_node_set(lru_node->dl_node,lru_node);
@@ -213,7 +213,7 @@ void gnb_lru32_fixed_store(gnb_lru32_t *lru, unsigned char *key, uint32_t key_le
 
     gnb_doubly_linked_list_add(lru->doubly_linked_list, lru_node->dl_node);
 
-    gnb_hash32_put(lru->lru_node_map, key, (uint32_t)key_len, lru_node, 0);
+    gnb_hash32_set(lru->lru_node_map, key, (uint32_t)key_len, lru_node, 0);
     lru_node->kv = gnb_hash32_get(lru->lru_node_map, key, (uint32_t)key_len);
     
     gnb_doubly_linked_list_node_set(lru_node->dl_node,lru_node);

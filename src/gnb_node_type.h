@@ -5,6 +5,7 @@
 
 #include "gnb_address_type.h"
 
+
 typedef struct _gnb_node_t{
 
 	uint32_t uuid32;
@@ -12,12 +13,17 @@ typedef struct _gnb_node_t{
 	uint64_t in_bytes;
 	uint64_t out_bytes;
 
+
 	#define GNB_NODE_TYPE_STD               (0x0)
 	#define GNB_NODE_TYPE_IDX               (0x1)
 	#define GNB_NODE_TYPE_FWD               (0x1 << 1)
+    #define GNB_NODE_TYPE_RELAY             (0x1 << 2)
+	#define GNB_NODE_TYPE_SLIENCE           (0x1 << 3)
 
-	#define GNB_NODE_TYPE_STATIC_ADDR       (0x1 << 2)
-	#define GNB_NODE_TYPE_DYNAMIC_ADDR      (0x1 << 3)
+	//未使用
+	#define GNB_NODE_TYPE_STATIC_ADDR       (0x1 << 4)
+	#define GNB_NODE_TYPE_DYNAMIC_ADDR      (0x1 << 5)
+
 
 	unsigned char type;
 
@@ -34,6 +40,22 @@ typedef struct _gnb_node_t{
 	uint8_t            socket6_idx;
 	uint8_t            socket4_idx;
 
+
+	#define GNB_MAX_NODE_ROUTE    8
+	#define GNB_MAX_NODE_RELAY    4
+	uint32_t route_node[GNB_MAX_NODE_ROUTE][GNB_MAX_NODE_RELAY];
+	uint8_t  route_node_ttls[GNB_MAX_NODE_ROUTE];
+	uint8_t  selected_route_node;
+	//到 dst node 总共有 route_node_num 个 路径
+	//uint8_t route_node_num;  // add ？
+
+	#define GNB_NODE_RELAY_DISABLE          (0x0)
+	#define GNB_NODE_RELAY_AUTO             (0x1)
+	#define GNB_NODE_RELAY_FORCE            (0x1 << 1)
+	#define GNB_NODE_RELAY_STATIC           (0x1 << 2)
+	#define GNB_NODE_RELAY_BALANCE          (0x1 << 3)
+
+	uint8_t  node_relay_mode;
 
 	#define GNB_NODE_STATIC_ADDRESS_NUM   6
 	#define GNB_NODE_DYNAMIC_ADDRESS_NUM 16
@@ -53,14 +75,14 @@ typedef struct _gnb_node_t{
 	unsigned char push_address_block[sizeof(gnb_address_list_t) + sizeof(gnb_address_t)*GNB_NODE_PUSH_ADDRESS_NUM];
 
 
-	unsigned char detect_address4_block[sizeof(gnb_address_list_t) + sizeof(gnb_address_t)*3];
+	unsigned char   detect_address4_block[sizeof(gnb_address_list_t) + sizeof(gnb_address_t)*3];
 	uint8_t         detect_address4_idx;
 	struct in_addr  detect_addr4;
 	uint16_t        detect_port4;
 
 
 	#define GNB_NODE_MAX_DETECT_TIMES 32
-	int detect_count;
+	uint32_t detect_count;
 
 	//上次发对该node发送 ping 的时间戳，不区分ipv4和ipv6
 	uint64_t ping_ts_sec;
@@ -83,9 +105,9 @@ typedef struct _gnb_node_t{
 	int64_t addr4_ping_latency_usec;
 
 	//上次node发来 ping4 或 pong4 时间戳
-	int addr4_update_ts_sec;
+	uint64_t addr4_update_ts_sec;
 	//上次node发来 ping6 或 pong6 时间戳
-	int addr6_update_ts_sec;
+	uint64_t addr6_update_ts_sec;
 
 	//ed25519 public key
 	unsigned char public_key[32];
@@ -106,7 +128,6 @@ typedef struct _gnb_node_t{
 
 	uint64_t last_detect_sec;
 
-
 }gnb_node_t;
 
 
@@ -121,4 +142,3 @@ typedef struct _gnb_node_ring_t{
 
 
 #endif
-
