@@ -65,7 +65,7 @@ GNB用C语言开发，编译时不需要引用第三方库文件，可以方便�
 
 GNB目前支持的操作系统及平台有 Linux_x86_64，Windows10_x86_64， macOS，FreeBSD_AMD64，OpenBSD_AMD64，树莓派，OpenWRT；大至服务器环境，桌面系统，小至仅有32M内存的OpenWRT路由器都能很好的运行GNB网络。
 
-由[《铜豌豆 Linux》](https://www.atzlinux.com)项目为本项目自制了 Linux 下的 deb 格式软件包，详情请访问[Linux_quick_start.txt](Linux_quick_start.txt)。
+由[《铜豌豆 Linux》](https://www.atzlinux.com)项目为 gnb 项目制做了 Linux 下的 deb 格式软件包，详情请访问[铜豌豆软件源](https://www.atzlinux.com/allpackages.htm)。
 
 以下是一些GNB的技术文档：
 
