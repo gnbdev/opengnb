@@ -4,8 +4,8 @@
 
 [gnb_udp_over_tcp](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp")是一个为GNB开发的通过tcp链路中转UDP分组转发的服务，也可以为其他基于UDP协议的服务中转数据。
 
-出于安全考虑，GNB项目相关所有代码会以开源方式发布, [source code](src/)  目前发布源码有
-
+出于安全考虑，GNB项目相关所有代码以开源方式发布。
+当前发布的源码支持平台：
 FreeBSD
 
 [gnb在各平台的编译发行版下载](https://github.com/gnbdev/gnb_build "gnb_build")
