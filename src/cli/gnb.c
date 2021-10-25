@@ -47,10 +47,10 @@ extern int is_self_test;
 
 static void self_test(){
 
-	int i;
+    int i;
 
-	GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"selftest local node=%lu\n", gnb_core->local_node->uuid32);
-	GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"selftest tun ipv4[%s]\n",   GNB_ADDR4STR_PLAINTEXT1(&gnb_core->local_node->tun_addr4));
+    GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"selftest local node=%lu\n", gnb_core->local_node->uuid32);
+    GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"selftest tun ipv4[%s]\n",   GNB_ADDR4STR_PLAINTEXT1(&gnb_core->local_node->tun_addr4));
 
     GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"selftest binary_dir='%s'\n", gnb_core->conf->binary_dir);
     GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"selftest conf_dir='%s'\n", gnb_core->conf->conf_dir);
@@ -71,9 +71,7 @@ static void self_test(){
     GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"selftest direct_forwarding=%d\n", gnb_core->conf->direct_forwarding);
 
     GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"selftest activate tun=%d\n", gnb_core->conf->activate_tun);
-
     GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"selftest public index service=%d\n", gnb_core->conf->public_index_service);
-
 
     int node_num;
     int j;
@@ -84,7 +82,7 @@ static void self_test(){
 
     if(1 == gnb_core->conf->activate_tun && 0 == gnb_core->conf->public_index_service){
 
-    	ctl_block = gnb_core->ctl_block;
+        ctl_block = gnb_core->ctl_block;
 
         node_num = ctl_block->node_zone->node_num;
 
@@ -92,9 +90,14 @@ static void self_test(){
 
             node = &ctl_block->node_zone->node[i];
 
-            if (node->uuid32 != ctl_block->core_zone->local_uuid){
-                continue;
+            if ( node->uuid32 != ctl_block->core_zone->local_uuid ) {
+                GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"selftest ----- remote node %u -----\n", node->uuid32);
+            }else {
+                GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"selftest local  node %u\n", node->uuid32);
             }
+
+            GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"selftest tun_ipv6 %s\n", GNB_ADDR6STR_PLAINTEXT1(&node->tun_ipv6_addr));
+            GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"selftest tun_ipv4 %s\n", GNB_ADDR4STR_PLAINTEXT1(&node->tun_addr4));
 
             static_address_list  = (gnb_address_list_t *)&node->static_address_block;
 
@@ -121,7 +124,7 @@ static void self_test(){
         GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"selftest num of fwd node=%d\n", gnb_core->fwd_node_ring.num);
 
         for(i=0; i<gnb_core->fwd_node_ring.num; i++){
-        	GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"selftest fwd node=%d\n", gnb_core->fwd_node_ring.nodes[i]->uuid32);
+            GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"selftest fwd node=%d\n", gnb_core->fwd_node_ring.nodes[i]->uuid32);
         }
 
         for(i=0; i<gnb_es_arg_list->argc; i++){
@@ -173,13 +176,9 @@ int main (int argc,char *argv[]){
     conf = gnb_argv(argc, argv);
 
     if ( 0 == conf->public_index_service ) {
-
         gnb_core = gnb_core_create(conf);
-
     } else {
-
         gnb_core = gnb_core_index_service_create(conf);
-
     }
 
     if (NULL==gnb_core){
@@ -200,7 +199,7 @@ int main (int argc,char *argv[]){
     ret = gettimeofday(&gnb_core->now_timeval,NULL);
 
     if(1==is_self_test){
-    	self_test();
+        self_test();
     }
 
     if ( 0 == conf->public_index_service ) {

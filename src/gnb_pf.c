@@ -301,7 +301,9 @@ void gnb_pf_tun(gnb_core_t *gnb_core, gnb_payload16_t *payload){
 
     pf_ctx_st.pf_status = GNB_PF_TUN_FRAME_INIT;
 
-    GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF,"======== GNB PF TUN BEGIN ========\n");
+    if ( 1 == gnb_core->conf->if_dump ){
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF,"----- GNB PF TUN BEGIN -----\n");
+    }
 
     for( i=0; i<gnb_core->pf_array->num; i++ ){
 
@@ -421,13 +423,19 @@ pf_tun_log:
         goto finish;
     }
 
-    GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "tun src[%u] dst[%u] fwd[%u] [%s] [%s] ip_frame_size[%u]\n",
-               pf_ctx_st.src_uuid32, pf_ctx_st.dst_uuid32, fwd_uuid32,
-               gnb_pf_status_strings[pf_tun_frame_status], gnb_pf_status_strings[pf_tun_route_status],
-               pf_ctx_st.ip_frame_size);
+    if ( 1 == gnb_core->conf->if_dump ){
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "tun src[%u] dst[%u] fwd[%u] [%s] [%s] ip_frame_size[%u]\n",
+                   pf_ctx_st.src_uuid32, pf_ctx_st.dst_uuid32, fwd_uuid32,
+                   gnb_pf_status_strings[pf_tun_frame_status], gnb_pf_status_strings[pf_tun_route_status],
+                   pf_ctx_st.ip_frame_size);
+
+    }
+
 finish:
 
-    GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF,"======== GNB PF TUN   END ========\n");
+    if ( 1 == gnb_core->conf->if_dump ){
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF,"----- GNB PF TUN   END -----\n");
+    }
 
     return;
 
@@ -442,9 +450,7 @@ void gnb_pf_inet(gnb_core_t *gnb_core, gnb_payload16_t *payload, gnb_sockaddress
     memset(&pf_ctx_st,0,sizeof(gnb_pf_ctx_t));
 
     pf_ctx_st.pf_fwd = GNB_PF_FWD_INIT;
-
     pf_ctx_st.fwd_payload = payload;
-
     pf_ctx_st.source_node_addr = source_node_addr;
 
     int i;
@@ -457,7 +463,9 @@ void gnb_pf_inet(gnb_core_t *gnb_core, gnb_payload16_t *payload, gnb_sockaddress
 
     gnb_core->select_fwd_node = gnb_select_forward_node(gnb_core);
 
-    GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF,"======== GNB PF INET BEGIN ========\n");
+    if ( 1 == gnb_core->conf->if_dump ){
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF,"----- GNB PF INET BEGIN -----\n");
+    }
 
     for( i=gnb_core->pf_array->num-1; i>=0; i-- ){
 
@@ -582,16 +590,16 @@ void gnb_pf_inet(gnb_core_t *gnb_core, gnb_payload16_t *payload, gnb_sockaddress
 
 pf_inet_log:
 
-    if ( 1 != gnb_core->conf->if_dump ){
-        return;
+    if ( 1 == gnb_core->conf->if_dump ){
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "inet src[%u] dst[%u] fwd[%u] [%s] [%s] [%s] ip_frame_size[%u]\n",
+                   pf_ctx_st.src_uuid32, pf_ctx_st.dst_uuid32, fwd_uuid32,
+                   gnb_pf_status_strings[pf_inet_frame_status], gnb_pf_status_strings[pf_inet_route_status], gnb_pf_status_strings[pf_inet_forwad_status],
+                   pf_ctx_st.ip_frame_size);
     }
 
-    GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "inet src[%u] dst[%u] fwd[%u] [%s] [%s] [%s] ip_frame_size[%u]\n",
-               pf_ctx_st.src_uuid32, pf_ctx_st.dst_uuid32, fwd_uuid32,
-               gnb_pf_status_strings[pf_inet_frame_status], gnb_pf_status_strings[pf_inet_route_status], gnb_pf_status_strings[pf_inet_forwad_status],
-               pf_ctx_st.ip_frame_size);
-
-    GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF,"======== GNB PF INET END ========\n");
+    if ( 1 == gnb_core->conf->if_dump ){
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF,"----- GNB PF INET END -----\n");
+    }
 
     return;
 
@@ -612,4 +620,3 @@ void gnb_pf_release(gnb_core_t *gnb_core){
     }
 
 }
-
