@@ -1,0 +1,90 @@
+CFLAGS=-O2 -ffunction-sections -fdata-sections -Wno-unused-result -I./src/ -I./libs/ -I./libs/miniupnpc/
+CLI_LDFLAGS=-Wl,--gc-sections -L/usr/lib -pthread
+
+GNB_ES_LDFLAGS=-Wl,--gc-sections -L/usr/lib -pthread
+
+
+ifeq ($(DEBUG),1)
+CFLAGS += -g
+else
+CLI_LDFLAGS    += -s
+GNB_ES_LDFLAGS += -s
+endif
+
+
+GNB_CRYPTO=gnb_crypto
+GNB_CTL=gnb_ctl
+GNB_ES=gnb_es
+GNB_CLI=gnb
+
+
+include makefile.inc
+
+
+GNB_CLI_OBJS =                             \
+       ./src/cli/gnb.o                     \
+       ./src/gnb_argv.o                    \
+       ./src/unix/unix_platform.o          \
+       ./src/linux/gnb_drv_linux.o
+
+
+all:$(GNB_CLI) $(GNB_CRYPTO) $(GNB_ES) $(GNB_CTL)
+
+$(GNB_CTL): $(GNB_CTL_OBJS)
+	$(CC) -o ${GNB_CTL} $(GNB_CTL_OBJS) $(CLI_LDFLAGS)
+	cp $(GNB_CTL) ./bin/
+
+
+$(GNB_ES): $(GNB_ES_OBJS) $(MINIUPNP_OBJS)
+	$(CC) -o ${GNB_ES} $(GNB_ES_OBJS) $(MINIUPNP_OBJS) $(GNB_ES_LDFLAGS)
+	cp $(GNB_ES) ./bin/
+
+
+$(GNB_CRYPTO): $(CRYPTO_OBJS) ./src/gnb_crypto.o
+	$(CC) -o ${GNB_CRYPTO} ./src/gnb_crypto.o $(CRYPTO_OBJS) $(CLI_LDFLAGS)
+	cp $(GNB_CRYPTO) ./bin/
+
+
+$(GNB_CLI): $(GNB_OBJS) $(GNB_CLI_OBJS) $(GNB_PF_OBJS) ${CRYPTO_OBJS}
+	$(CC) -o ${GNB_CLI} $(GNB_OBJS) $(GNB_CLI_OBJS) $(GNB_PF_OBJS) ${CRYPTO_OBJS} $(CLI_LDFLAGS)
+	cp ${GNB_CLI} ./bin/
+
+
+%.o:%.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+
+install:$(GNB_CLI) $(GNB_CRYPTO) $(GNB_ES) $(GNB_CTL)
+	cp ${GNB_CLI}    ./bin/
+	cp $(GNB_CRYPTO) ./bin/
+	cp $(GNB_ES)     ./bin/
+
+
+clean:	
+	find . -name "*.o" -exec rm -f {} \;
+	rm -f $(GNB_CLI) $(GNB_CRYPTO) $(GNB_ES) $(GNB_CTL)
+	rm -f core
+	rm -f *.exe
+
+
+
+
+
+#rm -f ./src/*.o ./src/cli/*.o ./src/es/*.o ./src/ctl/*.o ./src/packet_filter/*.o ./src/linux/*.o ./src/freebsd/*.o ./src/openbsd/*.o ./src/Darwin/*.o ./src/mingw/*.o ./src/unix/*.o ./libs/miniupnpc/*.o ./src/crypto/ed25519/*.o ./src/crypto/rc4/*.o ./src/crypto/aes/*.o ./src/crypto/random/*.o
+#global network bind
+#global network byte
+
+#-fPIC -O -Wall -W -Wstrict-prototypes -fno-common -DMINIUPNPC_SET_SOCKET_TIMEOUT -DMINIUPNPC_GET_SRC_ADDR -D_BSD_SOURCE -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600
+#-static
+
+##CFLAGS=-g -I./  -I./libs/ -I./libs/miniupnpc/
+##CLI_LDFLAGS= -L/usr/lib -pthread
+
+###############
+#CFLAGS=-g -I./src/  -I./libs/ -I./libs/miniupnpc/
+#CLI_LDFLAGS=-L/usr/lib -pthread
+#GNB_ES_LDFLAGS=-L/usr/lib -pthread
+################
+
+
+
