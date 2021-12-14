@@ -42,6 +42,10 @@ pid_t gnb_exec(char *app_filename, char *current_path, gnb_arg_list_t *arg_list,
 
     pid_t pid;
 
+    int fd;
+
+    int ret;
+
     char *argv[arg_list->argc];
 
     pid = fork();
@@ -58,21 +62,25 @@ pid_t gnb_exec(char *app_filename, char *current_path, gnb_arg_list_t *arg_list,
 
     argv[i] = NULL;
 
-    int fd;
+    ret = chdir(current_path);
 
-    int rc;
-
-    rc = chdir(current_path);
+    if( 0 != ret ){
+    	goto finish;
+    }
 
     fd = open("/dev/null", O_RDWR);
 
     if ( 0 != fd ){
-        rc = dup2(fd, STDIN_FILENO);
-        rc = dup2(fd, STDOUT_FILENO);
-        rc = dup2(fd, STDERR_FILENO);
+        ret = dup2(fd, STDIN_FILENO);
+        ret = dup2(fd, STDOUT_FILENO);
+        ret = dup2(fd, STDERR_FILENO);
     }
 
     execve(app_filename, argv, NULL);
+
+finish:
+
+    exit(0);
 
     return 0;
 
@@ -84,5 +92,4 @@ void gnb_kill(pid_t pid){
     kill(pid, SIGKILL);
 
 }
-
 
