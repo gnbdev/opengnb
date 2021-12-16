@@ -53,6 +53,7 @@ gnb_pf_t* gnb_find_pf_mod_by_name(const char *name);
 
 void gnb_set_env(const char *name, const char *value);
 
+extern  gnb_arg_list_t *gnb_es_arg_list;
 
 void signal_handler(int signum){
 
@@ -89,7 +90,7 @@ static void init_ctl_block(gnb_core_t *gnb_core, gnb_conf_t *conf){
         node_num = gnb_get_node_num_from_file(conf);
     }
 
-    if ( 0==node_num ){
+    if ( 0==node_num ) {
         node_num = 256;
     }
 
@@ -124,7 +125,7 @@ static void setup_log_ctx(gnb_conf_t *conf, gnb_log_ctx_t *log){
         log->output_type = GNB_LOG_OUTPUT_NONE;
     }
 
-    if ( '\0' != conf->log_path[0] ){
+    if ( '\0' != conf->log_path[0] ) {
 
         snprintf(log->log_file_path, PATH_MAX, "%s", conf->log_path);
 
@@ -182,31 +183,31 @@ static void setup_log_ctx(gnb_conf_t *conf, gnb_log_ctx_t *log){
 
     if ( 1 == conf->lite_mode ) {
 
-        if ( GNB_LOG_LEVEL_UNSET == conf->core_log_level ){
+        if ( GNB_LOG_LEVEL_UNSET == conf->core_log_level ) {
             conf->core_log_level = GNB_LOG_LEVEL3;
         }
 
-        if ( GNB_LOG_LEVEL_UNSET == conf->pf_log_level ){
+        if ( GNB_LOG_LEVEL_UNSET == conf->pf_log_level ) {
             conf->pf_log_level = GNB_LOG_LEVEL3;
         }
 
-        if ( GNB_LOG_LEVEL_UNSET == conf->core_log_level ){
+        if ( GNB_LOG_LEVEL_UNSET == conf->core_log_level ) {
             conf->core_log_level = GNB_LOG_LEVEL3;
         }
 
-        if ( GNB_LOG_LEVEL_UNSET == conf->main_log_level ){
+        if ( GNB_LOG_LEVEL_UNSET == conf->main_log_level ) {
             conf->main_log_level = GNB_LOG_LEVEL3;
         }
 
-        if ( GNB_LOG_LEVEL_UNSET == conf->node_log_level ){
+        if ( GNB_LOG_LEVEL_UNSET == conf->node_log_level ) {
             conf->node_log_level = GNB_LOG_LEVEL3;
         }
 
-        if ( GNB_LOG_LEVEL_UNSET == conf->index_log_level ){
+        if ( GNB_LOG_LEVEL_UNSET == conf->index_log_level ) {
             conf->index_log_level = GNB_LOG_LEVEL3;
         }
 
-        if ( GNB_LOG_LEVEL_UNSET == conf->index_service_log_level ){
+        if ( GNB_LOG_LEVEL_UNSET == conf->index_service_log_level ) {
             conf->index_service_log_level = GNB_LOG_LEVEL3;
         }
 
@@ -250,7 +251,7 @@ static void setup_log_ctx(gnb_conf_t *conf, gnb_log_ctx_t *log){
 
     if ( GNB_LOG_LEVEL_UNSET != conf->core_log_level ) {
 
-        if ( 0 == conf->lite_mode ){
+        if ( 0 == conf->lite_mode ) {
 
             if ( conf->console_log_level >= conf->core_log_level ) {
                 log->config_table[GNB_LOG_ID_CORE].console_level = conf->core_log_level;
@@ -276,7 +277,7 @@ static void setup_log_ctx(gnb_conf_t *conf, gnb_log_ctx_t *log){
 
     if ( GNB_LOG_LEVEL_UNSET != conf->pf_log_level ) {
 
-        if ( 0 == conf->lite_mode ){
+        if ( 0 == conf->lite_mode ) {
 
             if ( conf->pf_log_level >= log->config_table[GNB_LOG_ID_PF].console_level ) {
                 log->config_table[GNB_LOG_ID_PF].console_level = conf->pf_log_level;
@@ -330,7 +331,7 @@ static void setup_log_ctx(gnb_conf_t *conf, gnb_log_ctx_t *log){
 
     if ( GNB_LOG_LEVEL_UNSET != conf->node_log_level ) {
 
-        if ( 0 == conf->lite_mode ){
+        if ( 0 == conf->lite_mode ) {
 
             if ( conf->console_log_level >= conf->node_log_level ) {
                 log->config_table[GNB_LOG_ID_NODE_WORKER].console_level = conf->node_log_level;
@@ -411,7 +412,7 @@ static void setup_log_ctx(gnb_conf_t *conf, gnb_log_ctx_t *log){
 
     if ( GNB_LOG_LEVEL_UNSET != conf->detect_log_level ) {
 
-        if ( 0 == conf->lite_mode ){
+        if ( 0 == conf->lite_mode ) {
 
             if ( conf->console_log_level > conf->detect_log_level ) {
                 log->config_table[GNB_LOG_ID_DETECT_WORKER].console_level = conf->detect_log_level;
@@ -522,7 +523,7 @@ gnb_core_t* gnb_core_create(gnb_conf_t *conf){
 
     pf = gnb_find_pf_mod_by_name("gnb_pf_dump");
 
-    if ( 1==gnb_core->conf->if_dump ){
+    if ( 1==gnb_core->conf->if_dump ) {
         gnb_pf_install(gnb_core->pf_array, pf);
     }
 
@@ -535,16 +536,16 @@ gnb_core_t* gnb_core_create(gnb_conf_t *conf){
 
     gnb_pf_install(gnb_core->pf_array, pf);
 
-    if ( GNB_PF_TYPE_CRYPTO_NONE == conf->crypto_type ){
+    if ( GNB_PF_TYPE_CRYPTO_NONE == conf->crypto_type ) {
         goto skip_crypto;
     }
 
-    if ( conf->crypto_type & GNB_PF_TYPE_CRYPTO_XOR ){
+    if ( conf->crypto_type & GNB_PF_TYPE_CRYPTO_XOR ) {
         pf = gnb_find_pf_mod_by_name("gnb_pf_crypto_xor");
         gnb_pf_install(gnb_core->pf_array, pf);
     }
 
-    if ( conf->crypto_type & GNB_PF_TYPE_CRYPTO_ARC4 ){
+    if ( conf->crypto_type & GNB_PF_TYPE_CRYPTO_ARC4 ) {
         pf = gnb_find_pf_mod_by_name("gnb_pf_crypto_arc4");
         gnb_pf_install(gnb_core->pf_array, pf);
     }
@@ -556,7 +557,7 @@ skip_crypto:
 
     gnb_pf_conf(gnb_core);
 
-    if ( NULL==gnb_core->local_node ){
+    if ( NULL==gnb_core->local_node ) {
         GNB_ERROR1(gnb_core->log,GNB_LOG_ID_CORE,"local node is miss\n");
         return NULL;
     }
@@ -589,23 +590,23 @@ skip_crypto:
 #endif
 
 
-    if ( gnb_core->conf->activate_tun ){
+    if ( gnb_core->conf->activate_tun ) {
         gnb_core->drv->init_tun(gnb_core);
     }
 
-    if ( gnb_core->conf->activate_node_worker ){
+    if ( gnb_core->conf->activate_node_worker ) {
         gnb_core->node_worker = gnb_worker_init("gnb_node_worker", gnb_core);
     }
 
-    if ( gnb_core->conf->activate_index_worker ){
+    if ( gnb_core->conf->activate_index_worker ) {
         gnb_core->index_worker  = gnb_worker_init("gnb_index_worker",  gnb_core);
     }
 
-    if ( gnb_core->conf->activate_detect_worker ){
+    if ( gnb_core->conf->activate_detect_worker ) {
         gnb_core->detect_worker = gnb_worker_init("gnb_detect_worker", gnb_core);
     }
 
-    if ( gnb_core->conf->activate_index_service_worker ){
+    if ( gnb_core->conf->activate_index_service_worker ) {
         gnb_core->index_service_worker  = gnb_worker_init("gnb_index_service_worker",  gnb_core);
     }
 
@@ -664,7 +665,7 @@ gnb_core_t* gnb_core_index_service_create(gnb_conf_t *conf){
 void gnb_core_release(gnb_core_t *gnb_core){
 
     //gnb_core 结构体内还有一些成员内存没做释放处理
-    if ( gnb_core->conf->public_index_service ){
+    if ( gnb_core->conf->public_index_service ) {
         goto PUBLIC_INDEX_RELEASE;
     }
 
@@ -706,7 +707,7 @@ void gnb_core_start(gnb_core_t *gnb_core){
 
     int ret;
 
-    signal(SIGTERM,SIG_IGN);
+    signal(SIGPIPE,SIG_IGN);
 
 #ifdef __UNIX_LIKE_OS__
     signal(SIGALRM,signal_handler);
@@ -716,13 +717,13 @@ void gnb_core_start(gnb_core_t *gnb_core){
 
     gnb_setup_env(gnb_core);
 
-    if ( gnb_core->conf->activate_tun ){
+    if ( gnb_core->conf->activate_tun ) {
 
         ret = gnb_core->drv->open_tun(gnb_core);
 
-        if ( 0!=ret ){
+        if ( 0!=ret ) {
 
-            if ( -1 == ret ){
+            if ( -1 == ret ) {
                 GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"if[%s] already open\n", gnb_core->ifname);
             }else {
                 GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"if[%s] error\n", gnb_core->ifname);
@@ -736,22 +737,22 @@ void gnb_core_start(gnb_core_t *gnb_core){
 
     }
 
-    if ( gnb_core->conf->activate_index_worker ){
+    if ( gnb_core->conf->activate_index_worker ) {
         gnb_core->index_worker->start(gnb_core->index_worker);
         GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"%s start\n", gnb_core->index_worker->name);
     }
 
-    if ( gnb_core->conf->activate_detect_worker ){
+    if ( gnb_core->conf->activate_detect_worker ) {
         gnb_core->detect_worker->start(gnb_core->detect_worker);
         GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"%s start\n", gnb_core->detect_worker->name);
     }
 
-    if ( gnb_core->conf->activate_index_service_worker ){
+    if ( gnb_core->conf->activate_index_service_worker ) {
         gnb_core->index_service_worker->start(gnb_core->index_service_worker);
         GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"%s start\n", gnb_core->index_service_worker->name);
     }
 
-    if ( gnb_core->conf->activate_node_worker ){
+    if ( gnb_core->conf->activate_node_worker ) {
         gnb_core->node_worker->start(gnb_core->node_worker);
         GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"%s start\n", gnb_core->node_worker->name);
     }
@@ -765,23 +766,23 @@ void gnb_core_stop(gnb_core_t *gnb_core){
 
     gnb_core->main_worker->stop(gnb_core->main_worker);
 
-    if ( gnb_core->conf->activate_tun ){
+    if ( gnb_core->conf->activate_tun ) {
         gnb_core->drv->close_tun(gnb_core);
     }
 
-    if ( gnb_core->conf->activate_index_worker ){
+    if ( gnb_core->conf->activate_index_worker ) {
         gnb_core->index_worker->stop(gnb_core->index_worker);
     }
 
-    if ( gnb_core->conf->activate_detect_worker ){
+    if ( gnb_core->conf->activate_detect_worker ) {
         gnb_core->detect_worker->stop(gnb_core->detect_worker);
     }
 
-    if ( gnb_core->conf->activate_index_service_worker ){
+    if ( gnb_core->conf->activate_index_service_worker ) {
         gnb_core->index_service_worker->stop(gnb_core->index_service_worker);
     }
 
-    if ( gnb_core->conf->activate_node_worker ){
+    if ( gnb_core->conf->activate_node_worker ) {
         gnb_core->node_worker->stop(gnb_core->node_worker);
     }
 
@@ -791,11 +792,11 @@ void gnb_core_stop(gnb_core_t *gnb_core){
 
 #ifdef __UNIX_LIKE_OS__
 
-    for(i=0; i<gnb_core->conf->udp6_socket_num; i++){
+    for(i=0; i<gnb_core->conf->udp6_socket_num; i++) {
         close(gnb_core->udp_ipv6_sockets[i]);
     }
 
-    for(i=0; i<gnb_core->conf->udp4_socket_num; i++){
+    for(i=0; i<gnb_core->conf->udp4_socket_num; i++) {
         close(gnb_core->udp_ipv4_sockets[i]);
     }
 
@@ -803,11 +804,11 @@ void gnb_core_stop(gnb_core_t *gnb_core){
 
 #ifdef _WIN32
 
-    for(i=0; i<gnb_core->conf->udp6_socket_num; i++){
+    for(i=0; i<gnb_core->conf->udp6_socket_num; i++) {
         closesocket(gnb_core->udp_ipv6_sockets[i]);
     }
 
-    for(i=0; i<gnb_core->conf->udp4_socket_num; i++){
+    for(i=0; i<gnb_core->conf->udp4_socket_num; i++) {
         closesocket(gnb_core->udp_ipv4_sockets[i]);
     }
 
@@ -817,8 +818,6 @@ void gnb_core_stop(gnb_core_t *gnb_core){
 
 }
 
-
-extern  gnb_arg_list_t *gnb_es_arg_list;
 
 #ifdef __UNIX_LIKE_OS__
 static void exec_es(gnb_core_t *gnb_core) {
@@ -831,15 +830,14 @@ static void exec_es(gnb_core_t *gnb_core) {
 
     pid_gnb_es = gnb_exec(gnb_es_bin_path, gnb_core->conf->binary_dir, gnb_es_arg_list, GNB_EXEC_WAIT);
 
-
     /*
     int i;
-    for( i=0; i<gnb_es_arg_list->argc; i++){
+    for ( i=0; i<gnb_es_arg_list->argc; i++) {
         GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"selftest gnb_es argv[%d]='%s'\n", i, gnb_es_arg_list->argv[i]);
     }
     */
 
-    if ( -1 == pid_gnb_es ){
+    if ( -1 == pid_gnb_es ) {
         return;
     }
 
@@ -898,13 +896,13 @@ void primary_process_loop( gnb_core_t *gnb_core ){
             if ( 0 == gnb_core->conf->public_index_service ) {
 
                 #ifdef __UNIX_LIKE_OS__
-                if( 0 != gnb_es_arg_list->argc || gnb_core->conf->lite_mode ){
+                if( 0 != gnb_es_arg_list->argc || gnb_core->conf->lite_mode ) {
                     exec_es(gnb_core);
                 }
                 #endif
 
                 #ifdef _WIN32
-                if( 1 != gnb_es_arg_list->argc || gnb_core->conf->lite_mode ){
+                if( 1 != gnb_es_arg_list->argc || gnb_core->conf->lite_mode ) {
                     exec_es(gnb_core);
                 }
                 #endif

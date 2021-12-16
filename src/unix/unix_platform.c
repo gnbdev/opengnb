@@ -56,7 +56,7 @@ pid_t gnb_exec(char *app_filename, char *current_path, gnb_arg_list_t *arg_list,
 
     int i;
 
-    for( i=0; i<arg_list->argc; i++){
+    for(i=0; i<arg_list->argc; i++){
         argv[i] = arg_list->argv[i];
     }
 
@@ -76,7 +76,11 @@ pid_t gnb_exec(char *app_filename, char *current_path, gnb_arg_list_t *arg_list,
         ret = dup2(fd, STDERR_FILENO);
     }
 
-    execve(app_filename, argv, NULL);
+    ret = execve(app_filename, argv, NULL);
+
+    if( -1==ret ){
+    	goto finish;
+    }
 
 finish:
 
@@ -92,4 +96,3 @@ void gnb_kill(pid_t pid){
     kill(pid, SIGKILL);
 
 }
-

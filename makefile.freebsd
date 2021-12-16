@@ -1,7 +1,15 @@
 CFLAGS=-O2 -I./src/  -I./libs/ -I./libs/miniupnpc/
 CLI_LDFLAGS=-s -L/usr/lib -pthread
-
 GNB_ES_LDFLAGS=-s -L/usr/lib -pthread
+
+
+ifeq ($(DEBUG),1)
+CFLAGS += -g
+else
+CLI_LDFLAGS    += -s
+GNB_ES_LDFLAGS += -s
+endif
+
 
 GNB_CRYPTO=gnb_crypto
 GNB_CTL=gnb_ctl
@@ -19,39 +27,39 @@ GNB_CLI_OBJS =                             \
        ./src/freebsd/gnb_drv_freebsd.o
 
 
-all:$(GNB_CLI) $(GNB_CRYPTO) $(GNB_ES) $(GNB_CTL)
+all:${GNB_CLI} ${GNB_CRYPTO} ${GNB_ES} ${GNB_CTL}
 
 $(GNB_CTL): $(GNB_CTL_OBJS)
-	$(CC) -o ${GNB_CTL} $(GNB_CTL_OBJS) $(CLI_LDFLAGS)
-	cp $(GNB_CTL) ./bin/
+	${CC} -o ${GNB_CTL} ${GNB_CTL_OBJS} ${CLI_LDFLAGS}
 
 
 $(GNB_ES): $(GNB_ES_OBJS) $(MINIUPNP_OBJS)
-	$(CC) -o ${GNB_ES} $(GNB_ES_OBJS) $(MINIUPNP_OBJS) $(GNB_ES_LDFLAGS)
-	cp $(GNB_ES) ./bin/
+	${CC} -o ${GNB_ES} ${GNB_ES_OBJS} ${MINIUPNP_OBJS} ${GNB_ES_LDFLAGS}
 
 
 $(GNB_CRYPTO): $(CRYPTO_OBJS) ./src/gnb_crypto.o
-	$(CC) -o ${GNB_CRYPTO} ./src/gnb_crypto.o $(CRYPTO_OBJS) $(CLI_LDFLAGS)
-	cp $(GNB_CRYPTO) ./bin/
+	${CC} -o ${GNB_CRYPTO} ./src/gnb_crypto.o ${CRYPTO_OBJS} ${CLI_LDFLAGS}
 
 
 $(GNB_CLI): $(GNB_OBJS) $(GNB_CLI_OBJS) $(GNB_PF_OBJS) ${CRYPTO_OBJS}
-	$(CC) -o ${GNB_CLI} $(GNB_OBJS) $(GNB_CLI_OBJS) $(GNB_PF_OBJS) ${CRYPTO_OBJS} $(CLI_LDFLAGS)
-	cp ${GNB_CLI} ./bin/
+	${CC} -o ${GNB_CLI} ${GNB_OBJS} ${GNB_CLI_OBJS} ${GNB_PF_OBJS} ${CRYPTO_OBJS} ${CLI_LDFLAGS}
 
 
 %.o:%.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+	${CC} ${CFLAGS} -c -o $@ $<
 
 
-install:
+install:${GNB_CLI} ${GNB_CRYPTO} ${GNB_ES} ${GNB_CTL}
+	mkdir -p         ./bin/
 	cp ${GNB_CLI}    ./bin/
-	cp $(GNB_CRYPTO) ./bin/
-	cp $(GNB_ES)     ./bin/
+	cp ${GNB_CTL}    ./bin/
+	cp ${GNB_CRYPTO} ./bin/
+	cp ${GNB_ES}     ./bin/
 
-clean:
+
+clean:	
 	find . -name "*.o" -exec rm -f {} \;
-	rm -f $(GNB_CLI) $(GNB_CRYPTO) $(GNB_ES) $(GNB_CTL)
+	rm -f ${GNB_CLI} ${GNB_CRYPTO} ${GNB_ES} ${GNB_CTL}
 	rm -f core
 	rm -f *.exe
+
