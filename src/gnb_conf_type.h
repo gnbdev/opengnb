@@ -35,7 +35,6 @@
 #define GNB_PF_TYPE_CRYPTO_ARC4    0x02
 #define GNB_PF_TYPE_CRYPTO_AES     0x03
 
-
 #define GNB_CRYPTO_KEY_UPDATE_INTERVAL_NONE    0x0
 #define GNB_CRYPTO_KEY_UPDATE_INTERVAL_MINUTE  0x1
 #define GNB_CRYPTO_KEY_UPDATE_INTERVAL_HOUR    0x2
@@ -43,7 +42,6 @@
 #define GNB_MULTI_ADDRESS_TYPE_SIMPLE_FAULT_TOLERANT    0x1
 #define GNB_MULTI_ADDRESS_TYPE_SIMPLE_LOAD_BALANCE      0x2
 #define GNB_MULTI_ADDRESS_TYPE_FULL                     0x3
-
 
 #define GNB_WORKER_MIN_QUEUE         16
 #define GNB_WORKER_MAX_QUEUE         4096
@@ -77,7 +75,6 @@ typedef struct _gnb_conf_t {
 	uint8_t node_log_level;
 	uint8_t index_log_level;
 	uint8_t index_service_log_level;
-
 	uint8_t detect_log_level;
 
 	uint8_t log_udp_type;

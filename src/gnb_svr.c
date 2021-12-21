@@ -65,13 +65,9 @@ static void gnb_setup_env(gnb_core_t *gnb_core){
     char env_value_string[64];
 
     gnb_set_env("GNB_IF_NAME", gnb_core->ifname);
-
     snprintf(env_value_string, 64, "%d", gnb_core->conf->mtu);
-
     gnb_set_env("GNB_MTU", env_value_string);
-
     gnb_set_env("GNB_TUN_IPV4", GNB_ADDR4STR1(&gnb_core->local_node->tun_addr4));
-
     gnb_set_env("GNB_TUN_IPV6", GNB_ADDR6STR1(&gnb_core->local_node->tun_ipv6_addr));
 
 }
@@ -100,7 +96,7 @@ static void init_ctl_block(gnb_core_t *gnb_core, gnb_conf_t *conf){
 
     mmap_block = gnb_mmap_create(conf->map_file, block_size, GNB_MMAP_TYPE_READWRITE|GNB_MMAP_TYPE_CREATE);
 
-    if (NULL==mmap_block){
+    if (NULL==mmap_block) {
         printf("init_ctl_block error[%p]\n",mmap_block);
         exit(0);
     }
@@ -151,10 +147,9 @@ static void setup_log_ctx(gnb_conf_t *conf, gnb_log_ctx_t *log){
 
     }
 
-
     if ( GNB_LOG_LEVEL_UNSET == conf->console_log_level ) {
 
-        if ( 0 == conf->lite_mode ){
+        if ( 0 == conf->lite_mode ) {
             conf->console_log_level = GNB_LOG_LEVEL1;
         } else {
             conf->console_log_level = GNB_LOG_LEVEL3;
@@ -163,7 +158,7 @@ static void setup_log_ctx(gnb_conf_t *conf, gnb_log_ctx_t *log){
     }
 
     if ( GNB_LOG_LEVEL_UNSET == conf->file_log_level ) {
-        if ( 0 == conf->lite_mode ){
+        if ( 0 == conf->lite_mode ) {
             conf->file_log_level    = GNB_LOG_LEVEL1;
         } else {
             conf->file_log_level    = GNB_LOG_LEVEL3;
@@ -173,7 +168,7 @@ static void setup_log_ctx(gnb_conf_t *conf, gnb_log_ctx_t *log){
 
     if ( GNB_LOG_LEVEL_UNSET == conf->udp_log_level ) {
 
-        if ( 0 == conf->lite_mode ){
+        if ( 0 == conf->lite_mode ) {
             conf->udp_log_level     = GNB_LOG_LEVEL1;
         } else {
             conf->udp_log_level     = GNB_LOG_LEVEL3;
@@ -299,7 +294,6 @@ static void setup_log_ctx(gnb_conf_t *conf, gnb_log_ctx_t *log){
 
         }
 
-
     }
 
     if ( GNB_LOG_LEVEL_UNSET != conf->main_log_level ) {
@@ -325,7 +319,6 @@ static void setup_log_ctx(gnb_conf_t *conf, gnb_log_ctx_t *log){
             log->config_table[GNB_LOG_ID_MAIN_WORKER].udp_level     = GNB_LOG_LEVEL3;
 
         }
-
 
     }
 
@@ -353,7 +346,6 @@ static void setup_log_ctx(gnb_conf_t *conf, gnb_log_ctx_t *log){
 
         }
 
-
     }
 
     if ( GNB_LOG_LEVEL_UNSET != conf->index_log_level ) {
@@ -380,7 +372,6 @@ static void setup_log_ctx(gnb_conf_t *conf, gnb_log_ctx_t *log){
 
         }
 
-
     }
 
     if ( GNB_LOG_LEVEL_UNSET != conf->index_service_log_level ) {
@@ -406,7 +397,6 @@ static void setup_log_ctx(gnb_conf_t *conf, gnb_log_ctx_t *log){
             log->config_table[GNB_LOG_ID_INDEX_SERVICE_WORKER].udp_level     = GNB_LOG_LEVEL3;
 
         }
-
 
     }
 
@@ -497,14 +487,12 @@ gnb_core_t* gnb_core_create(gnb_conf_t *conf){
     gnb_core->subnetb_node_map = gnb_hash32_create(gnb_core->heap, 1024,1024);
     gnb_core->subnetc_node_map = gnb_hash32_create(gnb_core->heap, 1024,1024);
 
-
     int64_t now_sec = gnb_timestamp_sec();
     gnb_update_time_seed(gnb_core, now_sec);
 
-
     if ( 0 == gnb_core->conf->lite_mode ) {
         gnb_config_file(gnb_core);
-    }else{
+    } else {
         gnb_config_lite(gnb_core);
     }
 
@@ -792,11 +780,11 @@ void gnb_core_stop(gnb_core_t *gnb_core){
 
 #ifdef __UNIX_LIKE_OS__
 
-    for(i=0; i<gnb_core->conf->udp6_socket_num; i++) {
+    for (i=0; i<gnb_core->conf->udp6_socket_num; i++) {
         close(gnb_core->udp_ipv6_sockets[i]);
     }
 
-    for(i=0; i<gnb_core->conf->udp4_socket_num; i++) {
+    for (i=0; i<gnb_core->conf->udp4_socket_num; i++) {
         close(gnb_core->udp_ipv4_sockets[i]);
     }
 
@@ -804,11 +792,11 @@ void gnb_core_stop(gnb_core_t *gnb_core){
 
 #ifdef _WIN32
 
-    for(i=0; i<gnb_core->conf->udp6_socket_num; i++) {
+    for (i=0; i<gnb_core->conf->udp6_socket_num; i++) {
         closesocket(gnb_core->udp_ipv6_sockets[i]);
     }
 
-    for(i=0; i<gnb_core->conf->udp4_socket_num; i++) {
+    for (i=0; i<gnb_core->conf->udp4_socket_num; i++) {
         closesocket(gnb_core->udp_ipv4_sockets[i]);
     }
 
@@ -823,19 +811,22 @@ void gnb_core_stop(gnb_core_t *gnb_core){
 static void exec_es(gnb_core_t *gnb_core) {
 
     pid_t  pid_gnb_es = 0;
-
+    int ret;
     char gnb_es_bin_path[PATH_MAX+NAME_MAX];
+    char es_arg_string[GNB_ARG_STRING_MAX_SIZE];
 
     snprintf(gnb_es_bin_path,   PATH_MAX+NAME_MAX, "%s/gnb_es",       gnb_core->conf->binary_dir);
 
-    pid_gnb_es = gnb_exec(gnb_es_bin_path, gnb_core->conf->binary_dir, gnb_es_arg_list, GNB_EXEC_WAIT);
+    ret = gnb_arg_list_to_string(gnb_es_arg_list, es_arg_string, GNB_ARG_STRING_MAX_SIZE);
 
-    /*
-    int i;
-    for ( i=0; i<gnb_es_arg_list->argc; i++) {
-        GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"selftest gnb_es argv[%d]='%s'\n", i, gnb_es_arg_list->argv[i]);
+    if ( 0 == ret ) {
+    	GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "exec gnb_es argv '%s'\n", es_arg_string);
+    } else {
+    	GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "will not exec '%s'\n", gnb_es_bin_path);
+    	return;
     }
-    */
+
+    pid_gnb_es = gnb_exec(gnb_es_bin_path, gnb_core->conf->binary_dir, gnb_es_arg_list, GNB_EXEC_WAIT);
 
     if ( -1 == pid_gnb_es ) {
         return;
@@ -851,10 +842,20 @@ static void exec_es(gnb_core_t *gnb_core) {
 static void exec_es(gnb_core_t *gnb_core) {
 
     DWORD  pid_gnb_es = 0;
-
+    int ret;
     char gnb_es_bin_path[PATH_MAX+NAME_MAX];
+    char es_arg_string[GNB_ARG_STRING_MAX_SIZE];
 
     snprintf(gnb_es_bin_path,   PATH_MAX+NAME_MAX, "%s\\gnb_es.exe",      gnb_core->conf->binary_dir);
+
+    ret = gnb_arg_list_to_string(gnb_es_arg_list, es_arg_string, GNB_ARG_STRING_MAX_SIZE);
+
+    if ( 0 == ret ) {
+    	GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "exec gnb_es argv '%s'\n", es_arg_string);
+    } else {
+    	GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "will not exec '%s'\n", gnb_es_bin_path);
+    	return;
+    }
 
     pid_gnb_es = gnb_exec(gnb_es_bin_path, gnb_core->conf->binary_dir, gnb_es_arg_list, GNB_EXEC_BACKGROUND);
 
@@ -862,7 +863,7 @@ static void exec_es(gnb_core_t *gnb_core) {
 #endif
 
 
-#define GNB_EXEC_ES_INTERVAL_TIME_SEC  20
+#define GNB_EXEC_ES_INTERVAL_TIME_SEC  (60*1)
 
 void primary_process_loop( gnb_core_t *gnb_core ){
 
@@ -896,13 +897,13 @@ void primary_process_loop( gnb_core_t *gnb_core ){
             if ( 0 == gnb_core->conf->public_index_service ) {
 
                 #ifdef __UNIX_LIKE_OS__
-                if( 0 != gnb_es_arg_list->argc || gnb_core->conf->lite_mode ) {
+                if ( 0 != gnb_es_arg_list->argc || gnb_core->conf->lite_mode ) {
                     exec_es(gnb_core);
                 }
                 #endif
 
                 #ifdef _WIN32
-                if( 1 != gnb_es_arg_list->argc || gnb_core->conf->lite_mode ) {
+                if ( 1 != gnb_es_arg_list->argc || gnb_core->conf->lite_mode ) {
                     exec_es(gnb_core);
                 }
                 #endif
@@ -912,8 +913,6 @@ void primary_process_loop( gnb_core_t *gnb_core ){
             last_exec_es_ts_sec = gnb_core->ctl_block->status_zone->keep_alive_ts_sec;
         }
 
-
     }while(1);
 
 }
-

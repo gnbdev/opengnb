@@ -45,7 +45,7 @@ static void show_useage(int argc,char *argv[]){
     printf("Usage: %s -b CTL_BLOCK [OPTION]\n", argv[0]);
     printf("Command Summary:\n");
 
-    printf("  -b, --ctl_block           ctl block mapper file\n");
+    printf("  -b, --ctl-block           ctl block mapper file\n");
     printf("  -a, --address             operate address zone\n");
     printf("  -c, --core                operate core zone\n");
     printf("  -r, --reachabl            only output reachabl node\n");
@@ -72,7 +72,7 @@ int main (int argc,char *argv[]){
 
     static struct option long_options[] = {
 
-      { "ctl_block",            required_argument, 0, 'b' },
+      { "ctl-block",            required_argument, 0, 'b' },
       { "address",              no_argument, 0, 'a' },
       { "core",                 no_argument, 0, 'c' },
       { "show",                 no_argument, 0, 's' },

@@ -70,7 +70,7 @@ static void show_useage(int argc,char *argv[]){
     printf("Usage: %s -b CTL_BLOCK [OPTION]\n", argv[0]);
     printf("Command Summary:\n");
 
-    printf("  -b, --ctl_block           ctl block mapper file\n");
+    printf("  -b, --ctl-block           ctl block mapper file\n");
     printf("  -s, --service             service mode\n");
     printf("  -d, --daemon              daemon\n");
     printf("      --upnp                upnp\n");
@@ -172,7 +172,7 @@ int main (int argc,char *argv[]){
 
     struct option long_options[] = {
 
-      { "ctl_block",     required_argument, 0, 'b' },
+      { "ctl-block",     required_argument, 0, 'b' },
 
       { "upnp",          no_argument,  0, OPT_UPNP },
 

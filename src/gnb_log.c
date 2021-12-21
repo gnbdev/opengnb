@@ -61,17 +61,17 @@ static void open_log_file(gnb_log_ctx_t *log){
 
 static void close_log_file_pre_fd(gnb_log_ctx_t *log){
 
-    if ( log->pre_std_fd > 0 ){
+    if ( log->pre_std_fd > 0 ) {
         close(log->pre_std_fd);
         log->pre_std_fd = -1;
     }
 
-    if ( log->pre_debug_fd > 0 ){
+    if ( log->pre_debug_fd > 0 ) {
         close(log->pre_debug_fd);
         log->pre_debug_fd = -1;
     }
 
-    if ( log->pre_error_fd > 0 ){
+    if ( log->pre_error_fd > 0 ) {
         close(log->pre_error_fd);
         log->pre_error_fd = -1;
     }
@@ -133,7 +133,7 @@ static void log_udp_output(gnb_log_ctx_t *log, uint8_t log_type, char *log_strin
     struct sockaddr_in6 saddr6;
     struct sockaddr_in  saddr4;
 
-    if( log->socket6_fd >0 ){
+    if ( log->socket6_fd >0 ) {
 
         memset(&saddr6,0, sizeof(struct sockaddr_in6));
         saddr6.sin6_family = AF_INET6;
@@ -146,7 +146,7 @@ static void log_udp_output(gnb_log_ctx_t *log, uint8_t log_type, char *log_strin
 
     }
 
-    if( log->socket4_fd >0 ){
+    if ( log->socket4_fd >0 ) {
 
         memset(&saddr4,0, sizeof(struct sockaddr_in));
         saddr4.sin_family = AF_INET;
@@ -179,7 +179,7 @@ static void log_udp_binary_output(gnb_log_ctx_t *log, uint8_t log_type, uint8_t 
 
     gnb_payload16_set_data_len(gnb_payload16, data_size);
 
-    if( log->socket6_fd >0 ){
+    if ( log->socket6_fd >0 ) {
 
         memset(&saddr6,0, sizeof(struct sockaddr_in));
         saddr6.sin6_family = AF_INET6;
@@ -192,7 +192,7 @@ static void log_udp_binary_output(gnb_log_ctx_t *log, uint8_t log_type, uint8_t 
 
     }
 
-    if( log->socket4_fd >0 ){
+    if ( log->socket4_fd >0 ) {
 
         memset(&saddr4,0, sizeof(struct sockaddr_in));
         saddr4.sin_family = AF_INET;
@@ -233,7 +233,7 @@ void gnb_logf(gnb_log_ctx_t *log, uint8_t log_type, uint8_t log_id, uint8_t leve
 
     log_string_len = len;
 
-    if ( log_string_len > GNB_LOG_LINE_MAX ){
+    if ( log_string_len > GNB_LOG_LINE_MAX ) {
         return;
     }
 
@@ -249,23 +249,23 @@ void gnb_logf(gnb_log_ctx_t *log, uint8_t log_type, uint8_t log_id, uint8_t leve
 
     log_string_len += len;
 
-    if ( log_string_len > GNB_LOG_LINE_MAX ){
+    if ( log_string_len > GNB_LOG_LINE_MAX ) {
         return;
     }
 
-    if ( log->output_type & GNB_LOG_OUTPUT_STDOUT ){
-        log_console_output(log_type, log_string,log_string_len);
+    if ( log->output_type & GNB_LOG_OUTPUT_STDOUT ) {
+        log_console_output(log_type, log_string, log_string_len);
     }
 
-    if ( log->output_type & GNB_LOG_OUTPUT_FILE ){
+    if ( log->output_type & GNB_LOG_OUTPUT_FILE ) {
         log_file_output(log, log_type, log_string, log_string_len);
     }
 
-    if ( log->output_type & GNB_LOG_OUTPUT_UDP ){
+    if ( log->output_type & GNB_LOG_OUTPUT_UDP ) {
 
-        if (GNB_LOG_UDP_TYPE_BINARY == log->log_udp_type){
+        if (GNB_LOG_UDP_TYPE_BINARY == log->log_udp_type) {
             log_udp_binary_output(log, log_type, log_id, log_string_buffer, log_string_len);
-        }else{
+        } else {
             log_udp_output(log, log_type, log_string, log_string_len);
         }
 
@@ -345,7 +345,7 @@ int gnb_log_udp_set_addr4_string(gnb_log_ctx_t *log, char *sockaddress4_string){
 
     int sockaddress4_string_len = strlen(sockaddress4_string);
 
-    if(sockaddress4_string_len > MAX_SOCKADDRESS_STRING ){
+    if (sockaddress4_string_len > MAX_SOCKADDRESS_STRING ) {
         return -1;
     }
 
@@ -370,7 +370,7 @@ int gnb_log_udp_set_addr4_string(gnb_log_ctx_t *log, char *sockaddress4_string){
 
     ul = strtoul(p, NULL, 10);
 
-    if( ULONG_MAX == ul ){
+    if ( ULONG_MAX == ul ) {
         return -1;
     }
 
@@ -419,7 +419,7 @@ int gnb_log_file_rotate(gnb_log_ctx_t *log){
         return 0;
     }
 
-    if ( !(log->output_type & GNB_LOG_OUTPUT_FILE) ){
+    if ( !(log->output_type & GNB_LOG_OUTPUT_FILE) ) {
         return 1;
     }
 
@@ -445,4 +445,3 @@ int gnb_log_file_rotate(gnb_log_ctx_t *log){
     return 0;
 
 }
-
