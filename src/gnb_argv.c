@@ -95,9 +95,7 @@ void gnb_setup_es_argv(char *es_argv_string);
 #define SET_DETECT_LOG_LEVEL           (GNB_OPT_INIT + 34)
 
 #define SET_IF_DUMP                    (GNB_OPT_INIT + 35)
-
 #define SET_PF_TRACE                   (GNB_OPT_INIT + 36)
-
 #define SET_PF_ROUTE                   (GNB_OPT_INIT + 37)
 
 #define SET_TUN                        (GNB_OPT_INIT + 39)
@@ -107,8 +105,6 @@ void gnb_setup_es_argv(char *es_argv_string);
 
 #define SET_FWDU0                      (GNB_OPT_INIT + 43)
 #define SET_FWDU1                      (GNB_OPT_INIT + 44)
-
-#define SET_WITH_ES_ARGV               (GNB_OPT_INIT + 45)
 
 gnb_arg_list_t *gnb_es_arg_list;
 int is_self_test = 0;
@@ -278,7 +274,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
       { "address-secure",      required_argument,  0, SET_ADDR_SECURE },
 
       { "listen",              required_argument,  0, 'l' },
-	  { "ctl-block",            required_argument, 0, 'b' },
+	  { "ctl-block",           required_argument,  0, 'b' },
       { "if-dump",             required_argument,  0, SET_IF_DUMP },
 
       { "ipv4-only", no_argument,   0, '4'},
@@ -780,7 +776,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
     if ( '\0' != listen_sockaddress4_string[0] ) {
         gnb_setup_listen_addr_port(conf->listen_address4_string, &conf->udp4_ports[0], listen_sockaddress4_string, AF_INET);
-    }else{
+    } else {
         strncpy(conf->listen_address4_string,"0.0.0.0", sizeof("0.0.0.0")-1);
         conf->udp4_ports[0] = 9001;
     }

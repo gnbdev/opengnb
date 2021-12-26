@@ -1,0 +1,61 @@
+CFLAGS=-O2 -I./src/ -I/usr/x86_64-w64-mingw32/include/ -I./libs/  -I./libs/miniupnpc/ -DMINIUPNP_STATICLIB
+CLI_LDFLAGS=-s -static -L/usr/x86_64-w64-mingw32/lib/ -lwsock32 -lws2_32 -liphlpapi -lpthread -lmingwex
+GNB_ES_LDFLAGS=-s -static -L/usr/x86_64-w64-mingw32/lib/ -lwsock32 -lws2_32 -liphlpapi -lpthread -lmingwex
+
+
+GNB_CRYPTO=gnb_crypto.exe
+GNB_CTL=gnb_ctl.exe
+GNB_ES=gnb_es.exe
+GNB_CLI=gnb.exe
+
+
+include Makefile.inc
+
+
+GNB_CLI_OBJS =                             \
+       ./src/cli/gnb.o                     \
+       ./src/gnb_argv.o                    \
+       ./src/gnb_res.o                     \
+       ./src/mingw/windows_platform.o      \
+       ./src/mingw/gnb_drv_win32.o
+
+
+all:${GNB_CLI} ${GNB_CRYPTO} ${GNB_ES} ${GNB_CTL}
+
+
+${GNB_CTL}: ${GNB_CTL_OBJS} ./src/gnb_res.o
+	${CC} -o ${GNB_CTL} ${GNB_CTL_OBJS} ./src/gnb_res.o ${CLI_LDFLAGS}
+
+
+${GNB_ES}: ${GNB_ES_OBJS} ${MINIUPNP_OBJS}
+	${CC} -o ${GNB_ES} ${GNB_ES_OBJS} ${MINIUPNP_OBJS} ./src/gnb_res.o ${GNB_ES_LDFLAGS}
+
+
+${GNB_CRYPTO}: ${CRYPTO_OBJS} ./src/gnb_crypto.o
+	${CC} -o ${GNB_CRYPTO} ./src/gnb_crypto.o ${CRYPTO_OBJS} ${CLI_LDFLAGS}
+
+
+${GNB_CLI}: ${GNB_OBJS} ${GNB_CLI_OBJS} ${GNB_PF_OBJS} ${CRYPTO_OBJS}
+	${CC} -o ${GNB_CLI} ${GNB_OBJS} ${GNB_CLI_OBJS} ${GNB_PF_OBJS} ${CRYPTO_OBJS} ${CLI_LDFLAGS}
+
+
+%.o:%.c
+	${CC} ${CFLAGS} -c -o $@ $<
+
+./src/gnb_res.o: ./src/gnb_res.rc
+	${WINDRES} ./src/gnb_res.rc -o ./src/gnb_res.o
+
+
+install:${GNB_CLI} ${GNB_CRYPTO} ${GNB_ES} ${GNB_CTL}
+	mkdir -p         ./bin/
+	cp ${GNB_CLI}    ./bin/
+	cp ${GNB_CTL}    ./bin/
+	cp ${GNB_CRYPTO} ./bin/
+	cp ${GNB_ES}     ./bin/
+
+clean:
+	find . -name "*.o" -exec rm -f {} \;
+	rm -f ${GNB_CLI} ${GNB_CRYPTO} ${GNB_ES} ${GNB_CTL}
+	rm -f core
+	rm -f *.exe
+

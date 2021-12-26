@@ -69,7 +69,7 @@ static void address_file_config(gnb_core_t *gnb_core){
 
     file = fopen(idx_addr_file,"r");
 
-    if (NULL==file){
+    if ( NULL == file ) {
         return;
     }
 
@@ -92,7 +92,7 @@ static void address_file_config(gnb_core_t *gnb_core){
             break;
         }
 
-        if ('#' == line_buffer[0]){
+        if ( '#' == line_buffer[0] ) {
             continue;
         }
 
@@ -102,7 +102,7 @@ static void address_file_config(gnb_core_t *gnb_core){
             num = sscanf(line_buffer,"%16[^/]/%u/%46[^/]/%hu\n", attrib_string, &uuid32, host_string, &port);
         } else if ( GNB_CONF_FIELD_SEPARATOR_TYPE_VERTICAL == ret ) {
             num = sscanf(line_buffer,"%16[^|]|%u|%46[^|]|%hu\n", attrib_string, &uuid32, host_string, &port);
-        }else{
+        } else {
             num = 0;
         }
 
@@ -110,7 +110,7 @@ static void address_file_config(gnb_core_t *gnb_core){
             continue;
         }
 
-        if ( NULL!=check_domain_name(host_string) ){
+        if ( NULL!=check_domain_name(host_string) ) {
             //域名
             continue;
         }
@@ -118,12 +118,12 @@ static void address_file_config(gnb_core_t *gnb_core){
         memset(&address_st, 0, sizeof(gnb_address_t));
         address_st.port = htons(port);
 
-        if ( NULL != strchr(host_string, '.') ){
+        if ( NULL != strchr(host_string, '.') ) {
             //ipv4
             inet_pton(AF_INET, host_string, (struct in_addr *)&address_st.m_address4);
             address_st.type = AF_INET;
 
-        }else if ( NULL != strchr(host_string, ':') ){
+        } else if ( NULL != strchr(host_string, ':') ) {
             //ipv6
             inet_pton(AF_INET6, host_string, (struct in_addr *)&address_st.m_address6);
             address_st.type = AF_INET6;
@@ -132,17 +132,17 @@ static void address_file_config(gnb_core_t *gnb_core){
         }
 
         //加入到 index address list
-        if ( NULL != strchr(attrib_string, 'i') && uuid32 != gnb_core->local_node->uuid32 ){
+        if ( NULL != strchr(attrib_string, 'i') && uuid32 != gnb_core->local_node->uuid32 ) {
             gnb_address_list_update(gnb_core->index_address_ring.address_list, &address_st);
         }
 
-        if ( NULL != strchr(attrib_string, 'u') && uuid32 != gnb_core->local_node->uuid32 ){
+        if ( NULL != strchr(attrib_string, 'u') && uuid32 != gnb_core->local_node->uuid32 ) {
             gnb_address_list_update(gnb_core->fwdu0_address_ring.address_list, &address_st);
         }
 
         node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, uuid32);
 
-        if ( NULL==node ){
+        if ( NULL == node ) {
             continue;
         }
 
@@ -151,7 +151,7 @@ static void address_file_config(gnb_core_t *gnb_core){
         resolv_address_list = (gnb_address_list_t *)&node->resolv_address_block;
         push_address_list = (gnb_address_list_t *)&node->push_address_block;
 
-        if( AF_INET6 == address_st.type){
+        if ( AF_INET6 == address_st.type) {
 
             gnb_address_list_update(static_address_list, &address_st);
 
@@ -161,7 +161,7 @@ static void address_file_config(gnb_core_t *gnb_core){
             memcpy(&node->udp_sockaddr6.sin6_addr, address_st.m_address6, 16);
 
 
-        }else if( AF_INET == address_st.type ){
+        } else if( AF_INET == address_st.type ) {
 
             gnb_address_list_update(static_address_list, &address_st);
 
@@ -172,19 +172,19 @@ static void address_file_config(gnb_core_t *gnb_core){
 
         }
 
-        if ( NULL != strchr(attrib_string, 'i') ){
+        if ( NULL != strchr(attrib_string, 'i') ) {
             node->type |= GNB_NODE_TYPE_IDX;
         }
 
-        if ( NULL != strchr(attrib_string, 'r') ){
+        if ( NULL != strchr(attrib_string, 'r') ) {
             node->type |= GNB_NODE_TYPE_RELAY;
         }
 
-        if ( NULL != strchr(attrib_string, 's') ){
+        if ( NULL != strchr(attrib_string, 's') ) {
             node->type |= GNB_NODE_TYPE_SLIENCE;
         }
 
-        if ( NULL != strchr(attrib_string, 'f') && uuid32 != gnb_core->local_node->uuid32 ){
+        if ( NULL != strchr(attrib_string, 'f') && uuid32 != gnb_core->local_node->uuid32 ) {
             node->type |= GNB_NODE_TYPE_FWD;
             gnb_add_forward_node_ring(gnb_core, uuid32);
         }
@@ -241,7 +241,7 @@ static void load_node_cache(gnb_core_t *gnb_core){
             break;
         }
 
-        if ('#' == line_buffer[0]){
+        if ('#' == line_buffer[0]) {
             continue;
         }
 
@@ -251,7 +251,7 @@ static void load_node_cache(gnb_core_t *gnb_core){
             num = sscanf(line_buffer,"%16[^/]/%u/%46[^/]/%hu/%128s\n", attrib_string, &uuid32, host_string, &port, key512_hex_string);
         } else if ( GNB_CONF_FIELD_SEPARATOR_TYPE_VERTICAL == ret ) {
             num = sscanf(line_buffer,"%16[^|]|%u|%46[^|]|%hu|%128s\n", attrib_string, &uuid32, host_string, &port, key512_hex_string);
-        }else{
+        } else {
             num = 0;
         }
 
@@ -259,19 +259,19 @@ static void load_node_cache(gnb_core_t *gnb_core){
             continue;
         }
 
-        if ( 0 == port ){
+        if ( 0 == port ) {
             continue;
         }
 
         memset(&address_st, 0, sizeof(gnb_address_t));
         address_st.port = htons(port);
 
-        if ( NULL != strchr(host_string, '.') ){
+        if ( NULL != strchr(host_string, '.') ) {
             //ipv4
             inet_pton(AF_INET, host_string, (struct in_addr *)&address_st.m_address4);
             address_st.type = AF_INET;
 
-        }else if ( NULL != strchr(host_string, ':') ){
+        } else if ( NULL != strchr(host_string, ':') ) {
             //ipv6
             inet_pton(AF_INET6, host_string, (struct in_addr *)&address_st.m_address6);
             address_st.type = AF_INET6;
@@ -281,17 +281,17 @@ static void load_node_cache(gnb_core_t *gnb_core){
 
         node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, uuid32);
 
-        if ( NULL==node ){
+        if ( NULL==node ) {
             continue;
         }
 
         push_address_list = (gnb_address_list_t *)&node->push_address_block;
 
-        if( AF_INET6 == address_st.type){
+        if( AF_INET6 == address_st.type) {
 
             gnb_address_list_update(push_address_list, &address_st);
 
-        }else if( AF_INET == address_st.type ){
+        } else if( AF_INET == address_st.type ) {
 
             gnb_address_list_update(push_address_list, &address_st);
 
@@ -322,7 +322,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
     file = fopen(node_conf_file,"r");
 
-    if (NULL==file){
+    if ( NULL==file ) {
         printf("miss file [%s]\n", node_conf_file);
         exit(1);
     }
@@ -361,7 +361,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %2s",field, value);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config ifname error in [%s]\n", node_conf_file);
                 exit(1);
             }
@@ -369,6 +369,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
             memset(gnb_core->conf->ifname, 0, 16);
             strncpy(gnb_core->conf->ifname,value, 16);
             gnb_core->conf->ifname[15] = '\0';
+
         }
 
 
@@ -376,7 +377,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %u",field, &gnb_core->conf->local_uuid);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "nodeid", node_conf_file);
                 exit(1);
             }
@@ -388,21 +389,21 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%128[^ ] %128s",field, value);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "listen", node_conf_file);
                 exit(1);
             }
 
             ret = check_listen_string(value);
 
-            if ( 0 == ret ){
+            if ( 0 == ret ) {
 
                 port_host = (uint16_t)strtoul(value, NULL, 10);
 
                 snprintf(listen_sockaddress6_string, GNB_IP6_PORT_STRING_SIZE, "[:::%d]",   port_host);
                 snprintf(listen_sockaddress4_string, GNB_IP4_PORT_STRING_SIZE, "0.0.0.0:%d", port_host);
 
-                if ( '[' != gnb_core->conf->listen_address6_string[0] ){
+                if ( '[' != gnb_core->conf->listen_address6_string[0] ) {
 
                     gnb_setup_listen_addr_port(gnb_core->conf->listen_address6_string, &gnb_core->conf->udp6_ports[listen6_idx], listen_sockaddress6_string, AF_INET6);
 
@@ -412,7 +413,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
                 }
 
-                if ( '\0' != gnb_core->conf->listen_address4_string[0] ){
+                if ( '\0' != gnb_core->conf->listen_address4_string[0] ) {
 
                     gnb_setup_listen_addr_port(gnb_core->conf->listen_address4_string, &gnb_core->conf->udp4_ports[listen4_idx], listen_sockaddress4_string, AF_INET);
 
@@ -425,14 +426,14 @@ static void local_node_file_config(gnb_core_t *gnb_core){
                 listen6_idx++;
                 listen4_idx++;
 
-            }else if ( 6 == ret ){
+            } else if ( 6 == ret ) {
 
                 strncpy(listen_sockaddress6_string, value, GNB_IP6_PORT_STRING_SIZE);
                 listen_sockaddress6_string[GNB_IP6_PORT_STRING_SIZE-1] = '\0';
                 gnb_setup_listen_addr_port(gnb_core->conf->listen_address6_string, &gnb_core->conf->udp6_ports[listen6_idx], listen_sockaddress6_string, AF_INET6);
                 listen6_idx++;
 
-            }else if( 4 == ret ){
+            } else if ( 4 == ret ) {
 
                 strncpy(listen_sockaddress4_string, value, GNB_IP4_PORT_STRING_SIZE);
                 listen_sockaddress4_string[GNB_IP4_PORT_STRING_SIZE-1] = '\0';
@@ -445,11 +446,23 @@ static void local_node_file_config(gnb_core_t *gnb_core){
         }
 
 
+        if ( !strncmp(line_buffer, "ctl-block", sizeof("ctl-block")-1) ) {
+
+            num = sscanf(line_buffer,"%32[^ ] %s",field, gnb_core->conf->map_file);
+
+            if ( 2 != num ) {
+                printf("config %s error in [%s]\n", "ctl-block", node_conf_file);
+                exit(1);
+            }
+
+        }
+
+
         if ( !strncmp(line_buffer, "es-argv", sizeof("es-argv")-1) ) {
 
             num = sscanf(line_buffer,"%256[^ ] \"%256[^\"]",field, value);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "es-argv", node_conf_file);
                 exit(1);
             }
@@ -463,14 +476,14 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %2s",field, value);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "multi-socket", node_conf_file);
                 exit(1);
             }
 
-            if ( !strncmp(value, "on", sizeof("on")-1) ){
+            if ( !strncmp(value, "on", sizeof("on")-1) ) {
                 gnb_core->conf->multi_socket = 1;
-            }else{
+            } else {
                 gnb_core->conf->multi_socket = 0;
             }
 
@@ -481,14 +494,14 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %2s",field, value);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "direct-forwarding", node_conf_file);
                 exit(1);
             }
 
-            if ( !strncmp(value, "on", sizeof("on")-1) ){
+            if ( !strncmp(value, "on", sizeof("on")-1) ) {
                 gnb_core->conf->direct_forwarding = 0;
-            }else{
+            } else {
                 gnb_core->conf->direct_forwarding = 1;
             }
 
@@ -499,12 +512,12 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %2s",field, value);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "ipv4-only", node_conf_file);
                 exit(1);
             }
 
-            if ( !strncmp(value, "on", sizeof("on")-1) ){
+            if ( !strncmp(value, "on", sizeof("on")-1) ) {
                 gnb_core->conf->udp_socket_type = GNB_ADDR_TYPE_IPV4;
             }
 
@@ -515,12 +528,12 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %2s",field, value);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "ipv6-only", node_conf_file);
                 exit(1);
             }
 
-            if ( !strncmp(value, "on", sizeof("on")-1) ){
+            if ( !strncmp(value, "on", sizeof("on")-1) ) {
                 gnb_core->conf->udp_socket_type = GNB_ADDR_TYPE_IPV6;
             }
 
@@ -531,7 +544,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %10s",field, value);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "passcode", node_conf_file);
                 exit(1);
             }
@@ -545,14 +558,14 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %2s",field, value);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "quiet", node_conf_file);
                 exit(1);
             }
 
-            if ( !strncmp(value, "on", sizeof("on")-1) ){
+            if ( !strncmp(value, "on", sizeof("on")-1) ) {
                 gnb_core->conf->quiet = 1;
-            }else{
+            } else {
                 gnb_core->conf->quiet = 0;
             }
 
@@ -563,14 +576,14 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %2s",field, value);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "daemon", node_conf_file);
                 exit(1);
             }
 
-            if ( !strncmp(value, "on", sizeof("on")-1) ){
+            if ( !strncmp(value, "on", sizeof("on")-1) ) {
                 gnb_core->conf->daemon = 1;
-            }else{
+            } else {
                 gnb_core->conf->quiet = 0;
             }
 
@@ -581,7 +594,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %d",field, &gnb_core->conf->mtu);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "mtu", node_conf_file);
                 exit(1);
             }
@@ -592,14 +605,14 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %2s",field, value);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "set-tun", node_conf_file);
                 exit(1);
             }
 
-            if ( !strncmp(value, "on", sizeof("on")-1) ){
+            if ( !strncmp(value, "on", sizeof("on")-1) ) {
                 gnb_core->conf->activate_tun = 1;
-            }else{
+            } else {
                 gnb_core->conf->activate_tun = 0;
             }
 
@@ -610,14 +623,14 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %2s",field, value);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "node-worker", node_conf_file);
                 exit(1);
             }
 
-            if ( !strncmp(value, "on", sizeof("on")-1) ){
+            if ( !strncmp(value, "on", sizeof("on")-1) ) {
                 gnb_core->conf->activate_node_worker = 1;
-            }else{
+            } else {
                 gnb_core->conf->activate_node_worker = 0;
             }
 
@@ -628,14 +641,14 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %2s",field, value);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "index-worker", node_conf_file);
                 exit(1);
             }
 
-            if ( !strncmp(value, "on", sizeof("on")-1) ){
+            if ( !strncmp(value, "on", sizeof("on")-1) ) {
                 gnb_core->conf->activate_index_worker = 1;
-            }else{
+            } else {
                 gnb_core->conf->activate_index_worker = 0;
             }
 
@@ -646,14 +659,14 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %2s",field, value);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "index-service-worker", node_conf_file);
                 exit(1);
             }
 
-            if ( !strncmp(value, "on", sizeof("on")-1) ){
+            if ( !strncmp(value, "on", sizeof("on")-1) ) {
                 gnb_core->conf->activate_index_service_worker = 1;
-            }else{
+            } else {
                 gnb_core->conf->activate_index_service_worker = 0;
             }
 
@@ -663,14 +676,14 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %2s",field, value);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "node-detect-worker", node_conf_file);
                 exit(1);
             }
 
-            if ( !strncmp(value, "on", sizeof("on")-1) ){
+            if ( !strncmp(value, "on", sizeof("on")-1) ) {
                 gnb_core->conf->activate_detect_worker = 1;
-            }else{
+            } else {
                 gnb_core->conf->activate_detect_worker = 0;
             }
 
@@ -681,7 +694,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %hu",field, &gnb_core->conf->port_detect_range);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "port-detect-range", node_conf_file);
                 exit(1);
             }
@@ -693,7 +706,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %hu",field, &gnb_core->conf->port_detect_start);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "port-detect-start", node_conf_file);
                 exit(1);
             }
@@ -705,7 +718,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %hu",field, &gnb_core->conf->port_detect_end);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "port-detect-end", node_conf_file);
                 exit(1);
             }
@@ -717,7 +730,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %s",field, gnb_core->conf->log_path);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "log-file-path", node_conf_file);
                 exit(1);
             }
@@ -733,7 +746,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
                 snprintf(gnb_core->conf->log_udp_sockaddress4_string, 16 + 1 + sizeof("65535"), "%s", "127.0.0.1:9000");
             }
 
-            if ( 2 != num && 1 != num ){
+            if ( 2 != num && 1 != num ) {
                 printf("config %s error in [%s]\n", "log-udp4", node_conf_file);
                 exit(1);
             }
@@ -745,12 +758,12 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %2s",field, value);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "log-udp-type", node_conf_file);
                 exit(1);
             }
 
-            if ( !strncmp(value, "binary", sizeof("binary")-1) ){
+            if ( !strncmp(value, "binary", sizeof("binary")-1) ) {
                 gnb_core->conf->log_udp_type = GNB_LOG_UDP_TYPE_BINARY;
             }else{
                 gnb_core->conf->log_udp_type = GNB_LOG_UDP_TYPE_TEXT;
@@ -763,7 +776,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %u",field, &log_level);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "console-log-level", node_conf_file);
                 exit(1);
             }
@@ -777,7 +790,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %u",field, &log_level);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "file-log-level", node_conf_file);
                 exit(1);
             }
@@ -791,7 +804,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %u",field, &log_level);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "udp-log-level", node_conf_file);
                 exit(1);
             }
@@ -805,7 +818,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %u",field, &log_level);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "core-log-level", node_conf_file);
                 exit(1);
             }
@@ -818,7 +831,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %u",field, &log_level);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "pf-log-level", node_conf_file);
                 exit(1);
             }
@@ -832,7 +845,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %u",field, &log_level);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "main-log-level", node_conf_file);
                 exit(1);
             }
@@ -846,7 +859,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %u",field, &log_level);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "node-log-level", node_conf_file);
                 exit(1);
             }
@@ -860,7 +873,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %u",field, &log_level);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "index-log-level", node_conf_file);
                 exit(1);
             }
@@ -869,11 +882,12 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         }
 
+
         if ( !strncmp(line_buffer, "index-service-log-level", sizeof("index-service-log-level")-1) ) {
 
             num = sscanf(line_buffer,"%32[^ ] %u",field, &log_level);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "index-service-log-level", node_conf_file);
                 exit(1);
             }
@@ -882,11 +896,12 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         }
 
+
         if ( !strncmp(line_buffer, "node-detect-log-level", sizeof("node-detect-log-level")-1) ) {
 
             num = sscanf(line_buffer,"%32[^ ] %u",field, &log_level);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "node-detect-log-level", node_conf_file);
                 exit(1);
             }
@@ -900,7 +915,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %s",field, gnb_core->conf->log_path);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "log-file-path", node_conf_file);
                 exit(1);
             }
@@ -926,7 +941,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %s",field, gnb_core->conf->pf_route);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "pf-route", node_conf_file);
                 exit(1);
             }
@@ -940,23 +955,20 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
     gnb_core->ctl_block->core_zone->local_uuid = gnb_core->conf->local_uuid;
 
-    if( 1 == gnb_core->conf->multi_socket ){
+    if ( 1 == gnb_core->conf->multi_socket ) {
         gnb_core->conf->udp6_socket_num = 1;
         gnb_core->conf->udp4_socket_num = 5;
     }
 
-    if ( 0 == gnb_core->conf->udp6_ports[ 0 ] ){
+    if ( 0 == gnb_core->conf->udp6_ports[ 0 ] ) {
         gnb_core->conf->udp6_ports[ 0 ] = 9001;
     }
 
-    if ( 0 == gnb_core->conf->udp4_ports[ 0 ] ){
+    if ( 0 == gnb_core->conf->udp4_ports[ 0 ] ) {
         gnb_core->conf->udp4_ports[ 0 ] = 9001;
     }
 
-
-
 }
-
 
 
 size_t gnb_get_node_num_from_file(gnb_conf_t *conf){
@@ -975,7 +987,7 @@ size_t gnb_get_node_num_from_file(gnb_conf_t *conf){
 
     file = fopen(route_file,"r");
 
-    if ( NULL == file ){
+    if ( NULL == file ) {
         printf("miss route.conf\n");
         exit(1);
     }
@@ -992,11 +1004,11 @@ size_t gnb_get_node_num_from_file(gnb_conf_t *conf){
             break;
         }
 
-        if ('#' == line_buffer[0]){
+        if ('#' == line_buffer[0]) {
             continue;
         }
 
-        if ( NULL != check_node_route(line_buffer) ){
+        if ( NULL != check_node_route(line_buffer) ) {
             continue;
         }
 
@@ -1047,7 +1059,7 @@ static void load_route_config(gnb_core_t *gnb_core){
 
     file = fopen(route_file,"r");
 
-    if ( NULL == file ){
+    if ( NULL == file ) {
         GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "miss route.conf\n");
         exit(1);
     }
@@ -1066,11 +1078,11 @@ static void load_route_config(gnb_core_t *gnb_core){
             break;
         }
 
-        if ('#' == line_buffer[0]){
+        if ('#' == line_buffer[0]) {
             continue;
         }
 
-        if ( NULL != check_node_route(line_buffer) ){
+        if ( NULL != check_node_route(line_buffer) ) {
             continue;
         }
 
@@ -1081,7 +1093,7 @@ static void load_route_config(gnb_core_t *gnb_core){
             num = sscanf(line_buffer,"%u/%16[^/]/%16[^/]", &uuid32, tun_ipv4_string, tun_netmask_string);
         } else if ( GNB_CONF_FIELD_SEPARATOR_TYPE_VERTICAL == ret ) {
             num = sscanf(line_buffer,"%u|%16[^|]|%16[^|]", &uuid32, tun_ipv4_string, tun_netmask_string);
-        }else{
+        } else {
             num = 0;
         }
 
@@ -1092,7 +1104,7 @@ static void load_route_config(gnb_core_t *gnb_core){
 
         node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, uuid32);
 
-        if ( NULL==node ){
+        if ( NULL==node ) {
             node = gnb_node_init(gnb_core, uuid32);
             GNB_HASH32_UINT32_SET(gnb_core->uuid_node_map, uuid32, node);
             gnb_core->node_nums++;
@@ -1107,7 +1119,7 @@ static void load_route_config(gnb_core_t *gnb_core){
 
         //根据ip地址最后一位判断是主机还是网络，如果是主机就作为 tun 的ip
         //tun_addr4 当前版本只能被设一次，今后可能会支持多个虚拟ip
-        if ( 0 != p[3] && 0 == node->tun_addr4.s_addr ){
+        if ( 0 != p[3] && 0 == node->tun_addr4.s_addr ) {
 
             node->tun_addr4.s_addr = tun_addr4;
             node->tun_netmask_addr4.s_addr = tun_netmask_addr4;
@@ -1118,18 +1130,19 @@ static void load_route_config(gnb_core_t *gnb_core){
 
             GNB_HASH32_UINT32_SET(gnb_core->ipv4_node_map, node->tun_addr4.s_addr, node);
 
-        }else{
+        } else {
 
             netmask_class = get_netmask_class(tun_netmask_addr4);
-            if ('c' == netmask_class ){
+
+            if ( 'c' == netmask_class ) {
                 GNB_HASH32_UINT32_SET(gnb_core->subnetc_node_map, tun_subnet_addr4, node);
             }
 
-            if ('b' == netmask_class ){
+            if ( 'b' == netmask_class ) {
                 GNB_HASH32_UINT32_SET(gnb_core->subnetb_node_map, tun_subnet_addr4, node);
             }
 
-            if ('a' == netmask_class ){
+            if ( 'a' == netmask_class ) {
                 GNB_HASH32_UINT32_SET(gnb_core->subneta_node_map, tun_subnet_addr4, node);
             }
 
@@ -1152,15 +1165,15 @@ static void set_node_route(gnb_core_t *gnb_core, uint32_t uuid32, char *relay_no
 
     node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, uuid32);
 
-    if ( NULL==node ){
+    if ( NULL==node ) {
         return;
     }
 
     int line;
 
-    for( line=0; line<GNB_MAX_NODE_ROUTE; line++ ){
+    for( line=0; line<GNB_MAX_NODE_ROUTE; line++ ) {
 
-        if ( 0 == node->route_node[line][0] ){
+        if ( 0 == node->route_node[line][0] ) {
             break;
         }
 
@@ -1182,18 +1195,18 @@ static void set_node_route(gnb_core_t *gnb_core, uint32_t uuid32, char *relay_no
 
         relay_nodeid = strtoul(p, &endptr, 10);
 
-        if ( NULL == endptr ){
+        if ( NULL == endptr ) {
             break;
         }
 
-        if (0 == relay_nodeid ){
+        if (0 == relay_nodeid ) {
             break;
         }
 
         node->route_node[line][row] = relay_nodeid;
         node->route_node_ttls[line]++;
 
-        if ( '\0' == *endptr ){
+        if ( '\0' == *endptr ) {
             break;
         }
 
@@ -1211,7 +1224,7 @@ static void set_node_route_mode(gnb_core_t *gnb_core, uint32_t uuid32, char *rou
 
     node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, uuid32);
 
-    if ( NULL==node ){
+    if ( NULL==node ) {
         return;
     }
 
@@ -1222,16 +1235,16 @@ static void set_node_route_mode(gnb_core_t *gnb_core, uint32_t uuid32, char *rou
         node->node_relay_mode |= GNB_NODE_RELAY_FORCE;
     }
 
-    if( NULL != strstr(route_mode_string,"auto") ){
+    if( NULL != strstr(route_mode_string,"auto") ) {
         node->node_relay_mode &= ~GNB_NODE_RELAY_FORCE;
         node->node_relay_mode |= GNB_NODE_RELAY_AUTO;
     }
 
-    if( NULL != strstr(route_mode_string,"balance") ){
+    if( NULL != strstr(route_mode_string,"balance") ) {
         node->node_relay_mode |= GNB_NODE_RELAY_BALANCE;
     }
 
-    if( NULL != strstr(route_mode_string,"static") ){
+    if( NULL != strstr(route_mode_string,"static") ) {
         node->node_relay_mode |= GNB_NODE_RELAY_STATIC;
     }
 
@@ -1255,7 +1268,7 @@ static void load_route_node_config(gnb_core_t *gnb_core){
 
     file = fopen(route_file,"r");
 
-    if ( NULL == file ){
+    if ( NULL == file ) {
         printf("miss route.conf\n");
         exit(1);
     }
@@ -1272,11 +1285,11 @@ static void load_route_node_config(gnb_core_t *gnb_core){
             break;
         }
 
-        if ('#' == line_buffer[0]){
+        if ('#' == line_buffer[0]) {
             continue;
         }
 
-        if ( NULL == check_node_route(line_buffer) ){
+        if ( NULL == check_node_route(line_buffer) ) {
             continue;
         }
 
@@ -1286,7 +1299,7 @@ static void load_route_node_config(gnb_core_t *gnb_core){
             num = sscanf(line_buffer,"%u/%512s]", &uuid32, row2_string);
         } else if ( GNB_CONF_FIELD_SEPARATOR_TYPE_VERTICAL == ret ) {
             num = sscanf(line_buffer,"%u|%512s]", &uuid32, row2_string);
-        }else{
+        } else {
             num = 0;
         }
 
@@ -1303,27 +1316,6 @@ static void load_route_node_config(gnb_core_t *gnb_core){
     }while(1);
 
     fclose(file);
-
-#if 0
-    gnb_node_t *node;
-
-    uuid32 = 1049;
-
-    node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, uuid32);
-
-    int i,j;
-
-    for (i=0; i<GNB_MAX_NODE_ROUTE; i++ ){
-
-        printf("#route ttl [%u]\n", node->route_node_ttls[i]);
-
-        for( j=0; j<GNB_MAX_NODE_RELAY; j++){
-            printf("route %u\n", node->route_node[i][j]);
-        }
-
-    }
-    //exit(0);
-#endif
 
 }
 
@@ -1345,7 +1337,7 @@ void gnb_config_file(gnb_core_t *gnb_core){
 
     gnb_core->local_node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, gnb_core->conf->local_uuid);
 
-    if (NULL==gnb_core->local_node){
+    if ( NULL==gnb_core->local_node ) {
         printf("miss local_node[%u] is NULL\n", gnb_core->conf->local_uuid);
         exit(1);
     }
@@ -1358,7 +1350,7 @@ void gnb_config_file(gnb_core_t *gnb_core){
 
 #if 0
     //这里需要确保 tun_subnet_addr4 至少是一个C段，这样设定路由的时候，数据才会到 tun
-    if( 0 == strncmp(gnb_core->local_node->tun_ipv4_netmask, "255.255.255.255", INET_ADDRSTRLEN) ){
+    if( 0 == strncmp(gnb_core->local_node->tun_ipv4_netmask, "255.255.255.255", INET_ADDRSTRLEN) ) {
         snprintf(gnb_core->local_node->tun_ipv4_netmask,INET_ADDRSTRLEN,"%s", "255.255.255.0");
     }
 #endif
@@ -1370,9 +1362,8 @@ void gnb_config_file(gnb_core_t *gnb_core){
     address_file_config(gnb_core);
 
     //加载 node_cache.dump
-    if ( '\0' != gnb_core->conf->node_cache_file[0] ){
+    if ( '\0' != gnb_core->conf->node_cache_file[0] ) {
         load_node_cache(gnb_core);
     }
 
 }
-

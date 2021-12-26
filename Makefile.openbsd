@@ -2,32 +2,24 @@ CFLAGS=-O2 -I./src/  -I./libs/ -I./libs/miniupnpc/
 CLI_LDFLAGS=-s -L/usr/lib -pthread
 GNB_ES_LDFLAGS=-s -L/usr/lib -pthread
 
-
-ifeq ($(DEBUG),1)
-CFLAGS += -g
-else
-CLI_LDFLAGS    += -s
-GNB_ES_LDFLAGS += -s
-endif
-
-
 GNB_CRYPTO=gnb_crypto
 GNB_CTL=gnb_ctl
 GNB_ES=gnb_es
 GNB_CLI=gnb
 
 
-include makefile.inc
+include Makefile.inc
 
 
 GNB_CLI_OBJS =                             \
        ./src/cli/gnb.o                     \
        ./src/gnb_argv.o                    \
        ./src/unix/unix_platform.o          \
-       ./src/freebsd/gnb_drv_freebsd.o
+       ./src/openbsd/gnb_drv_openbsd.o
 
 
 all:${GNB_CLI} ${GNB_CRYPTO} ${GNB_ES} ${GNB_CTL}
+
 
 $(GNB_CTL): $(GNB_CTL_OBJS)
 	${CC} -o ${GNB_CTL} ${GNB_CTL_OBJS} ${CLI_LDFLAGS}
