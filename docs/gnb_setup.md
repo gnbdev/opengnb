@@ -9,12 +9,12 @@ GNB极致的NAT穿透能力使得两个异地网络很轻易实现点对点通�
 
 host to host 是两台计算机通过GNB建立的虚拟链路进行通讯
 
-![host_to_host](images/host_to_host.jpeg)
+![host_to_host](/images/host_to_host.jpeg)
 
 
 ## host to host配置
 
-![host_to_host_setup](images/host_to_host_setup.jpeg)
+![host_to_host_setup](/images/host_to_host_setup.jpeg)
 
 
 ## host to net
@@ -22,13 +22,13 @@ host to host 是两台计算机通过GNB建立的虚拟链路进行通讯
 host to net 一台计算机通过GNB接入一个网络，举例说，用户在咖啡厅、酒店用笔记本电脑通过GNB访问家中的整个内网。
 这个场景里，图中右边的GNB建议运行在一台OpenWRT路由器上。
 
-![host_to_net](images/host_to_net.jpeg)
+![host_to_net](/images/host_to_net.jpeg)
 
 ## host to net配置
 
 左边这端，需要配置一条路由。
 
-![host_to_net_setup](images/host_to_net_setup.jpeg)
+![host_to_net_setup](/images/host_to_net_setup.jpeg)
 
 
 ## net to net
@@ -37,13 +37,13 @@ net to net 这个模式是 两个异地的局域网通过 GNB 组成一个虚拟
 
 举例说，假如有两个异地的办公室需要互访，就可以通过这个方式不经过公网服务器中转就能虚拟组网，这两个异地办公室网络不需要有公网ip，也不需要公网服务器做中转。
 
-![net_to_net](images/net_to_net.jpeg)
+![net_to_net](/images/net_to_net.jpeg)
 
 ## net to net配置
 
 这个模式下，通常是把GNB运行在两台OpenWRT路由器上，并且要根据具体网络设好路由。
 
-![net_to_net_setup](images/net_to_net_setup.jpeg)
+![net_to_net_setup](/images/net_to_net_setup.jpeg)
 
 既然可以把两个异地的局域网组成一个虚拟局域网，也可以在这个基础上加入第三、第四个异地局域网。
 
