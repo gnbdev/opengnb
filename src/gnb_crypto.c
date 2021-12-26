@@ -70,7 +70,6 @@ static void create_keypair(uint32_t uuid32, const char *private_key_file, const 
 
     close(public_file_fd);
 
-
     gnb_bin2hex(ed25519_private_key, 64, hex_string);
 
     private_file_fd = open(private_key_file, O_WRONLY|O_CREAT,S_IRUSR|S_IWUSR);
@@ -139,7 +138,12 @@ int main (int argc,char *argv[]){
     }
 
 
-    if ( NULL==cmd || NULL==private_key_file || NULL==public_key_file ){
+    if ( NULL==cmd || NULL==private_key_file || NULL==public_key_file ) {
+
+        #ifndef GNB_SKIP_BUILD_TIME
+        printf("Build[%s %s]\n", __DATE__, __TIME__);
+        #endif
+
         printf("usage: %s -c -p private_key_file -k public_key_file\n",argv[0]);
         exit(0);
     }
@@ -150,10 +154,8 @@ int main (int argc,char *argv[]){
 
 }
 
-
 /*
 
 ./gnb_crypto -c -p 1010.private -k 1010.public
 
 */
-

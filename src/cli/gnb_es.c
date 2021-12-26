@@ -65,7 +65,11 @@ void gnb_start_environment_service(gnb_es_ctx *es_ctx);
 static void show_useage(int argc,char *argv[]){
 
     printf("GNB Environment Service version 1.0.0 protocol version 1.1.2\n");
-    printf("Build[%s %s]\n",__DATE__,__TIME__);
+
+    #ifndef GNB_SKIP_BUILD_TIME
+    printf("Build[%s %s]\n", __DATE__, __TIME__);
+    #endif
+
     printf("Copyright (C) 2019 gnbdev\n");
     printf("Usage: %s -b CTL_BLOCK [OPTION]\n", argv[0]);
     printf("Command Summary:\n");

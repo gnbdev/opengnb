@@ -226,6 +226,7 @@ forward节点可以为无法直接互访的GNB节点中转ip分组，这些节�
 |-t, --selftest|self test|
 |-p, --passcode|a hexadecimal string of 32-bit unsigned integer, use to strengthen safety|
 |-l, --listen|listen address default is '0.0.0.0:9001'|
+|-b, --ctl-block|ctl block mapper file|
 |-e, --es-argv|pass-through gnb_es argv|
 |--node-woker-queue-length|node  woker queue length|
 |--index-woker-queue-length|index woker queue length|

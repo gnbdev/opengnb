@@ -899,12 +899,16 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 static void show_version_buildtime(){
 
     printf("GNB  version 1.2.8.1  protocol version 1.1.2\n");
-    printf("Build[%s %s]\n",__DATE__,__TIME__);
+
+    #ifndef GNB_SKIP_BUILD_TIME
+    printf("Build[%s %s]\n", __DATE__, __TIME__);
+    #endif
+
     printf("Copyright (C) 2019 gnbdev\n");
 
     int idx = 0;
 
-    printf("registed packet filter:");
+    printf("registered packet filter:");
 
     while ( NULL != gnb_pf_mods[idx] ) {
         printf(" %s",gnb_pf_mods[idx]->name);
