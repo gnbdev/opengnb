@@ -192,12 +192,12 @@ void gnb_update_time_seed(gnb_core_t *gnb_core, uint64_t now_sec){
 
     time_seed = ltm.tm_year + ltm.tm_mon + ltm.tm_yday;
 
-    if ( GNB_CRYPTO_KEY_UPDATE_INTERVAL_HOUR == gnb_core->conf->crypto_key_update_interval ){
+    if ( GNB_CRYPTO_KEY_UPDATE_INTERVAL_HOUR == gnb_core->conf->crypto_key_update_interval ) {
         time_seed += ltm.tm_hour;
-    }else if ( GNB_CRYPTO_KEY_UPDATE_INTERVAL_MINUTE == gnb_core->conf->crypto_key_update_interval ){
+    } else if ( GNB_CRYPTO_KEY_UPDATE_INTERVAL_MINUTE == gnb_core->conf->crypto_key_update_interval ) {
         time_seed += ltm.tm_hour;
         time_seed += ltm.tm_min;
-    }else{
+    } else {
         time_seed += ltm.tm_hour;
     }
 
@@ -220,12 +220,12 @@ int gnb_verify_seed_time(gnb_core_t *gnb_core, uint64_t now_sec){
 
     gmtime_r(&t, &ltm);
 
-    if ( GNB_CRYPTO_KEY_UPDATE_INTERVAL_HOUR == gnb_core->conf->crypto_key_update_interval ){
+    if ( GNB_CRYPTO_KEY_UPDATE_INTERVAL_HOUR == gnb_core->conf->crypto_key_update_interval ) {
 
         r = (ltm.tm_hour + 1) - gnb_core->time_seed_update_factor;
         gnb_core->time_seed_update_factor = ltm.tm_hour+1;
 
-    }else if ( GNB_CRYPTO_KEY_UPDATE_INTERVAL_MINUTE == gnb_core->conf->crypto_key_update_interval ){
+    }else if ( GNB_CRYPTO_KEY_UPDATE_INTERVAL_MINUTE == gnb_core->conf->crypto_key_update_interval ) {
 
         r = (ltm.tm_min+1) - gnb_core->time_seed_update_factor;
         gnb_core->time_seed_update_factor = (ltm.tm_min+1);

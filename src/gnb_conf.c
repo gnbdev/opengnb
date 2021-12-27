@@ -30,23 +30,23 @@ extern  gnb_arg_list_t *gnb_es_arg_list;
 
 char * check_domain_name(char *host_string){
 
-    if ( NULL != strchr(host_string, ':') ){
+    if ( NULL != strchr(host_string, ':') ) {
         return NULL;
     }
 
     int i;
 
-    for( i=0; i<NAME_MAX; i++ ){
+    for( i=0; i<NAME_MAX; i++ ) {
 
-        if( '\0' == host_string[i] ){
+        if( '\0' == host_string[i] ) {
             return NULL;
         }
 
-        if ( '.' == host_string[i] ){
+        if ( '.' == host_string[i] ) {
             continue;
         }
 
-        if ( host_string[i] >= 'a' && host_string[i] <= 'z' ){
+        if ( host_string[i] >= 'a' && host_string[i] <= 'z' ) {
             return host_string;
         }
 
@@ -58,7 +58,7 @@ char * check_domain_name(char *host_string){
 /*判断 配置行第二列是ip地址 还是node id*/
 char * check_node_route(char *config_line_string){
 
-    if ( NULL != strchr(config_line_string, ':')  || NULL != strchr(config_line_string, '.') ){
+    if ( NULL != strchr(config_line_string, ':')  || NULL != strchr(config_line_string, '.') ) {
         return NULL;
     }
 
@@ -71,11 +71,11 @@ int gnb_test_field_separator(char *config_string){
 
     int i;
 
-    for( i=0; i<strlen(config_string); i++  ){
+    for ( i=0; i<strlen(config_string); i++  ) {
 
-        if ( '/' == config_string[i] ){
+        if ( '/' == config_string[i] ) {
             return GNB_CONF_FIELD_SEPARATOR_TYPE_SLASH;
-        } else if( '|' == config_string[i] ){
+        } else if ( '|' == config_string[i] ) {
             return GNB_CONF_FIELD_SEPARATOR_TYPE_VERTICAL;
         }
 
@@ -120,7 +120,7 @@ gnb_node_t * gnb_node_init(gnb_core_t *gnb_core, uint32_t uuid32){
 
     detect_address_list->size  = 3;
 
-    if ( 0 == gnb_core->conf->lite_mode ){
+    if ( 0 == gnb_core->conf->lite_mode ) {
 
         if ( gnb_core->conf->local_uuid != uuid32 ) {
 
@@ -158,7 +158,7 @@ gnb_node_t * gnb_node_init(gnb_core_t *gnb_core, uint32_t uuid32){
             memcpy(node->shared_secret+4, &node_id_network_order, 4);
             memcpy(node->shared_secret+8, &local_node_id_network_order, 4);
 
-        }else{
+        } else {
 
             memcpy(node->shared_secret+4, &local_node_id_network_order, 4);
             memcpy(node->shared_secret+8, &node_id_network_order, 4);
@@ -186,7 +186,7 @@ int check_listen_string(char *listen_string){
     int i;
 
     for ( i=0; i<strlen(listen_string); i++ ) {
-        if ( ':' == listen_string[i] ){
+        if ( ':' == listen_string[i] ) {
             return 4;
         }
     }
@@ -210,9 +210,9 @@ void gnb_setup_listen_addr_port(char *listen_address_string, uint16_t *port_ptr,
 
     char *pb;
 
-    if ( AF_INET6 == addr_type ){
+    if ( AF_INET6 == addr_type ) {
 
-        if ( '[' != sockaddress_string[0] ){
+        if ( '[' != sockaddress_string[0] ) {
 
             return;
         }
@@ -220,6 +220,7 @@ void gnb_setup_listen_addr_port(char *listen_address_string, uint16_t *port_ptr,
         host_string_end = sockaddress_string+1;
         pb = sockaddress_string+1;
         sockaddress_string_len -= 1;
+
     } else {
 
         host_string_end = sockaddress_string;
@@ -229,9 +230,9 @@ void gnb_setup_listen_addr_port(char *listen_address_string, uint16_t *port_ptr,
 
     p = pb;
 
-    for ( i=0; i<sockaddress_string_len; i++ ){
+    for ( i=0; i<sockaddress_string_len; i++ ) {
 
-        if ( ':' == *p ){
+        if ( ':' == *p ) {
             host_string_end = p;
         }
 
@@ -241,9 +242,9 @@ void gnb_setup_listen_addr_port(char *listen_address_string, uint16_t *port_ptr,
 
     p = pb;
 
-    for ( i=0; i<sockaddress_string_len; i++ ){
+    for ( i=0; i<sockaddress_string_len; i++ ) {
 
-        if( p == host_string_end ){
+        if( p == host_string_end ) {
             break;
         }
 
@@ -274,15 +275,15 @@ void gnb_setup_es_argv(char *es_argv_string){
 
     len = strlen(es_argv_string);
 
-    if ( len >1024 ){
+    if ( len >1024 ) {
         return;
     }
 
     num = sscanf(es_argv_string,"%256[^ ] %256s", argv_string0, argv_string1);
 
-    if ( 1 == num ){
+    if ( 1 == num ) {
         gnb_arg_append(gnb_es_arg_list, argv_string0);
-    }else if( 2 == num ){
+    } else if ( 2 == num ) {
         gnb_arg_append(gnb_es_arg_list, argv_string0);
         gnb_arg_append(gnb_es_arg_list, argv_string1);
     }
@@ -290,4 +291,3 @@ void gnb_setup_es_argv(char *es_argv_string){
     return;
 
 }
-

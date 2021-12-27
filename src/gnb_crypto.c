@@ -145,7 +145,11 @@ int main (int argc,char *argv[]){
         #endif
 
         printf("usage: %s -c -p private_key_file -k public_key_file\n",argv[0]);
+        printf("example:\n");
+        printf("%s -c -p 1001.private -k 1001.public\n",argv[0]);
+
         exit(0);
+
     }
 
     create_keypair(uuid32, private_key_file, public_key_file);
@@ -155,7 +159,5 @@ int main (int argc,char *argv[]){
 }
 
 /*
-
 ./gnb_crypto -c -p 1010.private -k 1010.public
-
 */

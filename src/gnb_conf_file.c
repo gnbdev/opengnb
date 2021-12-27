@@ -1179,7 +1179,7 @@ static void set_node_route(gnb_core_t *gnb_core, uint32_t uuid32, char *relay_no
 
     }
 
-    if ( GNB_MAX_NODE_ROUTE == line ){
+    if ( GNB_MAX_NODE_ROUTE == line ) {
         //printf("#add_node_route uuid32[%u] relay_nodeids_string[%s]\n", uuid32, relay_nodeids_string);
         //printf("#add_node_route is FULL\n");
         return;

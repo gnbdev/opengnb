@@ -900,7 +900,7 @@ static void show_version_buildtime(){
     printf("Build[%s %s]\n", __DATE__, __TIME__);
     #endif
 
-    printf("Copyright (C) 2019 gnbdev\n");
+    printf("Copyright (C) 2019 gnbdev<gnbdev@qq.com>\n");
 
     int idx = 0;
 
@@ -925,6 +925,8 @@ static void show_useage(int argc,char *argv[]){
     printf("  -c, --conf                       config path\n");
     printf("  -n, --nodeid                     nodeid\n");
     printf("  -P, --public-index-service       run as public index service\n");
+
+	printf("  -I, --index-address              index address\n");
     printf("  -a, --node-address               node ip address\n");
     printf("  -r, --node-route                 node route\n");
     printf("  -i, --ifname                     TUN Device Name\n");
@@ -933,7 +935,7 @@ static void show_useage(int argc,char *argv[]){
     printf("  -d, --daemon                     daemon\n");
     printf("  -q, --quiet                      disabled console output\n");
     printf("  -t, --selftest                   self test\n");
-    printf("  -p, --passcode                   a hexadecimal string of 32-bit unsigned integer, use to strengthen safety\n");
+    printf("  -p, --passcode                   a hexadecimal string of 32-bit unsigned integer, use to strengthen safety default is 0x9d078107\n");
 
     printf("  -l, --listen                     listen address default is '0.0.0.0:9001'\n");
     printf("  -b, --ctl-block                  ctl block mapper file\n");
@@ -989,7 +991,11 @@ static void show_useage(int argc,char *argv[]){
     printf("%s -i gnbtun -c $node_conf_dir -e \"--upnp\"\n",argv[0]);
     printf("%s -P\n",argv[0]);
     printf("%s -P --console-log-level=3 --index-service-log-level=3\n",argv[0]);
-    printf("%s -n 1001 -a 'i/0/$public_index_ip/9001'\n",argv[0]);
-    printf("%s -n 1002 -a 'i/0/$public_index_ip/9001'\n",argv[0]);
+
+    printf("%s -n 1001 -I '$public_index_ip/9001' -p $passcode\n",argv[0]);
+    printf("%s -n 1002 -I '$public_index_ip/9001' -p $passcode\n",argv[0]);
+
+    printf("%s -n 1001 -a 'i/0/$public_index_ip/9001' -p $passcode\n",argv[0]);
+    printf("%s -n 1002 -a 'i/0/$public_index_ip/9001' -p $passcode\n",argv[0]);
 
 }

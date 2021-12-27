@@ -70,7 +70,8 @@ static void show_useage(int argc,char *argv[]){
     printf("Build[%s %s]\n", __DATE__, __TIME__);
     #endif
 
-    printf("Copyright (C) 2019 gnbdev\n");
+    printf("Copyright (C) 2019 gnbdev<gnbdev@qq.com>\n");
+
     printf("Usage: %s -b CTL_BLOCK [OPTION]\n", argv[0]);
     printf("Command Summary:\n");
 
