@@ -32,8 +32,9 @@
 #include "gnb_config_lite.h"
 
 extern gnb_conf_ext_lite_t gnb_conf_ext_lite;
-extern gnb_pf_t *gnb_pf_mods[];
-static void show_version_buildtime();
+
+void show_description();
+
 static void show_useage(int argc,char *argv[]);
 
 int check_listen_string(char *listen_string);
@@ -892,32 +893,9 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 }
 
 
-static void show_version_buildtime(){
-
-    printf("GNB  version 1.2.8.1  protocol version 1.1.2\n");
-
-    #ifndef GNB_SKIP_BUILD_TIME
-    printf("Build[%s %s]\n", __DATE__, __TIME__);
-    #endif
-
-    printf("Copyright (C) 2019 gnbdev<gnbdev@qq.com>\n");
-
-    int idx = 0;
-
-    printf("registered packet filter:");
-
-    while ( NULL != gnb_pf_mods[idx] ) {
-        printf(" %s",gnb_pf_mods[idx]->name);
-        idx++;
-    }
-    printf("\n");
-
-}
-
-
 static void show_useage(int argc,char *argv[]){
 
-    show_version_buildtime();
+	show_description();
 
     printf("Usage: %s [-i IFNAME] -c CONFIG_PATH [OPTION]\n", argv[0]);
     printf("Command Summary:\n");
@@ -987,15 +965,15 @@ static void show_useage(int argc,char *argv[]){
 
     printf("      --help\n");
 
-    printf("example:\n");
-    printf("%s -i gnbtun -c $node_conf_dir -e \"--upnp\"\n",argv[0]);
-    printf("%s -P\n",argv[0]);
-    printf("%s -P --console-log-level=3 --index-service-log-level=3\n",argv[0]);
+    printf("Example:\n");
+    printf("  %s -i gnbtun -c $node_conf_dir -e \"--upnp\"\n",argv[0]);
+    printf("  %s -P\n",argv[0]);
+    printf("  %s -P --console-log-level=3 --index-service-log-level=3\n",argv[0]);
 
-    printf("%s -n 1001 -I '$public_index_ip/$port' -p $passcode\n",argv[0]);
-    printf("%s -n 1002 -I '$public_index_ip/$port' -p $passcode\n",argv[0]);
+    printf("  %s -n 1001 -I '$public_index_ip/$port' -p $passcode\n",argv[0]);
+    printf("  %s -n 1002 -I '$public_index_ip/$port' -p $passcode\n",argv[0]);
 
-    printf("%s -n 1001 -a 'i/0/$public_index_ip/$port' -p $passcode\n",argv[0]);
-    printf("%s -n 1002 -a 'i/0/$public_index_ip/$port' -p $passcode\n",argv[0]);
+    printf("  %s -n 1001 -a 'i/0/$public_index_ip/$port' -p $passcode\n",argv[0]);
+    printf("  %s -n 1002 -a 'i/0/$public_index_ip/$port' -p $passcode\n",argv[0]);
 
 }

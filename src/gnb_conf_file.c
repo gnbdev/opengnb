@@ -460,7 +460,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "es-argv", sizeof("es-argv")-1) ) {
 
-            num = sscanf(line_buffer,"%256[^ ] \"%256[^\"]",field, value);
+            num = sscanf(line_buffer,"%256[^ ] %s",field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "es-argv", node_conf_file);

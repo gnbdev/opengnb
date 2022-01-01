@@ -133,7 +133,7 @@ static void setup_log_ctx(gnb_log_ctx_t *log_ctx, char *log_udp_sockaddress4_str
 
     log_ctx->log_payload_type = GNB_ES_PAYLOAD_TYPE_UDPLOG;
 
-    if( '\0' != log_udp_sockaddress4_string[0] ){
+    if ( '\0' != log_udp_sockaddress4_string[0] ) {
         rc = gnb_log_udp_set_addr4_string(log_ctx, log_udp_sockaddress4_string);
         log_ctx->output_type |= GNB_LOG_OUTPUT_UDP;
     }
@@ -260,7 +260,7 @@ int main (int argc,char *argv[]){
 
         case LOG_UDP_TYPE:
 
-            if ( !strncmp(optarg, "binary", 16) ){
+            if ( !strncmp(optarg, "binary", 16) ) {
                 log_udp_type = GNB_LOG_UDP_TYPE_BINARY;
             } else {
                 log_udp_type = GNB_LOG_UDP_TYPE_TEXT;
@@ -298,9 +298,9 @@ int main (int argc,char *argv[]){
 
             case LOG_UDP4:
 
-                if( NULL != optarg ){
+                if( NULL != optarg ) {
                     snprintf(log_udp_sockaddress4_string, 16 + 1 + sizeof("65535"), "%s", optarg);
-                }else{
+                } else {
                     snprintf(log_udp_sockaddress4_string, 16 + 1 + sizeof("65535"), "%s", "127.0.0.1:9000");
                 }
 
@@ -317,19 +317,19 @@ int main (int argc,char *argv[]){
     }
 
 
-    if ( NULL == ctl_block_file ){
+    if ( NULL == ctl_block_file ) {
         show_useage(argc,argv);
         exit(0);
     }
 
 
 #ifdef __UNIX_LIKE_OS__
-    if(daemon){
+    if (daemon) {
         gnb_daemon();
     }
 #endif
 
-    if (daemon){
+    if (daemon) {
         service_opt = 1;
     }
 
@@ -341,7 +341,7 @@ int main (int argc,char *argv[]){
 
     gnb_es_ctx *es_ctx = gnb_es_ctx_init(service_opt, ctl_block_file, log);
 
-    if (NULL==es_ctx){
+    if (NULL==es_ctx) {
         printf("es ctx init error [%s]\n",ctl_block_file);
         return 1;
     }
@@ -373,17 +373,17 @@ int main (int argc,char *argv[]){
 
     if ( NULL != pid_file ) {
 
-        if(  0 == conf->lite_mode ){
+        if ( 0 == conf->lite_mode ) {
             snprintf(es_ctx->pid_file, PATH_MAX+NAME_MAX,"%s", pid_file);
-        }else{
+        } else {
             snprintf(conf->pid_file,   PATH_MAX+NAME_MAX, "%s/gnb_es.%d.pid", conf->binary_dir, conf->udp4_ports[0]);
         }
 
-        if ( NULL != realpath(es_ctx->pid_file,resolved_path) ){
+        if ( NULL != realpath(es_ctx->pid_file,resolved_path) ) {
             strncpy(es_ctx->pid_file, resolved_path, PATH_MAX);
         }
 
-    }else{
+    } else {
 
         snprintf(es_ctx->pid_file, PATH_MAX+NAME_MAX, "%s/gnb_es.pid", conf->conf_dir);
 
@@ -397,13 +397,13 @@ int main (int argc,char *argv[]){
         snprintf(es_ctx->wan_address6_file, PATH_MAX+NAME_MAX,"%s", wan_address6_file);
 
 #ifdef __UNIX_LIKE_OS__
-        if ( NULL != realpath(es_ctx->wan_address6_file,resolved_path) ){
+        if ( NULL != realpath(es_ctx->wan_address6_file,resolved_path) ) {
             strncpy(es_ctx->wan_address6_file, resolved_path, PATH_MAX);
         }
 #endif
 
 #ifdef _WIN32
-    if ( NULL != _fullpath(resolved_path, es_ctx->wan_address6_file, PATH_MAX) ){
+    if ( NULL != _fullpath(resolved_path, es_ctx->wan_address6_file, PATH_MAX) ) {
         strncpy(es_ctx->wan_address6_file, resolved_path, PATH_MAX);
     }
 #endif

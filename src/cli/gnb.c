@@ -31,6 +31,10 @@
 #include <windows.h>
 #endif
 
+#ifndef GNB_SKIP_BUILD_TIME
+#define GNB_BUILD_STRING  "Build ["__DATE__","__TIME__"]"
+#endif
+
 gnb_core_t *gnb_core;
 
 int gnb_daemon();
@@ -41,6 +45,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]);
 
 void primary_process_loop(gnb_core_t *gnb_core);
 
+extern gnb_pf_t *gnb_pf_mods[];
 extern gnb_arg_list_t *gnb_es_arg_list;
 
 extern int is_self_test;
@@ -196,6 +201,53 @@ BOOL CALLBACK CosonleHandler(DWORD ev) {
 #endif
 
 
+void log_out_description(gnb_log_ctx_t *log){
+
+	GNB_LOG1(log, GNB_LOG_ID_CORE, "%s\n", GNB_VERSION_STRING);
+	GNB_LOG1(log, GNB_LOG_ID_CORE, "%s\n", GNB_COPYRIGHT_STRING);
+	GNB_LOG1(log, GNB_LOG_ID_CORE, "Site: %s\n", GNB_URL_STRING);
+
+    int idx = 0;
+
+    GNB_LOG1(log, GNB_LOG_ID_CORE, "registered packet filter:");
+
+    while ( NULL != gnb_pf_mods[idx] ) {
+    	GNB_LOG1(log, GNB_LOG_ID_CORE, " %s",gnb_pf_mods[idx]->name);
+        idx++;
+    }
+
+    GNB_LOG1(log, GNB_LOG_ID_CORE, "\n");
+
+    #ifndef GNB_SKIP_BUILD_TIME
+    GNB_LOG1(log, GNB_LOG_ID_CORE, "%s\n", GNB_BUILD_STRING);
+    #endif
+
+}
+
+
+void show_description(){
+
+    printf("%s\n", GNB_VERSION_STRING);
+    printf("%s\n", GNB_COPYRIGHT_STRING);
+    printf("Site: %s\n", GNB_URL_STRING);
+
+    int idx = 0;
+
+    printf("registered packet filter:");
+
+    while ( NULL != gnb_pf_mods[idx] ) {
+        printf(" %s",gnb_pf_mods[idx]->name);
+        idx++;
+    }
+
+    printf("\n");
+
+    #ifndef GNB_SKIP_BUILD_TIME
+    printf("%s\n", GNB_BUILD_STRING);
+    #endif
+
+}
+
 
 int main (int argc,char *argv[]){
 
@@ -220,12 +272,14 @@ int main (int argc,char *argv[]){
         gnb_core = gnb_core_index_service_create(conf);
     }
 
-    if (NULL==gnb_core) {
-        printf("gnb core create error\n");
+    free(conf);
+
+    if ( NULL == gnb_core ) {
+        printf("gnb core create error!\n");
         return 1;
     }
 
-    free(conf);
+    GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"gnb core created!\n");
 
     #ifdef __UNIX_LIKE_OS__
     if (gnb_core->conf->daemon) {
@@ -237,7 +291,7 @@ int main (int argc,char *argv[]){
 
     ret = gettimeofday(&gnb_core->now_timeval,NULL);
 
-    if ( 1==is_self_test ) {
+    if ( 1 == is_self_test ) {
         self_test();
     }
 

@@ -111,7 +111,7 @@ int main (int argc,char *argv[]){
 
         int option_index = 0;
 
-        opt = getopt_long (argc, argv, "ci:k:p:",long_options, &option_index);
+        opt = getopt_long (argc, argv, "ck:p:h",long_options, &option_index);
 
         if (opt == -1) {
             break;
@@ -129,6 +129,9 @@ int main (int argc,char *argv[]){
 
         case 'k':
             public_key_file = optarg;
+            break;
+
+        case 'h':
             break;
 
         default:

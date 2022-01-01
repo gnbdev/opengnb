@@ -53,6 +53,8 @@ gnb_pf_t* gnb_find_pf_mod_by_name(const char *name);
 
 void gnb_set_env(const char *name, const char *value);
 
+void log_out_description(gnb_log_ctx_t *log);
+
 extern  gnb_arg_list_t *gnb_es_arg_list;
 
 void signal_handler(int signum){
@@ -498,6 +500,8 @@ gnb_core_t* gnb_core_create(gnb_conf_t *conf){
 
     setup_log_ctx(gnb_core->conf, gnb_core->log);
 
+    log_out_description(gnb_core->log);
+
     void *memory = (void *)gnb_core->ctl_block->entry_table256;
 
     gnb_ctl_block_build_finish(memory);
@@ -633,6 +637,8 @@ gnb_core_t* gnb_core_index_service_create(gnb_conf_t *conf){
     gnb_core->if_device_string = (char *)gnb_core->ctl_block->core_zone->if_device_string;
 
     setup_log_ctx(gnb_core->conf, gnb_core->log);
+
+    log_out_description(gnb_core->log);
 
     void *memory = (void *)gnb_core->ctl_block->entry_table256;
 
@@ -819,12 +825,17 @@ static void exec_es(gnb_core_t *gnb_core) {
 
     ret = gnb_arg_list_to_string(gnb_es_arg_list, es_arg_string, GNB_ARG_STRING_MAX_SIZE);
 
-    if ( 0 == ret ) {
-    	GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "exec gnb_es argv '%s'\n", es_arg_string);
-    } else {
-    	GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "will not exec '%s'\n", gnb_es_bin_path);
+    if ( 0 != ret ) {
+    	GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "gnb_es argv error, skip exec '%s'\n", gnb_es_bin_path);
     	return;
     }
+
+    if ( gnb_es_arg_list->argc < 4 ) {
+    	GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "gnb_es argv error, skip exec '%s' argv=%s\n", gnb_es_bin_path, es_arg_string);
+    	return;
+    }
+
+    GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "exec gnb_es argv '%s'\n", es_arg_string);
 
     pid_gnb_es = gnb_exec(gnb_es_bin_path, gnb_core->conf->binary_dir, gnb_es_arg_list, GNB_EXEC_WAIT);
 
@@ -850,12 +861,17 @@ static void exec_es(gnb_core_t *gnb_core) {
 
     ret = gnb_arg_list_to_string(gnb_es_arg_list, es_arg_string, GNB_ARG_STRING_MAX_SIZE);
 
-    if ( 0 == ret ) {
-    	GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "exec gnb_es argv '%s'\n", es_arg_string);
-    } else {
-    	GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "will not exec '%s'\n", gnb_es_bin_path);
+    if ( 0 != ret ) {
+    	GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "gnb_es argv error, skip exec '%s'\n", gnb_es_bin_path);
     	return;
     }
+
+    if ( gnb_es_arg_list->argc < 4 ) {
+    	GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "gnb_es argv error, skip exec '%s' argv=%s\n", gnb_es_bin_path, es_arg_string);
+    	return;
+    }
+
+    GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "exec gnb_es argv '%s'\n", es_arg_string);
 
     pid_gnb_es = gnb_exec(gnb_es_bin_path, gnb_core->conf->binary_dir, gnb_es_arg_list, GNB_EXEC_BACKGROUND);
 
@@ -895,19 +911,7 @@ void primary_process_loop( gnb_core_t *gnb_core ){
         if ( gnb_core->ctl_block->status_zone->keep_alive_ts_sec - last_exec_es_ts_sec > GNB_EXEC_ES_INTERVAL_TIME_SEC ) {
 
             if ( 0 == gnb_core->conf->public_index_service ) {
-
-                #ifdef __UNIX_LIKE_OS__
-                if ( 0 != gnb_es_arg_list->argc || gnb_core->conf->lite_mode ) {
-                    exec_es(gnb_core);
-                }
-                #endif
-
-                #ifdef _WIN32
-                if ( 1 != gnb_es_arg_list->argc || gnb_core->conf->lite_mode ) {
-                    exec_es(gnb_core);
-                }
-                #endif
-
+            	exec_es(gnb_core);
             }
 
             last_exec_es_ts_sec = gnb_core->ctl_block->status_zone->keep_alive_ts_sec;
