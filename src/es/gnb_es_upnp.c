@@ -81,7 +81,7 @@ static void gnb_es_upnp_em(gnb_conf_t *conf, gnb_log_ctx_t *log){
 
     GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "UPNPC Try to UPNP_GetValidIGD.\n");
 
-    if (NULL == devlist) {
+    if ( NULL == devlist ) {
         return;
     }
 
@@ -114,21 +114,21 @@ static void gnb_es_upnp_em(gnb_conf_t *conf, gnb_log_ctx_t *log){
         break;
     }
 
-    if (0 == strncmp(lan_addr, "unset", 64)) {
+    if ( 0 == strncmp(lan_addr, "unset", 64) ) {
         goto next;
     }
 
     GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "UPNPC Local LAN ip address : %s\n", lan_addr);
 
-    if (0 == strncmp(lan_addr, "unset", 64)) {
+    if ( 0 == strncmp(lan_addr, "unset", 64) ) {
         goto next;
     }
 
     int i;
 
-    for( i = 0; i<conf->udp4_socket_num; i++ ){
+    for( i = 0; i<conf->udp4_socket_num; i++ ) {
 
-        if( conf->udp4_ports[i] <= 1 || conf->udp4_ports[i] >= 65535 ){
+        if( conf->udp4_ports[i] <= 1 || conf->udp4_ports[i] >= 65535 ) {
             continue;
         }
 
@@ -142,14 +142,14 @@ static void gnb_es_upnp_em(gnb_conf_t *conf, gnb_log_ctx_t *log){
 
         if ( UPNPCOMMAND_SUCCESS == r) {
 
-            if (0 == strncmp(lan_addr, intClient, 16)) {
+            if ( 0 == strncmp(lan_addr, intClient, 16) ) {
 
                 GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "already redirected loacl[%s:%s] extPort[%d]\n", intClient, intPort, conf->udp4_ports[i]);
 
             } else {
 
                 GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "already redirected other[%s:%s] extPort[%d]\n",intClient, intPort, conf->udp4_ports[i]);
-                conf->udp4_ext_ports[i] += 1;
+                //conf->udp4_ext_ports[i] += 1;
                 snprintf(ext_port_string, 6, "%d", conf->udp4_ext_ports[i]);
 
             }
@@ -165,10 +165,10 @@ static void gnb_es_upnp_em(gnb_conf_t *conf, gnb_log_ctx_t *log){
 
 doPortMapping:
 
-        r = UPNP_AddPortMapping(urls.controlURL, data.first.servicetype, ext_port_string, in_port_string, lan_addr, "GNB", "UDP", NULL,"3600");
+        r = UPNP_AddPortMapping(urls.controlURL, data.first.servicetype, ext_port_string, in_port_string, lan_addr, "GNB", "UDP", NULL, "3600");
 
         if (0 == r) {
-            GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "now redirected [%s:%d] extPort[%d]\n",lan_addr, conf->udp4_ports[i], conf->udp4_ext_ports[i]);
+            GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "now redirected [%s:%d] extPort[%d]\n", lan_addr, conf->udp4_ports[i], conf->udp4_ext_ports[i]);
         } else {
             GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "Port Mapping Error return[%d] [%s:%d] extPort[%d]\n", r, lan_addr, conf->udp4_ports[i], conf->udp4_ext_ports[i]);
         }
