@@ -53,6 +53,7 @@ i|0|103.27.187.204|9001
 
 由[《铜豌豆 Linux》](https://www.atzlinux.com)项目为 gnb 项目制做了 Linux 下的 deb 格式软件包，详情请访问[铜豌豆软件源](https://www.atzlinux.com/allpackages.htm)。
 
+由 [taotieren](https://github.com/taotieren) 为 gnb 项目制作了 Arch Linux 的 AUR 包，详情请访问 [opengnb](https://aur.archlinux.org/packages/opengnb/) [opengnb-git](https://aur.archlinux.org/packages/opengnb-git/)
 ---
 [免责声明](docs/disclaimer.md)
 
