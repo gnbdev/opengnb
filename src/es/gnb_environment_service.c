@@ -166,12 +166,12 @@ void gnb_start_environment_service(gnb_es_ctx *es_ctx){
     uint64_t last_dump_address_sec     = 0;
     uint64_t last_broadcast_addres_sec = 0;
 
-    if ( es_ctx->if_up_opt ){
+    if ( es_ctx->if_up_opt ) {
         gnb_es_if_up(es_ctx);
         return;
     }
 
-    if ( es_ctx->if_down_opt ){
+    if ( es_ctx->if_down_opt ) {
         gnb_es_if_down(es_ctx);
         return;
     }
@@ -186,7 +186,7 @@ void gnb_start_environment_service(gnb_es_ctx *es_ctx){
 
         sync_es_time(es_ctx);
 
-        if ( es_ctx->resolv_opt && (es_ctx->now_time_sec - last_resolv_address_sec ) > GNB_RESOLV_INTERVAL_SEC ){
+        if ( es_ctx->resolv_opt && (es_ctx->now_time_sec - last_resolv_address_sec ) > GNB_RESOLV_INTERVAL_SEC ) {
 
             gnb_resolv_address(es_ctx);
 
@@ -196,7 +196,7 @@ void gnb_start_environment_service(gnb_es_ctx *es_ctx){
 
         }
 
-        if ( es_ctx->upnp_opt && (es_ctx->now_time_sec - last_upnp_time_sec ) > GNB_UPNP_INTERVAL_SEC ){
+        if ( es_ctx->upnp_opt && (es_ctx->now_time_sec - last_upnp_time_sec ) > GNB_UPNP_INTERVAL_SEC ) {
 
             gnb_es_upnp(&es_ctx->ctl_block->conf_zone->conf_st,  es_ctx->log);
 
@@ -204,7 +204,7 @@ void gnb_start_environment_service(gnb_es_ctx *es_ctx){
 
         }
 
-        if ( es_ctx->dump_address_opt && (es_ctx->now_time_sec - last_dump_address_sec ) > GNB_DUMP_ADDRESS_INTERVAL_SEC ){
+        if ( es_ctx->dump_address_opt && (es_ctx->now_time_sec - last_dump_address_sec ) > GNB_DUMP_ADDRESS_INTERVAL_SEC ) {
 
             gnb_es_dump_address_list(es_ctx);
 
@@ -212,7 +212,7 @@ void gnb_start_environment_service(gnb_es_ctx *es_ctx){
 
         }
 
-        if ( es_ctx->broadcast_addres_opt && (es_ctx->now_time_sec - last_broadcast_addres_sec ) > GNB_BROADCAST_INTERVAL_SEC){
+        if ( es_ctx->broadcast_addres_opt && (es_ctx->now_time_sec - last_broadcast_addres_sec ) > GNB_BROADCAST_INTERVAL_SEC) {
 
             gnb_broadcast_address(es_ctx);
 

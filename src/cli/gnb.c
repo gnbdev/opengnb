@@ -83,11 +83,11 @@ static void self_test(){
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"selftest addr_secure=%d\n", gnb_core->conf->addr_secure);
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"selftest lite_mode=%d\n", gnb_core->conf->lite_mode);
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"selftest public_index_service=%d\n", gnb_core->conf->public_index_service);
+
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"selftest multi_socket=%d\n", gnb_core->conf->multi_socket);
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"selftest direct_forwarding=%d\n", gnb_core->conf->direct_forwarding);
 
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"selftest activate tun=%d\n", gnb_core->conf->activate_tun);
-    GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"selftest public index service=%d\n", gnb_core->conf->public_index_service);
 
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "selftest console_log_level=%d\n", gnb_core->conf->console_log_level);
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "selftest file_log_level=%d\n",    gnb_core->conf->file_log_level);
