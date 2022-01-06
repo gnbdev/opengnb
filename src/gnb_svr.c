@@ -879,7 +879,7 @@ static void exec_es(gnb_core_t *gnb_core) {
 #endif
 
 
-#define GNB_EXEC_ES_INTERVAL_TIME_SEC  (60*1)
+#define GNB_EXEC_ES_INTERVAL_TIME_SEC  (60*5)
 
 void primary_process_loop( gnb_core_t *gnb_core ){
 
