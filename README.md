@@ -2,7 +2,7 @@
 
 [OpenGNB](https://github.com/gnbdev/opengnb "OpenGNB")是一个开源的去中心化的具有极致内网穿透能力的通过P2P进行三层网络交换的虚拟组网系统。
 
-> [OpenGNB](https://github.com/gnbdev/opengnb "OpenGNB") 可以让你把公司-家庭网络组成直接访问的局域网；[OpenGNB](https://github.com/gnbdev/opengnb "OpenGNB") 可以让你免费实现自己的SDWAN网络。
+> [OpenGNB](https://github.com/gnbdev/opengnb "OpenGNB") 可以让你把公司-家庭网络组成直接访问的局域网。
 
 [gnb_udp_over_tcp](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp")是一个为GNB开发的通过tcp链路中转UDP分组转发的服务，也可以为其他基于UDP协议的服务中转数据。
 
@@ -25,6 +25,87 @@ FreeBSD Linux OpenWRT Raspberrypi OpenBSD macOS
     - GNB节点间基于椭圆曲线数字签名实现可靠的身份验证
 4. 多平台支持
     - GNB用C语言开发，编译时不需要引用第三方库文件，可以方便移植到当前流行的操作系统上,目前支持的操作系统及平台有 Linux_x86_64，Windows10_x86_64， macOS，FreeBSD_AMD64，OpenBSD_AMD64，树莓派，OpenWRT；大至服务器环境，桌面系统，小至仅有32M内存的OpenWRT路由器都能很好的运行GNB网络。
+
+
+## GNB 快速上手
+* Linux平台
+
+### 步骤1: 下载编译GNB源码工程
+```
+git clone https://github.com/gnbdev/opengnb.git
+cd opengnb
+make -f Makefile.linux install
+```
+编译完毕后在 `opengnb/bin/` 目录下可以得到 `gnb` `gnb_crypto` `gnb_ctl` `gnb_es` 这几个文件。
+
+### 步骤2: 快捷部署GNB节点
+把`gnb` `gnb_crypto` `gnb_ctl` `gnb_es` 分别拷贝到主机A和主机B上。
+
+假设主机A和主机B分别在两个不同的局域网里需要临时穿透内网互联，最快捷的途径通过 lite 模式运行gnb，在 lite 模式下没有启用非对称加密，仅通过*$passcode* 和节点id生成加密密钥，因此安全性会比使用非对称加密的工作模块式低很多。
+
+*$passcode* 是一个长度为8个字符的32bit的16进制用字符串，可以表示为 **0xFFFFFFFF** 或 **FFFFFFFF**， 在一个public index下passcode相同的GNB节点被认为是同一个虚拟网络上的节点，请尽可能选择一个不会跟其他用户相同的*$passcode*，这里为了方便演示选定 *$passcode* 为 `12345678`, 在实际使用过程中请勿使用这样简单*$passcode*，这可能会与其他同样使用`12345678`作为的*$passcode*的用户冲突导致联网不成功。
+
+### 步骤3: 启动第一个节点
+主机A上用 **root** 执行
+```
+gnb -n 1001 -I '39.108.10.191/9001' --multi-socket=on -p 12345678
+```
+启动成功后，主机A上执行 ip addr 可见GNB节点IP
+```
+3: gnb_tun: <POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP> mtu 1280 qdisc fq_codel state UNKNOWN group default qlen 500
+    link/none 
+    inet 10.1.0.1/16 scope global gnb_tun
+       valid_lft forever preferred_lft forever
+    inet6 64:ff9b::a01:1/96 scope global 
+       valid_lft forever preferred_lft forever
+    inet6 fe80::402:c027:2cf:41f9/64 scope link stable-privacy 
+       valid_lft forever preferred_lft forever
+```
+
+### 步骤4: 启动第二个节点
+主机B上用 **root** 执行
+```
+gnb -n 1002 -I '39.108.10.191/9001' --multi-socket=on -p 12345678
+```
+启动成功后，主机B上执行 ip addr 可见GNB节点IP
+
+```
+3: gnb_tun: <POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP> mtu 1280 qdisc fq_codel state UNKNOWN group default qlen 500
+    link/none 
+    inet 10.1.0.2/16 scope global gnb_tun
+       valid_lft forever preferred_lft forever
+    inet6 64:ff9b::a01:2/96 scope global 
+       valid_lft forever preferred_lft forever
+    inet6 fe80::a6cf:9f:e778:cf5d/64 scope link stable-privacy 
+       valid_lft forever preferred_lft forever
+```
+
+#### 步骤5：测试GNB节点互通
+此时，如果主机A和主机B nat 穿透成功并确保主机上没有防火墙的干预的情况下，可以互相ping到对方的虚拟ip。
+
+主机A上执行
+```
+root@hostA:~# ping 10.1.0.2
+PING 10.1.0.2 (10.1.0.2) 56(84) bytes of data.
+64 bytes from 10.1.0.2: icmp_seq=1 ttl=64 time=2.13 ms
+64 bytes from 10.1.0.2: icmp_seq=2 ttl=64 time=2.18 ms
+64 bytes from 10.1.0.2: icmp_seq=3 ttl=64 time=2.38 ms
+64 bytes from 10.1.0.2: icmp_seq=4 ttl=64 time=2.31 ms
+64 bytes from 10.1.0.2: icmp_seq=5 ttl=64 time=2.33 ms
+```
+
+主机B上执行
+```
+root@hostA:~# ping 10.1.0.1
+PING 10.1.0.1 (10.1.0.1) 56(84) bytes of data.
+64 bytes from 10.1.0.1: icmp_seq=1 ttl=64 time=2.34 ms
+64 bytes from 10.1.0.1: icmp_seq=2 ttl=64 time=1.88 ms
+64 bytes from 10.1.0.1: icmp_seq=3 ttl=64 time=1.92 ms
+64 bytes from 10.1.0.1: icmp_seq=4 ttl=64 time=2.61 ms
+64 bytes from 10.1.0.1: icmp_seq=5 ttl=64 time=2.39 ms
+```
+
+以上 GNB lite 模式的最简使用过程，GNB lite 模式内置5个节点，如果需要更多主机参与组网和使用更安全的非对称加密方式保护GNB的数据通信，请仔细阅读下面的文档。
 
 ## 深入理解GNB指引
 

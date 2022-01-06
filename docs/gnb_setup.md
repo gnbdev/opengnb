@@ -49,5 +49,5 @@ net to net 这个模式是 两个异地的局域网通过 GNB 组成一个虚拟
 
 ## 关于gnb_udp_over_tcp
 
-当遇到一些网络运营商对UDP实行QOS策略时，请参考 [gnb_udp_over_tcp](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp")
+当遇到一些网络运营商对UDP实行QOS策略时，请参考 [gnb_udp_over_tcp](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp")，
 [gnb_udp_over_tcp](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp")是一个为GNB开发的通过tcp链路中转UDP分组转发的服务，也可以为其他基于UDP协议的服务中转数据。

@@ -59,7 +59,7 @@ listen $listen_port
 node.conf 所支持的配置项与gnb命令行参数一一对应，目前支持的配置项有
 
 ```
-ifname nodeid listen listen6 listen4 multi-socket disabled-direct-forward ipv4-only ipv6-only passcode quiet daemon mtu port-detect-range port-detect-start port-detect-end log-file-path log-udp4 log-udp-type console-log-level file-log-level udp-log-level core-log-level pf-log-level main-log-level node-log-level index-log-level detect-log-level
+ifname nodeid listen listen6 listen4 ctl-block multi-socket disabled-direct-forward ipv4-only ipv6-only passcode quiet daemon mtu set-tun address-secure node-worker index-worker index-service-worker node-detect-worker port-detect-range port-detect-start port-detect-end pid-file node-cache-file log-file-path log-udp4 log-udp-type console-log-level file-log-level udp-log-level core-log-level pf-log-level main-log-level node-log-level index-log-level detect-log-level
 ```
 
 `route.conf`:
@@ -285,6 +285,5 @@ forward节点可以为无法直接互访的GNB节点中转ip分组，这些节�
 |--if-down|call at interface down|
 |--log-udp4|send log to the address ipv4 default is '127.0.0.1:9000'|
 |--log-udp-type|the log udp type 'binary' or 'text' default is 'binary'|
-
 
 
