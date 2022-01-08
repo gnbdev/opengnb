@@ -131,7 +131,13 @@ i|0|39.108.10.191|9001
 i|0|101.32.178.3|9001
 i|0|103.27.187.204|9001
 ```
+## GNB的限制
+1. GNB不支持 *无类别域间路由（Classless Inter-Domain Routing、CIDR）*,  仅支持 A,B,C 类网络;
+2. GNB不转发默认路由（Default route）的ip帧，在`host to net`和`net to net` 模式下GNB可以为特定的子网的数据做转发，但不支持全流量转发;
+3. 在Windows平台下GNB的ipv6目前无法正常工作;
+4. GNB的使用虚拟网卡的工作在TUN模式下实现三层交换,不支持TAP模式即不支持二层交换;
 
+## GNB在Linux发行版上的情况
 由[《铜豌豆 Linux》](https://www.atzlinux.com)项目为 gnb 项目制做了 Linux 下的 deb 格式软件包，详情请访问[铜豌豆软件源](https://www.atzlinux.com/allpackages.htm)。
 
 由 [taotieren](https://github.com/taotieren) 为 gnb 项目制作了 Arch Linux 的 AUR 包，详情请访问 [opengnb](https://aur.archlinux.org/packages/opengnb/) [opengnb-git](https://aur.archlinux.org/packages/opengnb-git/)
