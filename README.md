@@ -117,11 +117,11 @@ PING 10.1.0.1 (10.1.0.1) 56(84) bytes of data.
 * [使用gnb_udp_over_tcp给GNB增加重传包能力](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp")
 
 
-GNB的index节点的角色类似于BT协议中的Tracker，由一部分GNB网络志愿者提供。在绝大多数情况下`index`节点仅为GNB网内主机提供地址索引，不会为GNB节点中转数据。
+GNB 的index节点的角色类似于BT协议中的Tracker，由一部分GNB网络志愿者提供。在绝大多数情况下`index`节点仅为GNB网内主机提供地址索引，不会为 GNB 节点中转数据。
 
-一部分志愿者提供的GNB的`forward`节点可以为极端情况下暂时无法进行点对点通信的主机进行数据中转，而GNB主机之间的非对称数据加密使得`forward`节点无法窥探中转的数据。
+一部分志愿者提供的 GNB 的`forward`节点可以为极端情况下暂时无法进行点对点通信的主机进行数据中转，而 GNB 主机之间的非对称数据加密使得`forward`节点无法窥探中转的数据。
 
-在无法建立点对点通信的极端情况下，是否通过公网`forward`节点中转数据和使用哪个可信任的 forward 节点中转数据，完全取决在主机的拥有者对GNB 节点的设置。事实上，即便处于极其复杂的网络环境，GNB优越链路能力也可以随时随地建立虚拟数据链路，GNB甚至会为网络中的主机创建多个虚拟链路，择速度最优路径发送数据分组。
+在无法建立点对点通信的极端情况下，是否通过公网`forward`节点中转数据和使用哪个可信任的 forward 节点中转数据，完全取决在主机的拥有者对 GNB 节点的设置。事实上，即便处于极其复杂的网络环境，GNB 优越链路能力也可以随时随地建立虚拟数据链路，GNB 甚至会为网络中的主机创建多个虚拟链路，择速度最优路径发送数据分组。
 
 这是由志愿者提供的可用`index`节点
 
@@ -132,10 +132,10 @@ i|0|101.32.178.3|9001
 i|0|103.27.187.204|9001
 ```
 ## GNB的限制
-1. GNB不支持 *无类别域间路由（Classless Inter-Domain Routing、CIDR）*,  仅支持 A,B,C 类网络;
-2. GNB不转发默认路由（Default route）的ip帧，在`host to net`和`net to net` 模式下GNB可以为特定的子网的数据做转发，但不支持全流量转发;
-3. 在Windows平台下GNB的ipv6目前无法正常工作;
-4. GNB的使用虚拟网卡的工作在TUN模式下实现三层交换,不支持TAP模式即不支持二层交换;
+1. GNB 不支持 *无类别域间路由（Classless Inter-Domain Routing、CIDR）*,  仅支持 A,B,C 类网络;
+2. GNB 不转发默认路由（Default route）的 IP 帧，在`host to net`和`net to net` 模式下 GNB 可以为特定的子网的数据做转发，但不支持全流量转发;
+3. 在 Windows 平台下 GNB 的 IPV6 目前无法正常工作;
+4. GNB 的使用虚拟网卡的工作在 TUN 模式下实现三层交换,不支持 TAP 模式即不支持二层交换;
 
 ## GNB在Linux发行版上的情况
 由[《铜豌豆 Linux》](https://www.atzlinux.com)项目为 gnb 项目制做了 Linux 下的 deb 格式软件包，详情请访问[铜豌豆软件源](https://www.atzlinux.com/allpackages.htm)。
