@@ -1,0 +1,48 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Build and release OpenGNB
+
+    strategy:
+      matrix:
+        os: [macos-latest, macos-11, macos-10.15]
+        include:
+          - os: macos-latest
+            make: Darwin
+          - os: macos-11
+            make: Darwin
+          - os: macos-10.15
+            make: Darwin
+
+    runs-on: ${{ matrix.os }}
+
+    env:
+      ZIPNAME: OpenGNB-${{ github.ref_name }}-${{ matrix.os }}.zip
+
+    steps:
+      # https://github.com/actions/checkout
+      - name: 1 - Check out repository code
+        uses: actions/checkout@v2
+
+      - name: 2 - Build bins
+        run: |
+          make -f Makefile.${{ matrix.make }} install
+
+      - name: 3 - Create ZIP archive
+        run: |
+          zip -vr $ZIPNAME ./bin/*
+
+      # https://github.com/actions/create-release
+      - name: 3 - Create releases for tags
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          prerelease: false
+          files: |
+            *.zip
