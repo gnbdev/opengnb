@@ -4,7 +4,7 @@
 
 > [OpenGNB](https://github.com/gnbdev/opengnb "OpenGNB") 可以让你把公司-家庭网络组成直接访问的局域网。
 
-[gnb_udp_over_tcp](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp")是一个为 GNB 开发的通过tcp链路中转UDP分组转发的服务，也可以为其他基于UDP协议的服务中转数据。
+[gnb_udp_over_tcp](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp")是一个为 GNB 开发的通过tcp链路中转 UDP 分组转发的服务，也可以为其他基于 UDP 协议的服务中转数据。
 
 出于安全考虑，GNB项目相关所有代码以开源方式发布,当前发布的源码支持以下平台：
 FreeBSD Linux OpenWRT Raspberrypi OpenBSD macOS
