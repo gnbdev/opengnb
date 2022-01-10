@@ -1,6 +1,6 @@
 # OpenGNB
 
-[OpenGNB](https://github.com/gnbdev/opengnb "OpenGNB")是一个开源的去中心化的具有极致内网穿透能力的通过P2P进行三层网络交换的虚拟组网系统。
+[OpenGNB](https://github.com/gnbdev/opengnb "OpenGNB")是一个开源的去中心化的具有极致内网穿透能力的通过 P2P 进行三层网络交换的虚拟组网系统。
 
 > [OpenGNB](https://github.com/gnbdev/opengnb "OpenGNB") 可以让你把公司-家庭网络组成直接访问的局域网。
 
