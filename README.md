@@ -41,9 +41,9 @@ make -f Makefile.linux install
 ### 步骤2: 快捷部署 GNB 节点
 把`gnb` `gnb_crypto` `gnb_ctl` `gnb_es` 分别拷贝到主机 A 和主机 B 上。
 
-假设主机 A 和主机 B 分别在两个不同的局域网里需要临时穿透内网互联，最快捷的途径通过 lite 模式运行 gnb，在 lite 模式下没有启用非对称加密，仅通过 **passcode** 和节点id生成加密密钥，因此安全性会比使用非对称加密的工作模块式低很多。
+假设主机 A 和主机 B 分别在两个不同的局域网里需要临时穿透内网互联，最快捷的途径通过 lite 模式运行 gnb，在 lite 模式下没有启用非对称加密，仅通过 **passcode** 和节点 id 生成加密密钥，因此安全性会比使用非对称加密的工作模块式低很多。
 
-**passcode** 是一个长度为8个字符的32bit的16进制用字符串，可以表示为 **0xFFFFFFFF** 或 **FFFFFFFF**， 在一个public index下**passcode**相同的 GNB 节点被认为是同一个虚拟网络上的节点，请尽可能选择一个不会跟其他用户相同的 **passcode**，这里为了方便演示选定 **passcode** 为 `12345678`, 参数 **-p** 用于指定启动节点的 **passcode**。在实际使用过程中请勿使用这样简单 **passcode**，这可能会与其他同样使用`12345678`作为的 **passcode** 的用户冲突导致通信失败。
+**passcode** 是一个长度为8个字符的32bit的16进制用字符串，可以表示为 **0xFFFFFFFF** 或 **FFFFFFFF**， 在一个public index下 **passcode** 相同的 GNB 节点被认为是同一个虚拟网络上的节点，请尽可能选择一个不会跟其他用户相同的 **passcode**，这里为了方便演示选定 **passcode** 为 `12345678`, 参数 **-p** 用于指定启动节点的 **passcode**。在实际使用过程中请勿使用这样简单 **passcode**，这可能会与其他同样使用`12345678`作为的 **passcode** 的用户冲突导致通信失败。
 
 ### 步骤3: 启动第一个节点
 主机 A 上用 **root** 执行
@@ -81,7 +81,7 @@ gnb -n 1002 -I '39.108.10.191/9001' --multi-socket=on -p 12345678
 ```
 
 #### 步骤5：测试 GNB 节点互通
-此时，如果主机 A 和主机B nat 穿透成功并确保主机上没有防火墙的干预的情况下，可以互相 ping 到对方的虚拟ip。
+此时，如果主机 A 和主机 B nat 穿透成功并确保主机上没有防火墙的干预的情况下，可以互相 ping 到对方的虚拟ip。
 
 主机 A 上执行
 ```
@@ -117,7 +117,7 @@ PING 10.1.0.1 (10.1.0.1) 56(84) bytes of data.
 * [使用 gnb_udp_over_tcp给 GNB 增加重传包能力](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp")
 
 
-GNB 的index节点的角色类似于BT协议中的Tracker，由一部分 GNB 网络志愿者提供。在绝大多数情况下`index`节点仅为 GNB 网内主机提供地址索引，不会为 GNB 节点中转数据。
+GNB 的 index 节点的角色类似于 BT 协议中的 Tracker，由一部分 GNB 网络志愿者提供。在绝大多数情况下`index`节点仅为 GNB 网内主机提供地址索引，不会为 GNB 节点中转数据。
 
 一部分志愿者提供的 GNB 的`forward`节点可以为极端情况下暂时无法进行点对点通信的主机进行数据中转，而 GNB 主机之间的非对称数据加密使得`forward`节点无法窥探中转的数据。
 
