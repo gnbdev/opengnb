@@ -39,18 +39,18 @@ make -f Makefile.linux install
 编译完毕后在 `opengnb/bin/` 目录下可以得到 `gnb` `gnb_crypto` `gnb_ctl` `gnb_es` 这几个文件。
 
 ### 步骤2: 快捷部署 GNB 节点
-把`gnb` `gnb_crypto` `gnb_ctl` `gnb_es` 分别拷贝到主机A和主机B上。
+把`gnb` `gnb_crypto` `gnb_ctl` `gnb_es` 分别拷贝到主机 A 和主机 B 上。
 
-假设主机A和主机B分别在两个不同的局域网里需要临时穿透内网互联，最快捷的途径通过 lite 模式运行gnb，在 lite 模式下没有启用非对称加密，仅通过**passcode** 和节点id生成加密密钥，因此安全性会比使用非对称加密的工作模块式低很多。
+假设主机 A 和主机 B 分别在两个不同的局域网里需要临时穿透内网互联，最快捷的途径通过 lite 模式运行gnb，在 lite 模式下没有启用非对称加密，仅通过**passcode** 和节点id生成加密密钥，因此安全性会比使用非对称加密的工作模块式低很多。
 
 **passcode** 是一个长度为8个字符的32bit的16进制用字符串，可以表示为 **0xFFFFFFFF** 或 **FFFFFFFF**， 在一个public index下**passcode**相同的 GNB 节点被认为是同一个虚拟网络上的节点，请尽可能选择一个不会跟其他用户相同的**passcode**，这里为了方便演示选定**passcode** 为 `12345678`, 参数 **-p** 用于指定启动节点的**passcode**。在实际使用过程中请勿使用这样简单**passcode**，这可能会与其他同样使用`12345678`作为的**passcode**的用户冲突导致通信失败。
 
 ### 步骤3: 启动第一个节点
-主机A上用 **root** 执行
+主机 A 上用 **root** 执行
 ```
 gnb -n 1001 -I '39.108.10.191/9001' --multi-socket=on -p 12345678
 ```
-启动成功后，主机A上执行 ip addr 可见 GNB 节点IP
+启动成功后，主机 A 上执行 ip addr 可见 GNB 节点IP
 ```
 3: gnb_tun: <POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP> mtu 1280 qdisc fq_codel state UNKNOWN group default qlen 500
     link/none 
@@ -63,11 +63,11 @@ gnb -n 1001 -I '39.108.10.191/9001' --multi-socket=on -p 12345678
 ```
 
 ### 步骤4: 启动第二个节点
-主机B上用 **root** 执行
+主机 B 上用 **root** 执行
 ```
 gnb -n 1002 -I '39.108.10.191/9001' --multi-socket=on -p 12345678
 ```
-启动成功后，主机B上执行 ip addr 可见 GNB 节点IP
+启动成功后，主机 B 上执行 ip addr 可见 GNB 节点 IP
 
 ```
 3: gnb_tun: <POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP> mtu 1280 qdisc fq_codel state UNKNOWN group default qlen 500
@@ -81,9 +81,9 @@ gnb -n 1002 -I '39.108.10.191/9001' --multi-socket=on -p 12345678
 ```
 
 #### 步骤5：测试 GNB 节点互通
-此时，如果主机A和主机B nat 穿透成功并确保主机上没有防火墙的干预的情况下，可以互相ping到对方的虚拟ip。
+此时，如果主机 A 和主机B nat 穿透成功并确保主机上没有防火墙的干预的情况下，可以互相ping到对方的虚拟ip。
 
-主机A上执行
+主机 A 上执行
 ```
 root@hostA:~# ping 10.1.0.2
 PING 10.1.0.2 (10.1.0.2) 56(84) bytes of data.
@@ -94,7 +94,7 @@ PING 10.1.0.2 (10.1.0.2) 56(84) bytes of data.
 64 bytes from 10.1.0.2: icmp_seq=5 ttl=64 time=2.33 ms
 ```
 
-主机B上执行
+主机 B 上执行
 ```
 root@hostA:~# ping 10.1.0.1
 PING 10.1.0.1 (10.1.0.1) 56(84) bytes of data.
