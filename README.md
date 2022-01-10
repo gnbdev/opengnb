@@ -4,7 +4,7 @@
 
 > [OpenGNB](https://github.com/gnbdev/opengnb "OpenGNB") 可以让你把公司-家庭网络组成直接访问的局域网。
 
-[gnb_udp_over_tcp](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp")是一个为 GNB 开发的通过tcp链路中转 UDP 分组转发的服务，也可以为其他基于 UDP 协议的服务中转数据。
+[gnb_udp_over_tcp](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp") 是一个为 GNB 开发的通过 tcp 链路中转 UDP 分组转发的服务，也可以为其他基于 UDP 协议的服务中转数据。
 
 出于安全考虑，GNB 项目相关所有代码以开源方式发布,当前发布的源码支持以下平台：
 FreeBSD Linux OpenWRT Raspberrypi OpenBSD macOS
@@ -24,7 +24,7 @@ FreeBSD Linux OpenWRT Raspberrypi OpenBSD macOS
 3. 数据安全
     - GNB节点间基于椭圆曲线数字签名实现可靠的身份验证
 4. 多平台支持
-    -  GNB 用 C 语言开发，编译时不需要引用第三方库文件，可以方便移植到当前流行的操作系统上,目前支持的操作系统及平台有 Linux_x86_64，Windows10_x86_64， macOS，FreeBSD_AMD64，OpenBSD_AMD64，树莓派，OpenWRT；大至服务器环境，桌面系统，小至仅有32M内存的OpenWRT路由器都能很好的运行 GNB 网络。
+    -  GNB 用 C 语言开发，编译时不需要引用第三方库文件，可以方便移植到当前流行的操作系统上,目前支持的操作系统及平台有 Linux_x86_64，Windows10_x86_64， macOS，FreeBSD_AMD64，OpenBSD_AMD64，树莓派，OpenWRT；大至服务器环境，桌面系统，小至仅有 32M 内存的OpenWRT路由器都能很好的运行 GNB 网络。
 
 
 ## GNB 快速上手
@@ -43,14 +43,14 @@ make -f Makefile.linux install
 
 假设主机 A 和主机 B 分别在两个不同的局域网里需要临时穿透内网互联，最快捷的途径通过 lite 模式运行 gnb，在 lite 模式下没有启用非对称加密，仅通过 **passcode** 和节点 id 生成加密密钥，因此安全性会比使用非对称加密的工作模块式低很多。
 
-**passcode** 是一个长度为8个字符的32bit的16进制用字符串，可以表示为 **0xFFFFFFFF** 或 **FFFFFFFF**， 在一个public index下 **passcode** 相同的 GNB 节点被认为是同一个虚拟网络上的节点，请尽可能选择一个不会跟其他用户相同的 **passcode**，这里为了方便演示选定 **passcode** 为 `12345678`, 参数 **-p** 用于指定启动节点的 **passcode**。在实际使用过程中请勿使用这样简单 **passcode**，这可能会与其他同样使用`12345678`作为的 **passcode** 的用户冲突导致通信失败。
+**passcode** 是一个长度为8个字符的32bit的16进制用字符串，可以表示为 **0xFFFFFFFF** 或 **FFFFFFFF**， 在一个 public index 下 **passcode** 相同的 GNB 节点被认为是同一个虚拟网络上的节点，请尽可能选择一个不会跟其他用户相同的 **passcode**，这里为了方便演示选定 **passcode** 为 `12345678`, 参数 **-p** 用于指定启动节点的 **passcode**。在实际使用过程中请勿使用这样简单 **passcode**，这可能会与其他同样使用`12345678`作为的 **passcode** 的用户冲突导致通信失败。
 
 ### 步骤3: 启动第一个节点
 主机 A 上用 **root** 执行
 ```
 gnb -n 1001 -I '39.108.10.191/9001' --multi-socket=on -p 12345678
 ```
-启动成功后，主机 A 上执行 ip addr 可见 GNB 节点IP
+启动成功后，主机 A 上执行 ip addr 可见 GNB 节点 IP
 ```
 3: gnb_tun: <POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP> mtu 1280 qdisc fq_codel state UNKNOWN group default qlen 500
     link/none 
@@ -81,7 +81,7 @@ gnb -n 1002 -I '39.108.10.191/9001' --multi-socket=on -p 12345678
 ```
 
 #### 步骤5：测试 GNB 节点互通
-此时，如果主机 A 和主机 B nat 穿透成功并确保主机上没有防火墙的干预的情况下，可以互相 ping 到对方的虚拟ip。
+此时，如果主机 A 和主机 B nat 穿透成功并确保主机上没有防火墙的干预的情况下，可以互相 ping 到对方的虚拟 ip。
 
 主机 A 上执行
 ```
