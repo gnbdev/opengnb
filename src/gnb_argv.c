@@ -390,7 +390,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
                 port_host = (uint16_t)strtoul(optarg, NULL, 10);
                 snprintf(listen_sockaddress6_string, GNB_IP6_PORT_STRING_SIZE, "[:::%d]",    port_host);
                 snprintf(listen_sockaddress4_string, GNB_IP4_PORT_STRING_SIZE, "0.0.0.0:%d", port_host);
-            } else if ( 4 == ret) {
+            } else if ( 4 == ret ) {
                 snprintf(listen_sockaddress4_string, GNB_IP4_PORT_STRING_SIZE, "%s", optarg);
             } else if( 6 == ret ) {
                 snprintf(listen_sockaddress6_string, GNB_IP6_PORT_STRING_SIZE, "%s", optarg);
@@ -568,7 +568,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
             if ( !strncmp(optarg, "on", 2) ) {
                 conf->multi_socket = 1;
-            } else if ( strncmp(optarg, "off", 3) ) {
+            } else if ( !strncmp(optarg, "off", 3) ) {
                 conf->multi_socket = 0;
             } else {
                 conf->multi_socket = 0;
@@ -586,7 +586,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
             if ( !strncmp(optarg, "on", 2) ) {
                 conf->activate_tun  = 1;
-            } else if ( strncmp(optarg, "off", 3) ) {
+            } else if ( !strncmp(optarg, "off", 3) ) {
                 conf->activate_tun  = 0;
             } else {
                 conf->activate_tun  = 1;
@@ -598,7 +598,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
             if ( !strncmp(optarg, "on", 2) ) {
                 conf->activate_index_worker = 1;
-            } else if ( strncmp(optarg, "off", 3) ) {
+            } else if ( !strncmp(optarg, "off", 3) ) {
                 conf->activate_index_worker = 0;
             } else {
                 conf->activate_index_worker = 1;
@@ -610,7 +610,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
             if ( !strncmp(optarg, "on", 2) ) {
                 conf->activate_index_service_worker = 1;
-            } else if ( strncmp(optarg, "off", 3) ) {
+            } else if ( !strncmp(optarg, "off", 3) ) {
                 conf->activate_index_service_worker = 0;
             } else {
                 conf->activate_index_service_worker = 1;
@@ -622,7 +622,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
             if ( !strncmp(optarg, "on", 2) ) {
                 conf->activate_detect_worker = 1;
-            } else if ( strncmp(optarg, "off", 3) ) {
+            } else if ( !strncmp(optarg, "off", 3) ) {
                 conf->activate_detect_worker = 0;
             } else {
                 conf->activate_detect_worker = 1;
@@ -634,7 +634,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
             if ( !strncmp(optarg, "on", 2) ) {
                 conf->activate_detect_worker = 1;
-            } else if ( strncmp(optarg, "off", 3) ) {
+            } else if ( !strncmp(optarg, "off", 3) ) {
                 conf->fwdu0 = 0;
             } else {
                 conf->fwdu0 = 1;
@@ -646,7 +646,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
             if ( !strncmp(optarg, "on", 2) ) {
                 conf->direct_forwarding = 1;
-            } else if ( strncmp(optarg, "off", 3) ) {
+            } else if ( !strncmp(optarg, "off", 3) ) {
                 conf->direct_forwarding = 0;
             } else {
                 conf->direct_forwarding = 1;
@@ -658,7 +658,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
             if ( !strncmp(optarg, "on", 2) ) {
                 conf->addr_secure = 1;
-            } else if ( strncmp(optarg, "off", 3) ) {
+            } else if ( !strncmp(optarg, "off", 3) ) {
                 conf->addr_secure = 0;
             } else {
                 conf->addr_secure = 1;
@@ -670,7 +670,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
             if ( !strncmp(optarg, "on", 2) ) {
                 conf->if_dump = 1;
-            } else if ( strncmp(optarg, "off", 3) ) {
+            } else if ( !strncmp(optarg, "off", 3) ) {
                 conf->if_dump = 0;
             } else {
                 conf->if_dump = 0;
