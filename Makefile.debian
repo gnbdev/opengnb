@@ -1,6 +1,5 @@
 CFLAGS += -O2 -ffunction-sections -fdata-sections -Wno-unused-result -D_FORTIFY_SOURCE=2 -Wdate-time -DGNB_SKIP_BUILD_TIME=1 -I./src/ -I./libs/ -I/usr/include/miniupnpc/
 CLI_LDFLAGS=-Wl,--gc-sections -L/usr/lib -pthread
-
 GNB_ES_LDFLAGS=-lminiupnpc -Wl,--gc-sections -L/usr/lib -pthread
 
 
@@ -15,7 +14,7 @@ GNB_ES=gnb_es
 GNB_CLI=gnb
 
 
-include Makefile.debian.inc
+include Makefile.inc
 
 
 GNB_CLI_OBJS =                             \
@@ -31,8 +30,8 @@ ${GNB_CTL}: ${GNB_CTL_OBJS}
 	${CC} -o ${GNB_CTL} ${GNB_CTL_OBJS} ${CLI_LDFLAGS} ${LDFLAGS}
 
 
-${GNB_ES}: ${GNB_ES_OBJS}
-	${CC} -o ${GNB_ES} ${GNB_ES_OBJS} ${GNB_ES_LDFLAGS} ${LDFLAGS}
+${GNB_ES}: ${GNB_ES_OBJS} ${CRYPTO_OBJS}
+	${CC} -o ${GNB_ES} ${GNB_ES_OBJS} ${CRYPTO_OBJS} ${GNB_ES_LDFLAGS} ${LDFLAGS}
 
 
 ${GNB_CRYPTO}: ${CRYPTO_OBJS} ./src/gnb_crypto.o
