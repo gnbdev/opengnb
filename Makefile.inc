@@ -15,8 +15,6 @@ MINIUPNP_OBJS =                            \
 
 
 CRYPTO_OBJS =                               \
-       ./src/gnb_keys.o                     \
-       ./src/gnb_binary.o                   \
        ./libs/ed25519/add_scalar.o          \
        ./libs/ed25519/fe.o                  \
        ./libs/ed25519/ge.o                  \
@@ -27,6 +25,7 @@ CRYPTO_OBJS =                               \
        ./libs/ed25519/sha512.o              \
        ./libs/ed25519/sign.o                \
        ./libs/ed25519/verify.o              \
+       ./src/gnb_binary.o                   \
        ./src/crypto/arc4/arc4.o             \
        ./src/crypto/random/gnb_random.o
 
@@ -59,6 +58,7 @@ GNB_OBJS =                                 \
        ./src/gnb_arg_list.o                \
        ./src/gnb_log.o                     \
        ./src/gnb_hash32.o                  \
+       ./src/gnb_keys.o                    \
        ./libs/hash/murmurhash.o
 
 
@@ -78,8 +78,8 @@ GNB_ES_OBJS =                             \
       ./src/es/gnb_es_broadcast_address.o \
       ./src/es/gnb_es_resolv.o            \
       ./src/es/gnb_es_upnp.o              \
+      ./src/es/gnb_discover_in_lan.o      \
       ./src/gnb_ctl_block.o               \
-      ./src/gnb_binary.o                  \
       ./src/gnb_time.o                    \
       ./src/gnb_address.o                 \
       ./src/gnb_payload16.o               \
@@ -107,5 +107,4 @@ GNB_CTL_OBJS =                            \
 
 GNB_OBJS    += ./src/gnb_mod_register.o
 GNB_ES_OBJS += ./src/es/gnb_es_platform.o
-      
 
