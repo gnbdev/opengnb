@@ -44,7 +44,6 @@ typedef struct _gnb_ctl_magic_number_t {
 typedef struct _gnb_ctl_conf_zone_t {
 
 	unsigned char name[8];
-
 	gnb_conf_t conf_st;
 
 }gnb_ctl_conf_zone_t;
@@ -55,6 +54,9 @@ typedef struct _gnb_ctl_core_zone_t {
 	unsigned char name[8];
 
 	uint32_t local_uuid;
+
+	unsigned char ed25519_private_key[64];
+	unsigned char ed25519_public_key[32];
 
 	uint32_t  tun_if_id;
 	unsigned char ifname[256];

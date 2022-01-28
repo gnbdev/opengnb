@@ -82,7 +82,7 @@ static int pf_tun_frame_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 
     gnb_route_ctx_t *ctx = (gnb_route_ctx_t *)GNB_PF_GET_CTX(gnb_core,gnb_pf_route);
 
-    if ( NULL==pf_ctx->fwd_payload ){
+    if ( NULL==pf_ctx->fwd_payload ) {
         return GNB_PF_ERROR;
     }
 
@@ -92,7 +92,7 @@ static int pf_tun_frame_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
     ip_frame_head = (struct iphdr*)(pf_ctx->fwd_payload->data + gnb_core->tun_payload_offset);
 
     //从ip分组中得到 dst ip，用于查路由表获得 dst node
-    if ( 0x4 != ip_frame_head->version && 0x6 != ip_frame_head->version ){
+    if ( 0x4 != ip_frame_head->version && 0x6 != ip_frame_head->version ) {
         return GNB_PF_DROP;
     }
 
@@ -100,14 +100,14 @@ static int pf_tun_frame_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
     struct ip6_hdr  *ip6_frame_head;
     uint32_t dst_ip_int;
 
-    if ( 0x6 == ip_frame_head->version ){
+    if ( 0x6 == ip_frame_head->version ) {
         ip6_frame_head = (struct ip6_hdr  *)(pf_ctx->fwd_payload->data + gnb_core->tun_payload_offset);
         dst_ip_int = ip6_frame_head->ip6_dst.__in6_u.__u6_addr32[3];
         goto handle_ip_frame;
     }
 
 
-    if ( 0x4 == ip_frame_head->version ){
+    if ( 0x4 == ip_frame_head->version ) {
         dst_ip_int = *((uint32_t *)&ip_frame_head->daddr);
     }
 
@@ -116,11 +116,11 @@ handle_ip_frame:
 
     pf_ctx->dst_node = gnb_query_route4(gnb_core,dst_ip_int);
 
-    if ( NULL==pf_ctx->dst_node ){
+    if ( NULL==pf_ctx->dst_node ) {
         return GNB_PF_DROP;
     }
 
-    if ( pf_ctx->dst_node == gnb_core->local_node ){
+    if ( pf_ctx->dst_node == gnb_core->local_node ) {
         return GNB_PF_DROP;
     }
 
@@ -184,24 +184,23 @@ static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 
     gnb_route_frame_head_t *route_frame_head = (gnb_route_frame_head_t *)pf_ctx->fwd_payload->data;
 
-    if ( NULL == pf_ctx->dst_node ){
+    if ( NULL == pf_ctx->dst_node ) {
         ret = GNB_PF_DROP;
         goto handle_relay;
     }
 
-    if ( 0 == gnb_core->conf->direct_forwarding ){
+    if ( 0 == gnb_core->conf->direct_forwarding ) {
 
-        if( NULL != gnb_core->select_fwd_node ){
+        if( NULL != gnb_core->select_fwd_node ) {
             pf_ctx->fwd_node = gnb_core->select_fwd_node;
             ret = GNB_PF_NEXT;
             goto handle_relay;
-        }else{
+        } else {
             ret = GNB_PF_ERROR;
             goto handle_relay;
         }
 
     }
-
 
     if ( (0 == gnb_core->fwd_node_ring.num ) && ( (pf_ctx->dst_node->udp_addr_status & GNB_NODE_STATUS_IPV6_PING) || (pf_ctx->dst_node->udp_addr_status & GNB_NODE_STATUS_IPV4_PING) ) ) {
         pf_ctx->fwd_node = pf_ctx->dst_node;
@@ -217,18 +216,17 @@ static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
         goto handle_relay;
     }
 
-
-    if ( gnb_core->fwdu0_address_ring.address_list->num > 0 && NULL == gnb_core->select_fwd_node ){
+    if ( gnb_core->fwdu0_address_ring.address_list->num > 0 && NULL == gnb_core->select_fwd_node ) {
         ret = GNB_PF_NOROUTE;
         goto handle_relay;
     }
 
-    if ( NULL == gnb_core->select_fwd_node ){
+    if ( NULL == gnb_core->select_fwd_node ) {
         ret = GNB_PF_DROP;
         goto handle_relay;
     }
 
-    if ( (gnb_core->select_fwd_node->udp_addr_status & GNB_NODE_STATUS_IPV6_PONG) || (gnb_core->select_fwd_node->udp_addr_status & GNB_NODE_STATUS_IPV4_PONG) ){
+    if ( (gnb_core->select_fwd_node->udp_addr_status & GNB_NODE_STATUS_IPV6_PONG) || (gnb_core->select_fwd_node->udp_addr_status & GNB_NODE_STATUS_IPV4_PONG) ) {
         pf_ctx->fwd_node = gnb_core->select_fwd_node;
         pf_ctx->fwd_payload->sub_type |= GNB_PAYLOAD_SUB_TYPE_IPFRAME_STD;
         ret = GNB_PF_NEXT;
@@ -241,15 +239,15 @@ static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 
 handle_relay:
 
-    if ( GNB_NODE_RELAY_DISABLE == pf_ctx->dst_node->node_relay_mode ){
+    if ( GNB_NODE_RELAY_DISABLE == pf_ctx->dst_node->node_relay_mode ) {
         goto finish;
     }
 
-    if  ( GNB_PF_NEXT == ret && (GNB_NODE_RELAY_AUTO & pf_ctx->dst_node->node_relay_mode) ){
+    if  ( GNB_PF_NEXT == ret && (GNB_NODE_RELAY_AUTO & pf_ctx->dst_node->node_relay_mode) ) {
         goto finish;
     }
 
-    if ( !( (GNB_NODE_RELAY_FORCE|GNB_NODE_RELAY_AUTO) & pf_ctx->dst_node->node_relay_mode ) ){
+    if ( !( (GNB_NODE_RELAY_FORCE|GNB_NODE_RELAY_AUTO) & pf_ctx->dst_node->node_relay_mode ) ) {
         goto finish;
     }
 
@@ -261,7 +259,7 @@ handle_relay:
 
     pf_ctx->fwd_payload->sub_type |= GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY;
 
-    if ( GNB_NODE_RELAY_STATIC & pf_ctx->dst_node->node_relay_mode ){
+    if ( GNB_NODE_RELAY_STATIC & pf_ctx->dst_node->node_relay_mode ) {
         pf_ctx->dst_node->selected_route_node = 0;
     }
 
@@ -299,7 +297,7 @@ handle_relay:
 
     ret = GNB_PF_NEXT;
 
-    if ( GNB_NODE_RELAY_BALANCE & pf_ctx->dst_node->node_relay_mode ){
+    if ( GNB_NODE_RELAY_BALANCE & pf_ctx->dst_node->node_relay_mode ) {
 
         pf_ctx->dst_node->selected_route_node++;
 
@@ -340,14 +338,14 @@ static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
     int i;
     uint32_t *nodeid_ptr;
 
-    if ( NULL == pf_ctx->fwd_payload ){
+    if ( NULL == pf_ctx->fwd_payload ) {
         ret = GNB_PF_ERROR;
         goto finish;
     }
 
     payload_data_size = gnb_payload16_data_len(pf_ctx->fwd_payload);
 
-    if( payload_data_size < MIN_ROUTE_FRAME_SIZE ){
+    if( payload_data_size < MIN_ROUTE_FRAME_SIZE ) {
         ret = GNB_PF_ERROR;
         goto finish;
     }
@@ -378,7 +376,7 @@ static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
     //把 ip frame 和 size，保存在ctx中
     pf_ctx->ip_frame = pf_ctx->fwd_payload->data + sizeof(gnb_route_frame_head_t);
 
-    if( GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY & pf_ctx->fwd_payload->sub_type ) {
+    if ( GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY & pf_ctx->fwd_payload->sub_type ) {
         pf_ctx->ip_frame_size = gnb_payload16_data_len(pf_ctx->fwd_payload) - sizeof(gnb_route_frame_head_t) - route_frame_head->ttl*sizeof(uint32_t);
     } else {
         pf_ctx->ip_frame_size = gnb_payload16_data_len(pf_ctx->fwd_payload) - sizeof(gnb_route_frame_head_t);

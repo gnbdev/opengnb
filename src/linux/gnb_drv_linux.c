@@ -49,7 +49,7 @@
 
 void bind_socket_if(gnb_core_t *gnb_core){
 
-    if( '\0' == gnb_core->conf->socket_ifname[0] ){
+    if ( '\0' == gnb_core->conf->socket_ifname[0] ) {
         return;
     }
 
@@ -61,11 +61,11 @@ void bind_socket_if(gnb_core_t *gnb_core){
 
     int i;
 
-    for( i=0; i < gnb_core->conf->udp6_socket_num; i++ ){
+    for ( i=0; i < gnb_core->conf->udp6_socket_num; i++ ) {
         setsockopt(gnb_core->udp_ipv6_sockets[i], SOL_SOCKET, SO_BINDTODEVICE, (char *)&nif, sizeof(nif));
     }
 
-    for( i=0; i < gnb_core->conf->udp4_socket_num; i++ ){
+    for ( i=0; i < gnb_core->conf->udp4_socket_num; i++ ) {
         setsockopt(gnb_core->udp_ipv4_sockets[i], SOL_SOCKET, SO_BINDTODEVICE, (char *)&nif, sizeof(nif));
     }
 
@@ -82,7 +82,7 @@ static void if_up_script(gnb_core_t *gnb_core){
 
     ret = system(cmd);
 
-    if ( -1==ret || 0 ==ret ){
+    if ( -1==ret || 0 ==ret ) {
         return;
     }
 
@@ -101,7 +101,7 @@ static void if_down_script(gnb_core_t *gnb_core){
 
     ret = system(cmd);
 
-    if ( -1==ret || 0 ==ret ){
+    if ( -1==ret || 0 ==ret ) {
         return;
     }
 
@@ -121,7 +121,7 @@ static void setifmtu(char *if_name,int mtu) {
 
     ifr.ifr_mtu = mtu;
 
-    if((socket_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+    if ( (socket_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
         perror("socket ");
     }
 
@@ -138,7 +138,7 @@ static int set_addr4(char *interface_name, char *ip, char *netmask){
 
     int socket_fd;
 
-    if((socket_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0){
+    if ( (socket_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0 ) {
         return -1;
     }
 
@@ -153,7 +153,7 @@ static int set_addr4(char *interface_name, char *ip, char *netmask){
 
     memcpy(&ifr.ifr_ifru.ifru_addr, &addr, sizeof(struct sockaddr_in));
 
-    if(ioctl(socket_fd, SIOCSIFADDR, &ifr) < 0) {
+    if ( ioctl(socket_fd, SIOCSIFADDR, &ifr) < 0 ) {
         perror("ioctl addr4 SIOCSIFADDR");
         exit(0);
     }
@@ -172,7 +172,7 @@ static int set_addr4(char *interface_name, char *ip, char *netmask){
 
     inet_pton(AF_INET, netmask, &sin_net_mask ->sin_addr);
 
-    if(ioctl(socket_fd, SIOCSIFNETMASK, &ifr_mask ) < 0) {
+    if ( ioctl(socket_fd, SIOCSIFNETMASK, &ifr_mask ) < 0 ) {
         perror("ioctl addr4 SIOCSIFNETMASK");
         exit(0);
     }
@@ -199,7 +199,7 @@ static int set_addr6(char *interface_name, char *ip, char *netmask){
 
     socket_fd = socket(PF_INET6, SOCK_DGRAM, IPPROTO_IP);
 
-    if( socket_fd < 0){
+    if ( socket_fd < 0) {
         return -1;
     }
 
@@ -236,7 +236,7 @@ static int interface_up(char *interface_name) {
 
     int socket_fd;
 
-    if( (socket_fd = socket(PF_INET,SOCK_STREAM,0)) < 0 ){
+    if ( (socket_fd = socket(PF_INET,SOCK_STREAM,0)) < 0 ) {
         return -1;
     }
 
@@ -248,13 +248,13 @@ static int interface_up(char *interface_name) {
 
     flag = IFF_UP;
 
-    if( ioctl(socket_fd, SIOCGIFFLAGS, &ifr) < 0 ) {
+    if ( ioctl(socket_fd, SIOCGIFFLAGS, &ifr) < 0 ) {
         return -2;
     }
 
     ifr.ifr_ifru.ifru_flags |= flag;
 
-    if(ioctl(socket_fd, SIOCSIFFLAGS, &ifr) < 0) {
+    if ( ioctl(socket_fd, SIOCSIFFLAGS, &ifr) < 0 ) {
         return -3;
     }
 
@@ -271,7 +271,7 @@ static int tun_alloc(char *dev) {
   int fd, err;
   char *clonedev = "/dev/net/tun";
 
-  if( (fd = open(clonedev , O_RDWR)) < 0 ) {
+  if ( (fd = open(clonedev , O_RDWR)) < 0 ) {
     return fd;
   }
 
@@ -281,7 +281,7 @@ static int tun_alloc(char *dev) {
 
   strncpy(ifr.ifr_name, dev, IFNAMSIZ);
 
-  if( (err = ioctl(fd, TUNSETIFF, (void *)&ifr)) < 0 ) {
+  if ( (err = ioctl(fd, TUNSETIFF, (void *)&ifr)) < 0 ) {
     //perror("ioctl(TUNSETIFF)");
     close(fd);
     return err;
@@ -303,7 +303,7 @@ int init_tun_linux(gnb_core_t *gnb_core){
 
 static int open_tun_linux(gnb_core_t *gnb_core){
 
-    if ( -1 != gnb_core->tun_fd ){
+    if ( -1 != gnb_core->tun_fd ) {
         return -1;
     }
 
@@ -311,7 +311,7 @@ static int open_tun_linux(gnb_core_t *gnb_core){
 
     set_addr4(gnb_core->ifname, GNB_ADDR4STR_PLAINTEXT1(&gnb_core->local_node->tun_addr4), GNB_ADDR4STR_PLAINTEXT2(&gnb_core->local_node->tun_netmask_addr4));
 
-    if (GNB_ADDR_TYPE_IPV4 != gnb_core->conf->udp_socket_type){
+    if (GNB_ADDR_TYPE_IPV4 != gnb_core->conf->udp_socket_type) {
         set_addr6(gnb_core->ifname, GNB_ADDR6STR_PLAINTEXT1(&gnb_core->local_node->tun_ipv6_addr), "FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:0000:0000");
     }
 

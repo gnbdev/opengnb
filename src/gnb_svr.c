@@ -56,11 +56,11 @@ void gnb_set_env(const char *name, const char *value);
 void log_out_description(gnb_log_ctx_t *log);
 
 extern  gnb_arg_list_t *gnb_es_arg_list;
+extern int is_verbose;
 
 void signal_handler(int signum){
 
 }
-
 
 static void gnb_setup_env(gnb_core_t *gnb_core){
 
@@ -73,7 +73,6 @@ static void gnb_setup_env(gnb_core_t *gnb_core){
     gnb_set_env("GNB_TUN_IPV6", GNB_ADDR6STR1(&gnb_core->local_node->tun_ipv6_addr));
 
 }
-
 
 static void init_ctl_block(gnb_core_t *gnb_core, gnb_conf_t *conf){
 
@@ -104,9 +103,7 @@ static void init_ctl_block(gnb_core_t *gnb_core, gnb_conf_t *conf){
     }
 
     memory = gnb_mmap_get_block(mmap_block);
-
     gnb_core->ctl_block = gnb_ctl_block_build(memory, node_num);
-
     gnb_core->ctl_block->mmap_block = mmap_block;
 
 }
@@ -128,25 +125,19 @@ static void setup_log_ctx(gnb_conf_t *conf, gnb_log_ctx_t *log){
         snprintf(log->log_file_path, PATH_MAX, "%s", conf->log_path);
 
         if ( 0 == conf->public_index_service ) {
-
             snprintf(log->log_file_name_std,   PATH_MAX+NAME_MAX, "%s/std.log",   conf->log_path);
             snprintf(log->log_file_name_debug, PATH_MAX+NAME_MAX, "%s/debug.log", conf->log_path);
             snprintf(log->log_file_name_error, PATH_MAX+NAME_MAX, "%s/error.log", conf->log_path);
-
         } else {
-
             snprintf(log->log_file_name_std,   PATH_MAX+NAME_MAX, "%s/std.%d.log",   conf->log_path, conf->udp4_ports[0]);
             snprintf(log->log_file_name_debug, PATH_MAX+NAME_MAX, "%s/debug.%d.log", conf->log_path, conf->udp4_ports[0]);
             snprintf(log->log_file_name_error, PATH_MAX+NAME_MAX, "%s/error.%d.log", conf->log_path, conf->udp4_ports[0]);
-
         }
 
         log->output_type |= GNB_LOG_OUTPUT_FILE;
 
     } else {
-
         log->log_file_path[0] = '\0';
-
     }
 
     if ( GNB_LOG_LEVEL_UNSET == conf->console_log_level ) {
@@ -160,6 +151,7 @@ static void setup_log_ctx(gnb_conf_t *conf, gnb_log_ctx_t *log){
     }
 
     if ( GNB_LOG_LEVEL_UNSET == conf->file_log_level ) {
+
         if ( 0 == conf->lite_mode ) {
             conf->file_log_level    = GNB_LOG_LEVEL1;
         } else {
@@ -378,7 +370,7 @@ static void setup_log_ctx(gnb_conf_t *conf, gnb_log_ctx_t *log){
 
     if ( GNB_LOG_LEVEL_UNSET != conf->index_service_log_level ) {
 
-        if ( 0 == conf->lite_mode ){
+        if ( 0 == conf->lite_mode ) {
 
             if ( conf->console_log_level >= conf->index_service_log_level ) {
                 log->config_table[GNB_LOG_ID_INDEX_SERVICE_WORKER].console_level = conf->index_service_log_level;
@@ -429,11 +421,9 @@ static void setup_log_ctx(gnb_conf_t *conf, gnb_log_ctx_t *log){
     }
 
     gnb_log_file_rotate(log);
-
     gnb_log_udp_open(log);
 
     log->log_udp_type = conf->log_udp_type;
-
     log->log_payload_type = GNB_PAYLOAD_TYPE_UDPLOG;
 
     if ( '\0' != conf->log_udp_sockaddress4_string[0] ) {
@@ -469,6 +459,9 @@ gnb_core_t* gnb_core_create(gnb_conf_t *conf){
     memcpy(gnb_core->log, log, sizeof(gnb_log_ctx_t));
     free(log);
 
+    gnb_core->ed25519_private_key = gnb_core->ctl_block->core_zone->ed25519_private_key;
+    gnb_core->ed25519_public_key  = gnb_core->ctl_block->core_zone->ed25519_public_key;
+
     gnb_core->index_address_ring.address_list = (gnb_address_list_t *)gnb_core->ctl_block->core_zone->index_address_block;
     gnb_core->index_address_ring.address_list->num  = 0;
     gnb_core->index_address_ring.address_list->size = GNB_MAX_ADDR_RING;
@@ -476,7 +469,6 @@ gnb_core_t* gnb_core_create(gnb_conf_t *conf){
     gnb_core->fwdu0_address_ring.address_list = (gnb_address_list_t *)gnb_core->ctl_block->core_zone->ufwd_address_block;
     gnb_core->fwdu0_address_ring.address_list->num = 0;
     gnb_core->fwdu0_address_ring.address_list->size = 16;
-
 
     gnb_core->ifname = (char *)gnb_core->ctl_block->core_zone->ifname;
     gnb_core->if_device_string = (char *)gnb_core->ctl_block->core_zone->if_device_string;
@@ -496,6 +488,24 @@ gnb_core_t* gnb_core_create(gnb_conf_t *conf){
         gnb_config_file(gnb_core);
     } else {
         gnb_config_lite(gnb_core);
+    }
+
+    if ( 0==conf->daemon && 1==is_verbose ) {
+
+        gnb_core->conf->console_log_level        = 2;
+        gnb_core->conf->core_log_level           = 2;
+        gnb_core->conf->pf_log_level             = 2;
+        gnb_core->conf->main_log_level           = 2;
+        gnb_core->conf->node_log_level           = 2;
+        gnb_core->conf->index_log_level          = 2;
+        gnb_core->conf->index_service_log_level  = 2;
+        gnb_core->conf->detect_log_level         = 2;
+
+        if ( 1==gnb_core->conf->if_dump ) {
+            gnb_core->conf->console_log_level        = 3;
+            gnb_core->conf->pf_log_level             = 3;
+        }
+
     }
 
     setup_log_ctx(gnb_core->conf, gnb_core->log);
@@ -581,7 +591,6 @@ skip_crypto:
     gnb_core->drv = &gnb_tun_drv_win32;
 #endif
 
-
     if ( gnb_core->conf->activate_tun ) {
         gnb_core->drv->init_tun(gnb_core);
     }
@@ -633,8 +642,29 @@ gnb_core_t* gnb_core_index_service_create(gnb_conf_t *conf){
 
     free(log);
 
+    gnb_core->ed25519_private_key = gnb_core->ctl_block->core_zone->ed25519_private_key;
+    gnb_core->ed25519_public_key  = gnb_core->ctl_block->core_zone->ed25519_public_key;
+
     gnb_core->ifname = (char *)gnb_core->ctl_block->core_zone->ifname;
     gnb_core->if_device_string = (char *)gnb_core->ctl_block->core_zone->if_device_string;
+
+    if ( 0==conf->daemon && 1==is_verbose ) {
+
+        gnb_core->conf->console_log_level        = 2;
+        gnb_core->conf->core_log_level           = 2;
+        gnb_core->conf->pf_log_level             = 2;
+        gnb_core->conf->main_log_level           = 2;
+        gnb_core->conf->node_log_level           = 2;
+        gnb_core->conf->index_log_level          = 2;
+        gnb_core->conf->index_service_log_level  = 2;
+        gnb_core->conf->detect_log_level         = 2;
+
+        if ( 1==gnb_core->conf->if_dump ) {
+            gnb_core->conf->console_log_level        = 3;
+            gnb_core->conf->pf_log_level             = 3;
+        }
+
+    }
 
     setup_log_ctx(gnb_core->conf, gnb_core->log);
 
@@ -686,13 +716,13 @@ void gnb_core_index_service_start(gnb_core_t *gnb_core){
     signal(SIGALRM,signal_handler);
 #endif
 
-    GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"GNB Public Index Service Start.....\n");
+    GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"GNB Public Index Service Start.....\n");
 
     gnb_core->index_service_worker->start(gnb_core->index_service_worker);
-    GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"%s start\n", gnb_core->index_service_worker->name);
+    GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"%s start\n", gnb_core->index_service_worker->name);
 
     gnb_core->main_worker->start(gnb_core->main_worker);
-    GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"%s start\n", gnb_core->main_worker->name);
+    GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"%s start\n", gnb_core->main_worker->name);
 
 }
 
@@ -707,7 +737,7 @@ void gnb_core_start(gnb_core_t *gnb_core){
     signal(SIGALRM,signal_handler);
 #endif
 
-    GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"Start.....\n");
+    GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "Start.....\n");
 
     gnb_setup_env(gnb_core);
 
@@ -718,41 +748,41 @@ void gnb_core_start(gnb_core_t *gnb_core){
         if ( 0!=ret ) {
 
             if ( -1 == ret ) {
-                GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"if[%s] already open\n", gnb_core->ifname);
-            }else {
-                GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"if[%s] error\n", gnb_core->ifname);
+                GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "if[%s] already open\n", gnb_core->ifname);
+            } else {
+                GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "if[%s] error\n", gnb_core->ifname);
             }
 
             return;
         }
 
-        GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"if[%s] opened\n", gnb_core->ifname);
-        GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"node[%d] ipv4[%s]\n", gnb_core->local_node->uuid32, GNB_ADDR4STR_PLAINTEXT1(&gnb_core->local_node->tun_addr4));
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"if[%s] opened\n", gnb_core->ifname);
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"node[%d] ipv4[%s]\n", gnb_core->local_node->uuid32, GNB_ADDR4STR_PLAINTEXT1(&gnb_core->local_node->tun_addr4));
 
     }
 
     if ( gnb_core->conf->activate_index_worker ) {
         gnb_core->index_worker->start(gnb_core->index_worker);
-        GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"%s start\n", gnb_core->index_worker->name);
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"%s start\n", gnb_core->index_worker->name);
     }
 
     if ( gnb_core->conf->activate_detect_worker ) {
         gnb_core->detect_worker->start(gnb_core->detect_worker);
-        GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"%s start\n", gnb_core->detect_worker->name);
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"%s start\n", gnb_core->detect_worker->name);
     }
 
     if ( gnb_core->conf->activate_index_service_worker ) {
         gnb_core->index_service_worker->start(gnb_core->index_service_worker);
-        GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"%s start\n", gnb_core->index_service_worker->name);
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"%s start\n", gnb_core->index_service_worker->name);
     }
 
     if ( gnb_core->conf->activate_node_worker ) {
         gnb_core->node_worker->start(gnb_core->node_worker);
-        GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"%s start\n", gnb_core->node_worker->name);
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"%s start\n", gnb_core->node_worker->name);
     }
 
     gnb_core->main_worker->start(gnb_core->main_worker);
-    GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"%s start\n", gnb_core->main_worker->name);
+    GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"%s start\n", gnb_core->main_worker->name);
 
 }
 
@@ -808,7 +838,7 @@ void gnb_core_stop(gnb_core_t *gnb_core){
 
 #endif
 
-    GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE,"if[%s] closeed\n", gnb_core->ifname);
+    GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"if[%s] closeed\n", gnb_core->ifname);
 
 }
 
@@ -826,13 +856,13 @@ static void exec_es(gnb_core_t *gnb_core) {
     ret = gnb_arg_list_to_string(gnb_es_arg_list, es_arg_string, GNB_ARG_STRING_MAX_SIZE);
 
     if ( 0 != ret ) {
-    	GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "gnb_es argv error, skip exec '%s'\n", gnb_es_bin_path);
-    	return;
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "gnb_es argv error, skip exec '%s'\n", gnb_es_bin_path);
+        return;
     }
 
     if ( gnb_es_arg_list->argc < 4 ) {
-    	GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "gnb_es argv error, skip exec '%s' argv=%s\n", gnb_es_bin_path, es_arg_string);
-    	return;
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "gnb_es argv error, skip exec '%s' argv=%s\n", gnb_es_bin_path, es_arg_string);
+        return;
     }
 
     GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "exec gnb_es argv '%s'\n", es_arg_string);
@@ -862,13 +892,13 @@ static void exec_es(gnb_core_t *gnb_core) {
     ret = gnb_arg_list_to_string(gnb_es_arg_list, es_arg_string, GNB_ARG_STRING_MAX_SIZE);
 
     if ( 0 != ret ) {
-    	GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "gnb_es argv error, skip exec '%s'\n", gnb_es_bin_path);
-    	return;
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "gnb_es argv error, skip exec '%s'\n", gnb_es_bin_path);
+        return;
     }
 
     if ( gnb_es_arg_list->argc < 4 ) {
-    	GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "gnb_es argv error, skip exec '%s' argv=%s\n", gnb_es_bin_path, es_arg_string);
-    	return;
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "gnb_es argv error, skip exec '%s' argv=%s\n", gnb_es_bin_path, es_arg_string);
+        return;
     }
 
     GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "exec gnb_es argv '%s'\n", es_arg_string);
@@ -911,7 +941,7 @@ void primary_process_loop( gnb_core_t *gnb_core ){
         if ( gnb_core->ctl_block->status_zone->keep_alive_ts_sec - last_exec_es_ts_sec > GNB_EXEC_ES_INTERVAL_TIME_SEC ) {
 
             if ( 0 == gnb_core->conf->public_index_service ) {
-            	exec_es(gnb_core);
+                exec_es(gnb_core);
             }
 
             last_exec_es_ts_sec = gnb_core->ctl_block->status_zone->keep_alive_ts_sec;

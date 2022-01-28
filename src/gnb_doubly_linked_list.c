@@ -42,7 +42,7 @@ void gnb_doubly_linked_list_release(gnb_doubly_linked_list_t *doubly_linked_list
 
 int gnb_doubly_linked_list_add(gnb_doubly_linked_list_t *doubly_linked_list, gnb_doubly_linked_list_node_t *dl_node){
 
-    if( 0==doubly_linked_list->num ){
+    if ( 0==doubly_linked_list->num ) {
         doubly_linked_list->head = dl_node;
         dl_node->pre = NULL;
         dl_node->nex = NULL;
@@ -50,7 +50,7 @@ int gnb_doubly_linked_list_add(gnb_doubly_linked_list_t *doubly_linked_list, gnb
         goto finish;
     }
 
-    if( 1==doubly_linked_list->num ){
+    if ( 1==doubly_linked_list->num ) {
         
         dl_node->pre = NULL;
         dl_node->nex = doubly_linked_list->head;
@@ -82,13 +82,13 @@ gnb_doubly_linked_list_node_t* gnb_doubly_linked_list_pop_head(gnb_doubly_linked
     
     gnb_doubly_linked_list_node_t *dl_node;
     
-    if( 0 == doubly_linked_list->num ){
+    if ( 0 == doubly_linked_list->num ) {
         return NULL;
     }
 
-    if( 1 == doubly_linked_list->num ){
+    if ( 1 == doubly_linked_list->num ) {
         
-        if ( doubly_linked_list->head != doubly_linked_list->tail ){
+        if ( doubly_linked_list->head != doubly_linked_list->tail ) {
             return NULL;
         }
 
@@ -101,7 +101,7 @@ gnb_doubly_linked_list_node_t* gnb_doubly_linked_list_pop_head(gnb_doubly_linked
         return dl_node;
     }
 
-    if ( doubly_linked_list->head == doubly_linked_list->tail ){
+    if ( doubly_linked_list->head == doubly_linked_list->tail ) {
         return NULL;
     }
     
@@ -121,14 +121,14 @@ gnb_doubly_linked_list_node_t* gnb_doubly_linked_list_pop_head(gnb_doubly_linked
 gnb_doubly_linked_list_node_t* gnb_doubly_linked_list_pop_tail(gnb_doubly_linked_list_t *doubly_linked_list){
 
     gnb_doubly_linked_list_node_t *dl_node;
-    
-    if( 0 == doubly_linked_list->num ){
+
+    if ( 0 == doubly_linked_list->num ) {
         return NULL;
     }
 
-    if( 1 == doubly_linked_list->num ){
+    if ( 1 == doubly_linked_list->num ) {
         
-        if ( doubly_linked_list->head != doubly_linked_list->tail ){
+        if ( doubly_linked_list->head != doubly_linked_list->tail ) {
             return NULL;
         }
 
@@ -141,14 +141,13 @@ gnb_doubly_linked_list_node_t* gnb_doubly_linked_list_pop_tail(gnb_doubly_linked
         return dl_node;
     }
 
-    if ( doubly_linked_list->head == doubly_linked_list->tail ){
+    if ( doubly_linked_list->head == doubly_linked_list->tail ) {
         return NULL;
     }
     
     dl_node = doubly_linked_list->tail;
 
     doubly_linked_list->tail = dl_node->pre;
-
     doubly_linked_list->tail->nex = NULL;
 
     doubly_linked_list->num--;
@@ -161,21 +160,21 @@ gnb_doubly_linked_list_node_t* gnb_doubly_linked_list_pop_tail(gnb_doubly_linked
 
 int gnb_doubly_linked_list_move_head(gnb_doubly_linked_list_t *doubly_linked_list, gnb_doubly_linked_list_node_t *dl_node){
     
-    if(1==doubly_linked_list->num || 2==doubly_linked_list->num){
+    if ( 1==doubly_linked_list->num || 2==doubly_linked_list->num ) {
         return 0;
     }
     
     gnb_doubly_linked_list_node_t *pre_node = dl_node->pre;
     gnb_doubly_linked_list_node_t *nex_node = dl_node->nex;
 
-    if( NULL == pre_node ){
+    if( NULL == pre_node ) {
         //is header
         return 0;
     }
     
-    if( NULL != nex_node ){
+    if ( NULL != nex_node ) {
         nex_node->pre = pre_node;
-    }else{
+    } else {
         doubly_linked_list->tail = pre_node;
     }
     
@@ -184,7 +183,6 @@ int gnb_doubly_linked_list_move_head(gnb_doubly_linked_list_t *doubly_linked_lis
     dl_node->nex = doubly_linked_list->head;
     
     doubly_linked_list->head->pre = dl_node;
-    
     doubly_linked_list->head = dl_node;
     
     dl_node->pre = NULL;
@@ -196,46 +194,45 @@ int gnb_doubly_linked_list_move_head(gnb_doubly_linked_list_t *doubly_linked_lis
 int gnb_doubly_linked_list_pop(gnb_doubly_linked_list_t *doubly_linked_list, gnb_doubly_linked_list_node_t *dl_node){
 
     
-    if( 0==doubly_linked_list->num ){
+    if ( 0==doubly_linked_list->num ) {
         return 0;
     }
 
     gnb_doubly_linked_list_node_t *pre_node = dl_node->pre;
     gnb_doubly_linked_list_node_t *nex_node = dl_node->nex;
 
-    if( NULL == pre_node && NULL == nex_node ){
+    if ( NULL == pre_node && NULL == nex_node ) {
 
-        if ( doubly_linked_list->head != dl_node ){
+        if ( doubly_linked_list->head != dl_node ) {
             return -1;
         }
 
-        if ( doubly_linked_list->tail != dl_node ){
+        if ( doubly_linked_list->tail != dl_node ) {
             return -1;
         }
         
-        if( 1 != doubly_linked_list->num ){
+        if ( 1 != doubly_linked_list->num ) {
             return -1;
         }
-        
-        
+
         doubly_linked_list->head = NULL;
         doubly_linked_list->tail = NULL;
         doubly_linked_list->num = 0;
 
         return 0;
-        
+
     }
 
-    if( NULL == pre_node ){
+    if ( NULL == pre_node ) {
         //is header
-        if ( doubly_linked_list->head != dl_node ){
+        if ( doubly_linked_list->head != dl_node ) {
             return -1;
         }
-        
-        if( 1 == doubly_linked_list->num ){
+
+        if ( 1 == doubly_linked_list->num ) {
             return -1;
         }
-        
+
         nex_node->pre = NULL;
         doubly_linked_list->head = nex_node;
         doubly_linked_list->num--;
@@ -243,14 +240,13 @@ int gnb_doubly_linked_list_pop(gnb_doubly_linked_list_t *doubly_linked_list, gnb
         return 0;
     }
 
-    
-    if ( NULL==nex_node ){
+    if ( NULL==nex_node ) {
         //is tail
-        if ( doubly_linked_list->tail != dl_node ){
+        if ( doubly_linked_list->tail != dl_node ) {
             return -1;
         }
 
-        if( 1 == doubly_linked_list->num ){
+        if ( 1 == doubly_linked_list->num ) {
             return -1;
         }
         

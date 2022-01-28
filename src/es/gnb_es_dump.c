@@ -45,13 +45,13 @@ void gnb_es_dump_address_list(gnb_es_ctx *es_ctx){
 
     conf = &es_ctx->ctl_block->conf_zone->conf_st;
 
-    if ( '\0' == conf->node_cache_file[0] ){
+    if ( '\0' == conf->node_cache_file[0] ) {
         return;
     }
 
     node_num = es_ctx->ctl_block->node_zone->node_num;
 
-    if ( 0==node_num ){
+    if ( 0==node_num ) {
         return;
     }
 
@@ -65,7 +65,7 @@ void gnb_es_dump_address_list(gnb_es_ctx *es_ctx){
 
     int i,j;
 
-    for( i=0; i<node_num; i++ ){
+    for( i=0; i<node_num; i++ ) {
 
         node = &es_ctx->ctl_block->node_zone->node[i];
 
@@ -74,14 +74,14 @@ void gnb_es_dump_address_list(gnb_es_ctx *es_ctx){
         resolv_address_list = (gnb_address_list_t *)&node->resolv_address_block;
         push_address_list = (gnb_address_list_t *)&node->push_address_block;
 
-        for( j=0; j<static_address_list->size; j++ ){
+        for( j=0; j<static_address_list->size; j++ ) {
 
             gnb_address = &static_address_list->array[j];
             if (0==gnb_address->port){
                 continue;
             }
 
-            if ( AF_INET6 == gnb_address->type ){
+            if ( AF_INET6 == gnb_address->type ) {
                 fprintf( file, "s|%u|%s|%d|%s\n", node->uuid32, GNB_ADDR6STR_PLAINTEXT1(&gnb_address->address.addr6), ntohs(gnb_address->port), GNB_HEX1_BYTE128(node->key512) );
             }else if( AF_INET == gnb_address->type ){
                 fprintf( file, "s|%u|%s|%d|%s\n", node->uuid32, GNB_ADDR6STR_PLAINTEXT2(&gnb_address->address.addr4), ntohs(gnb_address->port), GNB_HEX1_BYTE128(node->key512) );
@@ -91,52 +91,52 @@ void gnb_es_dump_address_list(gnb_es_ctx *es_ctx){
 
         }
 
-        for( j=0; j<dynamic_address_list->size; j++ ){
+        for( j=0; j<dynamic_address_list->size; j++ ) {
 
             gnb_address = &dynamic_address_list->array[j];
             if (0==gnb_address->port){
                 continue;
             }
 
-            if ( AF_INET6 == gnb_address->type ){
+            if ( AF_INET6 == gnb_address->type ) {
                 fprintf( file, "d|%u|%s|%d|%s\n", node->uuid32, GNB_ADDR6STR_PLAINTEXT1(&gnb_address->address.addr6), ntohs(gnb_address->port), GNB_HEX1_BYTE128(node->key512) );
-            }else if( AF_INET == gnb_address->type ){
+            } else if ( AF_INET == gnb_address->type ) {
                 fprintf( file, "d|%u|%s|%d|%s\n", node->uuid32, GNB_ADDR6STR_PLAINTEXT2(&gnb_address->address.addr4), ntohs(gnb_address->port), GNB_HEX1_BYTE128(node->key512) );
-            }else{
+            } else {
                 continue;
             }
 
         }
 
-        for( j=0; j<resolv_address_list->size; j++ ){
+        for ( j=0; j<resolv_address_list->size; j++ ) {
 
             gnb_address = &resolv_address_list->array[j];
-            if (0==gnb_address->port){
+            if (0==gnb_address->port) {
                 continue;
             }
 
-            if ( AF_INET6 == gnb_address->type ){
+            if ( AF_INET6 == gnb_address->type ) {
                 fprintf( file, "r|%u|%s|%d|%s\n", node->uuid32, GNB_ADDR6STR_PLAINTEXT1(&gnb_address->address.addr6), ntohs(gnb_address->port), GNB_HEX1_BYTE128(node->key512) );
-            }else if( AF_INET == gnb_address->type ){
+            } else if ( AF_INET == gnb_address->type ) {
                 fprintf( file, "r|%u|%s|%d|%s\n", node->uuid32, GNB_ADDR6STR_PLAINTEXT2(&gnb_address->address.addr4), ntohs(gnb_address->port), GNB_HEX1_BYTE128(node->key512) );
-            }else{
+            } else {
                 continue;
             }
 
         }
 
-        for( j=0; j<push_address_list->size; j++ ){
+        for ( j=0; j<push_address_list->size; j++ ) {
 
             gnb_address = &push_address_list->array[j];
-            if (0==gnb_address->port){
+            if (0==gnb_address->port) {
                 continue;
             }
 
-            if ( AF_INET6 == gnb_address->type ){
+            if ( AF_INET6 == gnb_address->type ) {
                 fprintf( file, "p|%u|%s|%d|%s\n", node->uuid32, GNB_ADDR6STR_PLAINTEXT1(&gnb_address->address.addr6), ntohs(gnb_address->port), GNB_HEX1_BYTE128(node->key512) );
-            }else if( AF_INET == gnb_address->type ){
+            } else if ( AF_INET == gnb_address->type ) {
                 fprintf( file, "p|%u|%s|%d|%s\n", node->uuid32, GNB_ADDR6STR_PLAINTEXT2(&gnb_address->address.addr4), ntohs(gnb_address->port), GNB_HEX1_BYTE128(node->key512) );
-            }else{
+            } else {
                 continue;
             }
 

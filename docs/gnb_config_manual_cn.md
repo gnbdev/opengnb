@@ -228,6 +228,7 @@ forward节点可以为无法直接互访的GNB节点中转ip分组，这些节�
 |-l, --listen|listen address default is '0.0.0.0:9001'|
 |-b, --ctl-block|ctl block mapper file|
 |-e, --es-argv|pass-through gnb_es argv|
+|-V, --verbose|verbose mode|              
 |--node-woker-queue-length|node  woker queue length|
 |--index-woker-queue-length|index woker queue length|
 |--index-service-woker-queue|index service woker queue length|
@@ -275,6 +276,7 @@ forward节点可以为无法直接互访的GNB节点中转ip分组，这些节�
 |-b, --ctl_block|ctl block mapper file|
 |-s, --service|service mode|
 |-d, --daemon|daemon|
+|-L, --discover-in-lan|discover in lan|     
 |--upnp|upnp|
 |--resolv|resolv|
 |--dump-address|dump address|
@@ -285,5 +287,4 @@ forward节点可以为无法直接互访的GNB节点中转ip分组，这些节�
 |--if-down|call at interface down|
 |--log-udp4|send log to the address ipv4 default is '127.0.0.1:9000'|
 |--log-udp-type|the log udp type 'binary' or 'text' default is 'binary'|
-
 

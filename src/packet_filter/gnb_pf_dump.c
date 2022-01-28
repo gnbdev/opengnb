@@ -66,12 +66,12 @@ static int pf_tun_frame_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 
     seq++;
 
-    if ( 0x4 != ip_frame_head->version && 0x6 != ip_frame_head->version ){
+    if ( 0x4 != ip_frame_head->version && 0x6 != ip_frame_head->version ) {
         GNB_LOG3(gnb_core->log,GNB_LOG_ID_PF,"dump pf_tun_frame_cb 0x4!=ip_frame_head->version 0x6!=ip_frame_head->version version[%x]\n", ip_frame_head->version);
         return pf_ctx->pf_status;
     }
 
-    if ( 0x4 == ip_frame_head->version ){
+    if ( 0x4 == ip_frame_head->version ) {
 
         inet_ntop(AF_INET, &ip_frame_head->saddr, src_ipv4_string, INET_ADDRSTRLEN);
         inet_ntop(AF_INET, &ip_frame_head->daddr, dst_ipv4_string, INET_ADDRSTRLEN);
@@ -86,7 +86,7 @@ static int pf_tun_frame_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
     uint32_t src_ip_int;
     uint32_t dst_ip_int;
 
-    if ( 0x6 == ip_frame_head->version ){
+    if ( 0x6 == ip_frame_head->version ) {
 
         src_ip_int = ip6_frame_head->ip6_src.__in6_u.__u6_addr32[3];
         dst_ip_int = ip6_frame_head->ip6_dst.__in6_u.__u6_addr32[3];
@@ -145,18 +145,18 @@ static int pf_inet_fwd_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 
     seq++;
 
-    if ( gnb_core->local_node->uuid32 != pf_ctx->dst_uuid32 ){
+    if ( gnb_core->local_node->uuid32 != pf_ctx->dst_uuid32 ) {
         GNB_LOG3(gnb_core->log,GNB_LOG_ID_PF,"inet dump[%"PRIu64"] [%u] < [%u] in:%u\n",seq, pf_ctx->dst_uuid32, pf_ctx->src_uuid32, gnb_payload16_size(pf_ctx->fwd_payload));
         return pf_ctx->pf_status;
     }
 
 
-    if ( 0x4 != ip_frame_head->version && 0x6 != ip_frame_head->version ){
+    if ( 0x4 != ip_frame_head->version && 0x6 != ip_frame_head->version ) {
         GNB_LOG3(gnb_core->log,GNB_LOG_ID_PF,"dump pf_inet_fwd_cb 0x4!=ip_frame_head->version 0x6!=ip_frame_head->version version[%x]\n", ip_frame_head->version);
         return pf_ctx->pf_status;
     }
 
-    if ( 0x4 == ip_frame_head->version ){
+    if ( 0x4 == ip_frame_head->version ) {
 
         inet_ntop(AF_INET, &ip_frame_head->saddr, src_ipv4_string, INET_ADDRSTRLEN);
         inet_ntop(AF_INET, &ip_frame_head->daddr, dst_ipv4_string, INET_ADDRSTRLEN);
@@ -169,7 +169,7 @@ static int pf_inet_fwd_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
         return pf_ctx->pf_status;
     }
 
-    if ( 0x6 == ip_frame_head->version ){
+    if ( 0x6 == ip_frame_head->version ) {
 
         inet_ntop(AF_INET6, &ip6_frame_head->ip6_src, src_ipv6_string, INET6_ADDRSTRLEN);
         inet_ntop(AF_INET6, &ip6_frame_head->ip6_dst, dst_ipv6_string, INET6_ADDRSTRLEN);

@@ -54,13 +54,13 @@ static gnb_worker_t* find_worker_mod_by_name(const char *name){
 
     int i;
 
-    for(i=0; i<num; i++){
+    for (i=0; i<num; i++) {
 
-        if (NULL==gnb_worker_array[i]){
+        if (NULL==gnb_worker_array[i]) {
             break;
         }
 
-        if ( 0 == strncmp(gnb_worker_array[i]->name,name,128)){
+        if ( 0 == strncmp(gnb_worker_array[i]->name,name,128) ) {
             return gnb_worker_array[i];
         }
 
@@ -74,7 +74,7 @@ gnb_worker_t *gnb_worker_init(const char *name, void *ctx){
 
     gnb_worker_t *gnb_worker_mod = find_worker_mod_by_name(name);
 
-    if (NULL==gnb_worker_mod) {
+    if ( NULL==gnb_worker_mod ) {
         printf("find_worker_by_name name[%s] is NULL\n",name);
         return NULL;
     }
@@ -97,7 +97,7 @@ void gnb_worker_wait_main_worker_started(gnb_core_t *gnb_core){
 
     do{
 
-        if ( 1==gnb_core->main_worker->thread_worker_run_flag ){
+        if ( 1==gnb_core->main_worker->thread_worker_run_flag ) {
             break;
         }
 

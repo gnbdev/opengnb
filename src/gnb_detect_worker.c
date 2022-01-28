@@ -26,22 +26,17 @@
 #include <stdint.h>
 #include <time.h>
 #include <sys/time.h>
-
 #include <signal.h>
 #include <errno.h>
 #include <pthread.h>
 #include <unistd.h>
 
-
 #include "gnb.h"
-
 #include "gnb_node.h"
 #include "gnb_worker.h"
 #include "gnb_time.h"
 #include "gnb_binary.h"
-
 #include "ed25519/ed25519.h"
-
 #include "gnb_index_frame_type.h"
 
 
@@ -65,7 +60,6 @@ typedef struct _detect_worker_ctx_t{
 #define GNB_DETECT_PUSH_ADDRESS_INTERVAL_SEC   60*10
 #define GNB_DETECT_INTERVAL_SEC                60*3
 
-
 static void detect_node_address(gnb_worker_t *gnb_detect_worker, gnb_node_t *node){
 
     detect_worker_ctx_t *detect_worker_ctx = gnb_detect_worker->ctx;
@@ -74,7 +68,7 @@ static void detect_node_address(gnb_worker_t *gnb_detect_worker, gnb_node_t *nod
 
     gnb_address_t address_st;
 
-    if( 0 == node->detect_port4 ){
+    if ( 0 == node->detect_port4 ) {
         return;
     }
 
@@ -131,14 +125,12 @@ static void detect_node_set_address(gnb_worker_t *gnb_detect_worker, gnb_node_t 
 
     memcpy(&node->detect_addr4, &address_list->array[node->detect_address4_idx].m_address4, 4);
 
-    if( 0 == node->detect_addr4.s_addr ){
+    if ( 0 == node->detect_addr4.s_addr ) {
 
-        if( 2==node->detect_address4_idx ){
-
+        if ( 2==node->detect_address4_idx ) {
             node->detect_address4_idx = 0;
             node->last_detect_sec = detect_worker_ctx->now_time_sec;
-
-        }else{
+        } else {
             node->detect_address4_idx += 1;
         }
 
@@ -147,17 +139,17 @@ static void detect_node_set_address(gnb_worker_t *gnb_detect_worker, gnb_node_t 
         return;
     }
 
-    if ( node->detect_port4 < gnb_core->conf->port_detect_start ){
+    if ( node->detect_port4 < gnb_core->conf->port_detect_start ) {
         node->detect_port4 = gnb_core->conf->port_detect_start;
-    }else{
+    } else {
         node->detect_port4 += 1;
     }
 
-    if( node->detect_port4 >= gnb_core->conf->port_detect_end ){
+    if ( node->detect_port4 >= gnb_core->conf->port_detect_end ) {
 
-        if( 2==node->detect_address4_idx ){
+        if ( 2==node->detect_address4_idx ) {
             node->detect_address4_idx = 0;
-        }else{
+        } else {
             node->detect_address4_idx += 1;
         }
 
@@ -165,7 +157,7 @@ static void detect_node_set_address(gnb_worker_t *gnb_detect_worker, gnb_node_t 
 
     }
 
-    if( gnb_core->conf->port_detect_start == node->detect_port4 ){
+    if ( gnb_core->conf->port_detect_start == node->detect_port4 ) {
         GNB_LOG3(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "#START DECETE node[%d] idx[%d]\n", node->uuid32, node->detect_address4_idx);
     }
 
@@ -182,20 +174,19 @@ static void detect_loop(gnb_worker_t *gnb_detect_worker){
 
     size_t num = gnb_core->ctl_block->node_zone->node_num;
 
-    if( 0==num ){
+    if ( 0==num ) {
         return;
     }
 
     int i;
 
-    for( i=0; i<num; i++ ){
+    for ( i=0; i<num; i++ ) {
 
         node = &gnb_core->ctl_block->node_zone->node[i];
 
-        if ( gnb_core->local_node->uuid32 == node->uuid32 ){
+        if ( gnb_core->local_node->uuid32 == node->uuid32 ) {
             continue;
         }
-
 
         if ( node->type & GNB_NODE_TYPE_SLIENCE ) {
             continue;
@@ -205,7 +196,6 @@ static void detect_loop(gnb_worker_t *gnb_detect_worker){
         if ( (gnb_core->local_node->type & GNB_NODE_TYPE_SLIENCE) && !(node->type & GNB_NODE_TYPE_FWD) ) {
             continue;
         }
-
 
         if ( (GNB_NODE_STATUS_IPV6_PONG|GNB_NODE_STATUS_IPV4_PONG) & node->udp_addr_status ) {
             continue;
@@ -242,11 +232,13 @@ static void* thread_worker_func( void *data ) {
 
     gnb_worker_wait_main_worker_started(gnb_core);
 
+    GNB_LOG1(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "start %s success!\n", gnb_detect_worker->name);
+
     do{
 
         gnb_worker_sync_time(&detect_worker_ctx->now_time_sec, &detect_worker_ctx->now_time_usec);
 
-        if ( 0==gnb_core->index_address_ring.address_list->num ){
+        if ( 0==gnb_core->index_address_ring.address_list->num ) {
             GNB_SLEEP_MILLISECOND(1000);
             continue;
         }
@@ -254,9 +246,9 @@ static void* thread_worker_func( void *data ) {
         detect_worker_ctx->is_send_detect = 0;
         detect_loop(gnb_detect_worker);
 
-        if(detect_worker_ctx->is_send_detect){
+        if (detect_worker_ctx->is_send_detect) {
             GNB_SLEEP_MILLISECOND(10);
-        }else{
+        } else {
             GNB_SLEEP_MILLISECOND(100);
         }
 
@@ -272,15 +264,11 @@ static void init(gnb_worker_t *gnb_worker, void *ctx){
     gnb_core_t *gnb_core = (gnb_core_t *)ctx;
 
     detect_worker_ctx_t *detect_worker_ctx =  (detect_worker_ctx_t *)gnb_heap_alloc(gnb_core->heap, sizeof(detect_worker_ctx_t));
-
     memset(detect_worker_ctx, 0, sizeof(detect_worker_ctx_t));
 
     detect_worker_ctx->index_frame_payload =  gnb_payload16_init(0,GNB_MAX_PAYLOAD_SIZE);
-
     detect_worker_ctx->index_frame_payload->type = GNB_PAYLOAD_TYPE_INDEX;
-
     detect_worker_ctx->gnb_core = (gnb_core_t *)ctx;
-
     gnb_worker->ctx = detect_worker_ctx;
 
     GNB_LOG1(gnb_core->log,GNB_LOG_ID_DETECT_WORKER,"%s init finish\n", gnb_worker->name);
@@ -291,32 +279,27 @@ static void init(gnb_worker_t *gnb_worker, void *ctx){
 static void release(gnb_worker_t *gnb_worker){
 
     detect_worker_ctx_t *detect_worker_ctx =  (detect_worker_ctx_t *)gnb_worker->ctx;
-
     gnb_core_t *gnb_core = detect_worker_ctx->gnb_core;
-
     gnb_heap_free(gnb_core->heap, detect_worker_ctx);
 
 }
 
+
 static int start(gnb_worker_t *gnb_worker){
 
     detect_worker_ctx_t *detect_worker_ctx = gnb_worker->ctx;
-
     pthread_create(&detect_worker_ctx->thread_worker, NULL, thread_worker_func, gnb_worker);
-
     pthread_detach(detect_worker_ctx->thread_worker);
 
     return 0;
 }
 
+
 static int stop(gnb_worker_t *gnb_worker){
 
     detect_worker_ctx_t *detect_worker_ctx = gnb_worker->ctx;
-
     gnb_core_t *gnb_core = detect_worker_ctx->gnb_core;
-
     gnb_worker_t *gnb_detect_worker = gnb_core->detect_worker;
-
     gnb_detect_worker->thread_worker_flag = 0;
 
     return 0;
@@ -337,4 +320,3 @@ gnb_worker_t gnb_detect_worker_mod = {
     .ctx       = NULL
 
 };
-

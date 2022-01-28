@@ -119,14 +119,16 @@ void gnb_heap_free(gnb_heap_t *gnb_heap, void *p){
     }
     
     if ( 1 == gnb_heap->fragment_nums ) {
-        if ( fragment->idx != last_fragment->idx ){
+
+        if ( fragment->idx != last_fragment->idx ) {
             //发生错误了
             return;
         }
         goto finish;
+
     }
 
-    if( last_fragment->idx == fragment->idx ){
+    if ( last_fragment->idx == fragment->idx ) {
         goto finish;
     }
 
@@ -150,7 +152,7 @@ void gnb_heap_clean(gnb_heap_t *gnb_heap){
     
     int i;
     
-    if( 0 == gnb_heap->fragment_nums ){
+    if ( 0 == gnb_heap->fragment_nums ) {
         return;
     }
     

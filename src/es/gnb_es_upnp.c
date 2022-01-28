@@ -77,7 +77,7 @@ static void gnb_es_upnp_em(gnb_conf_t *conf, gnb_log_ctx_t *log){
     char ext_port_string[6];
     char in_port_string[6];
 
-    devlist = upnpDiscover(2000, multicastif, minissdpdpath, localport, ipv6,ttl, &error);
+    devlist = upnpDiscover(2000, multicastif, minissdpdpath, localport, ipv6, ttl, &error);
 
     GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "UPNPC Try to UPNP_GetValidIGD.\n");
 
@@ -99,17 +99,17 @@ static void gnb_es_upnp_em(gnb_conf_t *conf, gnb_log_ctx_t *log){
         break;
 
     case 2:
-        GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "UPNPC Found a (not connected?) IGD : %s\n",urls.controlURL); //有时得到 ipv6的 urls？然后失败
+        GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "UPNPC Found a (not connected?) IGD : %s\n", urls.controlURL); //有时得到 ipv6的 urls？然后失败
         GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "UPNPC Trying to continue anyway\n");
         break;
 
     case 3:
-        GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "UPNPC UPnP device found. Is it an IGD ? : %s\n",urls.controlURL);
+        GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "UPNPC UPnP device found. Is it an IGD ? : %s\n", urls.controlURL);
         GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "UPNPC Trying to continue anyway\n");
         break;
 
     default:
-        GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "UPNPC Found device (igd ?) : %s\n",urls.controlURL);
+        GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "UPNPC Found device (igd ?) : %s\n", urls.controlURL);
         GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "UPNPC Trying to continue anyway\n");
         break;
     }
@@ -126,7 +126,7 @@ static void gnb_es_upnp_em(gnb_conf_t *conf, gnb_log_ctx_t *log){
 
     int i;
 
-    for( i = 0; i<conf->udp4_socket_num; i++ ) {
+    for ( i = 0; i<conf->udp4_socket_num; i++ ) {
 
         if( conf->udp4_ports[i] <= 1 || conf->udp4_ports[i] >= 65535 ) {
             continue;
@@ -167,7 +167,7 @@ doPortMapping:
 
         r = UPNP_AddPortMapping(urls.controlURL, data.first.servicetype, ext_port_string, in_port_string, lan_addr, "GNB", "UDP", NULL, "3600");
 
-        if (0 == r) {
+        if ( 0 == r ) {
             GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "now redirected [%s:%d] extPort[%d]\n", lan_addr, conf->udp4_ports[i], conf->udp4_ext_ports[i]);
         } else {
             GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "Port Mapping Error return[%d] [%s:%d] extPort[%d]\n", r, lan_addr, conf->udp4_ports[i], conf->udp4_ext_ports[i]);

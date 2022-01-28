@@ -196,14 +196,14 @@ int init_tun_win32(gnb_core_t *gnb_core){
 
     devicename = get_if_devicename(deviceid);
 
-    if ( NULL != devicename ){
+    if ( NULL != devicename ) {
         snprintf(tun_win_ctx->if_name, PATH_MAX, "%s", devicename);
         free(devicename);
     }
 
     free(deviceid);
 
-    if ( tun_win_ctx->if_name && 0 != strncmp(gnb_core->ifname,tun_win_ctx->if_name,256) ){
+    if ( tun_win_ctx->if_name && 0 != strncmp(gnb_core->ifname,tun_win_ctx->if_name,256) ) {
         snprintf(gnb_core->ifname, 256, "%s", tun_win_ctx->if_name);
     }
 
@@ -278,17 +278,17 @@ static ULONG get_if_id(gnb_core_t *gnb_core){
 
     while (pCurrAddresses) {
 
-        if(IfOperStatusUp != pCurrAddresses->OperStatus){
+        if (IfOperStatusUp != pCurrAddresses->OperStatus) {
             goto next;
         }
 
         WideCharToMultiByte(CP_ACP,WC_COMPOSITECHECK,pCurrAddresses->Description,-1,description_string,256,NULL,NULL);
         WideCharToMultiByte(CP_ACP,WC_COMPOSITECHECK,pCurrAddresses->FriendlyName,-1,friendlyname_string,256,NULL,NULL);
 
-        if ( 0==strncmp( description_string,"TAP-Windows Adapter V9", sizeof("TAP-Windows Adapter V9")-1 ) ){
+        if ( 0==strncmp( description_string,"TAP-Windows Adapter V9", sizeof("TAP-Windows Adapter V9")-1 ) ) {
 
             //需要比较 pCurrAddresses->AdapterName 找出真正的 tun_if_id
-            if ( !strncmp(pCurrAddresses->AdapterName, tun_win_ctx->deviceid, PATH_MAX) ){
+            if ( !strncmp(pCurrAddresses->AdapterName, tun_win_ctx->deviceid, PATH_MAX) ) {
                 return pCurrAddresses->IfIndex;
             }
 
@@ -372,10 +372,12 @@ static void if_down(gnb_core_t *gnb_core){
 static int ntod(uint32_t mask) {
     int i, n = 0;
     int bits = sizeof(uint32_t) * 8;
-    for(i = bits - 1; i >= 0; i--) {
+
+    for (i = bits - 1; i >= 0; i--) {
         if (mask & (0x01 << i))
             n++;
     }
+
     return n;
 }
 
@@ -451,13 +453,13 @@ static int open_tun_win32(gnb_core_t *gnb_core){
 
     int ret;
 
-    if ( INVALID_HANDLE_VALUE != tun_win_ctx->device_handle ){
+    if ( INVALID_HANDLE_VALUE != tun_win_ctx->device_handle ) {
         return -1;
     }
 
     tun_win_ctx->device_handle = CreateFile(tun_win_ctx->tap_file_name, GENERIC_WRITE|GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_SYSTEM|FILE_FLAG_OVERLAPPED, 0);
 
-    if ( INVALID_HANDLE_VALUE == tun_win_ctx->device_handle ){
+    if ( INVALID_HANDLE_VALUE == tun_win_ctx->device_handle ) {
         return -2;
     }
 
@@ -467,12 +469,12 @@ static int open_tun_win32(gnb_core_t *gnb_core){
     data[0] = 1;
     ret = DeviceIoControl(tun_win_ctx->device_handle, TAP_WIN_IOCTL_SET_MEDIA_STATUS, data, sizeof(data), data, sizeof(data), &len, NULL);
 
-    if ( ret == 0 ){
+    if ( ret == 0 ) {
         //GetLastError();
         return -4;
     }
 
-    if ( data[0]>0 ){
+    if ( data[0]>0 ) {
         GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "Device[%s] up succeed\n", tun_win_ctx->tap_file_name);
     }
 
@@ -492,17 +494,17 @@ static int open_tun_win32(gnb_core_t *gnb_core){
 
     ret = DeviceIoControl(tun_win_ctx->device_handle, TAP_WIN_IOCTL_CONFIG_TUN, &data, sizeof(data), &data, sizeof(data), &len, NULL);
 
-    if ( 0==ret ){
+    if ( 0==ret ) {
         return -5;
     }
 
-    if ( tun_win_ctx->tun_if_id > 0 ){
+    if ( tun_win_ctx->tun_if_id > 0 ) {
         set_addr4(gnb_core);
         set_addr6(gnb_core);
 
     }
 
-    if ( !tun_win_ctx->skip_if_script ){
+    if ( !tun_win_ctx->skip_if_script ) {
         if_up(gnb_core);
     }
 
@@ -526,7 +528,7 @@ static int read_tun_win32(gnb_core_t *gnb_core, void *buf, size_t buf_size){
         res = WaitForSingleObject(tun_win_ctx->read_olpd.hEvent, INFINITE);
         //res = WaitForSingleObject(tun_win_ctx->read_olpd.hEvent, 100);
 
-        if ( WAIT_TIMEOUT == res ){
+        if ( WAIT_TIMEOUT == res ) {
             frame_size = -1;
             goto finish;
         }
@@ -549,7 +551,7 @@ static int read_tun_win32(gnb_core_t *gnb_core, void *buf, size_t buf_size){
 
         }
 
-    }else{
+    } else {
 
         goto finish;
 
@@ -607,12 +609,12 @@ static int close_tun_win32(gnb_core_t *gnb_core){
 
     ret = DeviceIoControl(tun_win_ctx->device_handle, TAP_WIN_IOCTL_SET_MEDIA_STATUS, &status, sizeof(status), &status, sizeof(status), &len, NULL);
 
-    if ( ret == 0 ){
+    if ( ret == 0 ) {
         //GetLastError();
         return -1;
     }
 
-    if ( status>0 ){
+    if ( status>0 ) {
         GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "Device[%s] down succeed\n",tun_win_ctx->tap_file_name);
     }
 
@@ -620,7 +622,7 @@ static int close_tun_win32(gnb_core_t *gnb_core){
 
     tun_win_ctx->device_handle = INVALID_HANDLE_VALUE;
 
-    if ( !tun_win_ctx->skip_if_script ){
+    if ( !tun_win_ctx->skip_if_script ) {
         if_down(gnb_core);
     }
 
@@ -650,4 +652,3 @@ gnb_tun_drv_t gnb_tun_drv_win32 = {
     release_tun_win32
 
 };
-

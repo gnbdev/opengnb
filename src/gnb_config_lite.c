@@ -33,7 +33,7 @@ static char* gnb_string_pattern(char *in_buf, char delimiter, char *out_buf, siz
 
     p = in_buf;
 
-    if ( *p == '\0' ){
+    if ( *p == '\0' ) {
         p = NULL;
         return p;
     }
@@ -137,7 +137,7 @@ static void setup_node_address(gnb_core_t *gnb_core, char *node_address_string) 
             inet_pton(AF_INET, host_string, (struct in_addr *)&address_st.m_address4);
             address_st.type = AF_INET;
 
-        }else if ( NULL != strchr(host_string, ':') ) {
+        } else if ( NULL != strchr(host_string, ':') ) {
             //ipv6
             inet_pton(AF_INET6, host_string, (struct in_addr *)&address_st.m_address6);
             address_st.type = AF_INET6;
@@ -165,7 +165,7 @@ static void setup_node_address(gnb_core_t *gnb_core, char *node_address_string) 
         resolv_address_list = (gnb_address_list_t *)&node->resolv_address_block;
         push_address_list = (gnb_address_list_t *)&node->push_address_block;
 
-        if( AF_INET6 == address_st.type) {
+        if ( AF_INET6 == address_st.type) {
 
             gnb_address_list_update(static_address_list, &address_st);
 
@@ -243,7 +243,7 @@ static void setup_node_route(gnb_core_t *gnb_core, char *node_route_string) {
 
         p = gnb_string_pattern(p, ',', line_buffer, &line_buffer_size);
 
-        if( NULL == p ) {
+        if ( NULL == p ) {
             break;
         }
 
@@ -257,7 +257,7 @@ static void setup_node_route(gnb_core_t *gnb_core, char *node_route_string) {
             num = sscanf(line_buffer,"%u/%16[^/]/%16[^/]", &uuid32, tun_ipv4_string, tun_netmask_string);
         } else if ( GNB_CONF_FIELD_SEPARATOR_TYPE_VERTICAL == ret ) {
             num = sscanf(line_buffer,"%u|%16[^|]|%16[^|]", &uuid32, tun_ipv4_string, tun_netmask_string);
-        }else{
+        } else {
             num = 0;
         }
 
@@ -341,13 +341,13 @@ void gnb_config_lite(gnb_core_t *gnb_core){
 
     if ( NULL != gnb_conf_ext_lite.index_address_string ) {
 
-    	snprintf(index_node_address_string,1024,"i|0|%s", gnb_conf_ext_lite.index_address_string);
+        snprintf(index_node_address_string,1024,"i|0|%s", gnb_conf_ext_lite.index_address_string);
 
         for ( i=0; i < strlen(index_node_address_string); i++ ) {
 
-        	if ( '/' == index_node_address_string[i]  ) {
-        		index_node_address_string[i] = '|';
-        	}
+            if ( '/' == index_node_address_string[i]  ) {
+                index_node_address_string[i] = '|';
+            }
 
         }
 

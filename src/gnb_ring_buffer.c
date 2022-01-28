@@ -54,7 +54,7 @@ void gnb_ring_buffer_release(gnb_ring_buffer_t *ring_buffer){
 
     void *p;
 
-    for (i=0;i<ring_buffer->num;i++){
+    for (i=0;i<ring_buffer->num;i++) {
         free(ring_buffer->nodes[i]->data);
         free(ring_buffer->nodes[i]);
     }
@@ -68,17 +68,17 @@ void gnb_ring_buffer_release(gnb_ring_buffer_t *ring_buffer){
 
 int gnb_ring_buffer_copy_in(gnb_ring_buffer_t *ring_buffer, void *data, size_t size){
     
-    if ( size > ring_buffer->block_size ){
+    if ( size > ring_buffer->block_size ) {
         return GNB_RING_BUFFER_BLOCK_NOT_ENOUGH;
     }
 
     int tail_next_idx = ring_buffer->tail_idx + 1;
 
-    if ( tail_next_idx >= ring_buffer->num ){
+    if ( tail_next_idx >= ring_buffer->num ) {
         tail_next_idx = 0;
     }
 
-    if ( tail_next_idx == ring_buffer->head_idx ){
+    if ( tail_next_idx == ring_buffer->head_idx ) {
         return  GNB_RING_BUFFER_FULL;
     }
 
@@ -94,17 +94,17 @@ int gnb_ring_buffer_copy_in(gnb_ring_buffer_t *ring_buffer, void *data, size_t s
 
 int gnb_ring_buffer_copy_out(gnb_ring_buffer_t *ring_buffer, void *data, size_t *size){
 
-    if ( *size > ring_buffer->block_size ){
+    if ( *size > ring_buffer->block_size ) {
         return GNB_RING_BUFFER_BLOCK_NOT_ENOUGH;
     }
 
-    if ( ring_buffer->head_idx == ring_buffer->tail_idx ){
+    if ( ring_buffer->head_idx == ring_buffer->tail_idx ) {
         return GNB_RING_BUFFER_EMPTY;
     }
 
     int head_next_idx = ring_buffer->head_idx + 1;
 
-    if ( head_next_idx >= ring_buffer->num ){
+    if ( head_next_idx >= ring_buffer->num ) {
         head_next_idx = 0;
     }
 
@@ -121,22 +121,22 @@ gnb_ring_node_t *gnb_ring_buffer_push(gnb_ring_buffer_t *ring_buffer){
 
     int tail_next_idx = ring_buffer->tail_idx + 1;
 
-    if ( tail_next_idx >= ring_buffer->num ){
+    if ( tail_next_idx >= ring_buffer->num ) {
         tail_next_idx = 0;
     }
 
-    if ( tail_next_idx == ring_buffer->head_idx ){
+    if ( tail_next_idx == ring_buffer->head_idx ) {
         return  NULL;
     }
 
     return ring_buffer->nodes[ring_buffer->tail_idx];
 }
 
-void gnb_ring_buffer_push_submit(gnb_ring_buffer_t *ring_buffer){
+void gnb_ring_buffer_push_submit(gnb_ring_buffer_t *ring_buffer) {
 
     int tail_next_idx = ring_buffer->tail_idx + 1;
 
-    if ( tail_next_idx >= ring_buffer->num ){
+    if ( tail_next_idx >= ring_buffer->num ) {
         tail_next_idx = 0;
     }
 
@@ -148,7 +148,7 @@ void gnb_ring_buffer_push_submit(gnb_ring_buffer_t *ring_buffer){
 
 gnb_ring_node_t *gnb_ring_buffer_pop(gnb_ring_buffer_t *ring_buffer){
 
-    if ( ring_buffer->head_idx == ring_buffer->tail_idx ){
+    if ( ring_buffer->head_idx == ring_buffer->tail_idx ) {
         return NULL;
     }
 
@@ -160,7 +160,7 @@ void gnb_ring_buffer_pop_submit(gnb_ring_buffer_t *ring_buffer){
 
     int head_next_idx = ring_buffer->head_idx + 1;
 
-    if ( head_next_idx >= ring_buffer->num ){
+    if ( head_next_idx >= ring_buffer->num ) {
         head_next_idx = 0;
     }
 

@@ -40,11 +40,14 @@
 #include <ws2tcpip.h>
 #endif
 
+extern gnb_worker_t gnb_discover_in_lan_worker_mod;
+
 void gnb_es_dump_address_list(gnb_es_ctx *es_ctx);
 void gnb_broadcast_address(gnb_es_ctx *es_ctx);
 void gnb_es_upnp(gnb_conf_t *conf, gnb_log_ctx_t *log);
 void gnb_resolv_address(gnb_es_ctx *es_ctx);
 void gnb_load_wan_ipv6_address(gnb_es_ctx *es_ctx);
+void gnb_discover_in_lan_ipv4(gnb_es_ctx *es_ctx);
 void gnb_es_if_up(gnb_es_ctx *es_ctx);
 void gnb_es_if_down(gnb_es_ctx *es_ctx);
 
@@ -59,24 +62,19 @@ static void sync_es_time(gnb_es_ctx *es_ctx){
 }
 
 
-gnb_es_ctx* gnb_es_ctx_init(int is_service, char *ctl_block_file, gnb_log_ctx_t *log){
+gnb_es_ctx* gnb_es_ctx_create(int is_service, char *ctl_block_file, gnb_log_ctx_t *log){
 
     ssize_t ctl_file_size = 0;
-
     gnb_mmap_block_t *mmap_block;
-
     void *block;
-
     char *memory;
-
     gnb_ctl_block_t  *ctl_block = NULL;
 
-
-    if (0 == is_service ) {
+    if ( 0 == is_service ) {
 
         ctl_block = gnb_get_ctl_block(ctl_block_file, 1);
 
-        if ( NULL != ctl_block ){
+        if ( NULL != ctl_block ) {
             goto gnb_map_init_success;
         } else {
             return NULL;
@@ -90,12 +88,11 @@ gnb_es_ctx* gnb_es_ctx_init(int is_service, char *ctl_block_file, gnb_log_ctx_t 
 
         ctl_block = gnb_get_ctl_block(ctl_block_file, 1);
 
-        if ( NULL == ctl_block ){
+        if ( NULL == ctl_block ) {
             goto wait_gnb_init;
         }
 
         memory = (char *)ctl_block->entry_table256;
-
         memory[CTL_BLOCK_ES_MAGIC_IDX] = 'E';
 
         break;
@@ -108,7 +105,7 @@ wait_gnb_init:
 
         try_count++;
 
-        if ( try_count > 100 ){
+        if ( try_count > 100 ) {
             GNB_LOG1(log, GNB_LOG_ID_ES_CORE, "GNB init timeout\n");
         }
 
@@ -137,13 +134,13 @@ gnb_map_init_success:
 
     node_num = es_ctx->ctl_block->node_zone->node_num;
 
-    if ( 0 == node_num ){
+    if ( 0 == node_num ) {
         goto finish;
     }
 
     int i;
 
-    for( i=0; i<node_num; i++ ){
+    for ( i=0; i<node_num; i++ ) {
         node = &es_ctx->ctl_block->node_zone->node[i];
         GNB_HASH32_UINT32_SET(es_ctx->uuid_node_map, node->uuid32, node);
     }
@@ -151,20 +148,51 @@ gnb_map_init_success:
 finish:
 
     return es_ctx;
+
 }
 
 
-#define GNB_RESOLV_INTERVAL_SEC        900
-#define GNB_UPNP_INTERVAL_SEC          180
-#define GNB_DUMP_ADDRESS_INTERVAL_SEC  15
-#define GNB_BROADCAST_INTERVAL_SEC     300
+void gnb_es_ctx_init(gnb_es_ctx *es_ctx){
+
+    gnb_worker_t *gnb_worker_mod;
+
+    es_ctx->udp_socket4 = socket(AF_INET, SOCK_DGRAM, 0);
+    gnb_bind_udp_socket_ipv4(es_ctx->udp_socket4, "0.0.0.0", 0);
+
+    es_ctx->udp_socket6 = socket(AF_INET6, SOCK_DGRAM, 0);
+    gnb_bind_udp_socket_ipv6(es_ctx->udp_socket6, "::",      0);
+
+    if ( es_ctx->discover_in_lan_opt && es_ctx->service_opt ) {
+
+        gnb_worker_mod = &gnb_discover_in_lan_worker_mod;
+
+        es_ctx->discover_in_lan_worker = (gnb_worker_t *)malloc(sizeof(gnb_worker_t));
+
+        *es_ctx->discover_in_lan_worker = *gnb_worker_mod;
+
+        es_ctx->discover_in_lan_worker->thread_worker_flag = 0;
+        es_ctx->discover_in_lan_worker->thread_worker_run_flag = 0;
+
+        es_ctx->discover_in_lan_worker->init(es_ctx->discover_in_lan_worker, es_ctx);
+
+    }
+
+}
+
+
+#define GNB_RESOLV_INTERVAL_SEC              900
+#define GNB_UPNP_INTERVAL_SEC                145
+#define GNB_DUMP_ADDRESS_INTERVAL_SEC         15
+#define GNB_BROADCAST_INTERVAL_SEC           300
+#define GNB_DISCOVER_IN_LAN_INTERVAL_SEC      60
 
 void gnb_start_environment_service(gnb_es_ctx *es_ctx){
 
-    uint64_t last_resolv_address_sec   = 0;
-    uint64_t last_upnp_time_sec        = 0;
-    uint64_t last_dump_address_sec     = 0;
-    uint64_t last_broadcast_addres_sec = 0;
+    uint64_t last_resolv_address_sec    = 0;
+    uint64_t last_upnp_time_sec         = 0;
+    uint64_t last_dump_address_sec      = 0;
+    uint64_t last_broadcast_address_sec = 0;
+    uint64_t last_discover_in_lan_sec   = 0;
 
     if ( es_ctx->if_up_opt ) {
         gnb_es_if_up(es_ctx);
@@ -176,54 +204,43 @@ void gnb_start_environment_service(gnb_es_ctx *es_ctx){
         return;
     }
 
-    es_ctx->udp_socket4 = socket(AF_INET, SOCK_DGRAM, 0);
-    gnb_bind_udp_socket_ipv4(es_ctx->udp_socket4, "0.0.0.0", 0);
-
-    es_ctx->udp_socket6 = socket(AF_INET6, SOCK_DGRAM, 0);
-    gnb_bind_udp_socket_ipv6(es_ctx->udp_socket6, "::",      0);
+    if ( es_ctx->service_opt && es_ctx->discover_in_lan_opt ) {
+        es_ctx->discover_in_lan_worker->start(es_ctx->discover_in_lan_worker);
+    }
 
     do{
 
         sync_es_time(es_ctx);
 
         if ( es_ctx->resolv_opt && (es_ctx->now_time_sec - last_resolv_address_sec ) > GNB_RESOLV_INTERVAL_SEC ) {
-
             gnb_resolv_address(es_ctx);
-
             gnb_load_wan_ipv6_address(es_ctx);
-
             last_resolv_address_sec = es_ctx->now_time_sec;
-
         }
 
         if ( es_ctx->upnp_opt && (es_ctx->now_time_sec - last_upnp_time_sec ) > GNB_UPNP_INTERVAL_SEC ) {
-
             gnb_es_upnp(&es_ctx->ctl_block->conf_zone->conf_st,  es_ctx->log);
-
             last_upnp_time_sec = es_ctx->now_time_sec;
-
         }
 
         if ( es_ctx->dump_address_opt && (es_ctx->now_time_sec - last_dump_address_sec ) > GNB_DUMP_ADDRESS_INTERVAL_SEC ) {
-
             gnb_es_dump_address_list(es_ctx);
-
             last_dump_address_sec = es_ctx->now_time_sec;
-
         }
 
-        if ( es_ctx->broadcast_addres_opt && (es_ctx->now_time_sec - last_broadcast_addres_sec ) > GNB_BROADCAST_INTERVAL_SEC) {
-
+        if ( es_ctx->broadcast_address_opt && (es_ctx->now_time_sec - last_broadcast_address_sec ) > GNB_BROADCAST_INTERVAL_SEC ) {
             gnb_broadcast_address(es_ctx);
-
-            last_broadcast_addres_sec = es_ctx->now_time_sec;
-
+            last_broadcast_address_sec = es_ctx->now_time_sec;
         }
 
-        GNB_SLEEP_MILLISECOND(300);
+        if ( es_ctx->discover_in_lan_opt && (es_ctx->now_time_sec - last_discover_in_lan_sec ) > GNB_DISCOVER_IN_LAN_INTERVAL_SEC ) {
+            gnb_discover_in_lan_ipv4(es_ctx);
+            last_discover_in_lan_sec = es_ctx->now_time_sec;
+        }
+
+        GNB_SLEEP_MILLISECOND(100);
 
     }while(es_ctx->service_opt);
-
 
 }
 
@@ -231,6 +248,4 @@ void gnb_start_environment_service(gnb_es_ctx *es_ctx){
 void gnb_stop_environment_service(gnb_es_ctx *es_ctx){
 
 
-
 }
-

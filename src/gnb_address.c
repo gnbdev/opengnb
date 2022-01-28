@@ -49,7 +49,7 @@ unsigned long long gnb_htonll(unsigned long long val){
 #if __BYTE_ORDER__==__ORDER_LITTLE_ENDIAN__
       uint64_t rv= 0;
       uint8_t x= 0;
-      for(x= 0; x < 8; x++){
+      for (x= 0; x < 8; x++) {
         rv= (rv << 8) | (val & 0xff);
         val >>= 8;
       }
@@ -68,7 +68,7 @@ unsigned long long gnb_ntohll(unsigned long long val){
 #if __BYTE_ORDER__==__ORDER_LITTLE_ENDIAN__
       uint64_t rv= 0;
       uint8_t x= 0;
-      for(x= 0; x < 8; x++){
+      for (x= 0; x < 8; x++) {
         rv= (rv << 8) | (val & 0xff);
         val >>= 8;
       }
@@ -84,15 +84,15 @@ unsigned long long gnb_ntohll(unsigned long long val){
 
 char get_netmask_class(uint32_t addr4){
 
-    if (  !(~(IN_CLASSA_NET) &  ntohl(addr4))  ){
+    if (  !(~(IN_CLASSA_NET) &  ntohl(addr4))  ) {
         return 'a';
     }
 
-    if (  !(~(IN_CLASSB_NET) &  ntohl(addr4))  ){
+    if (  !(~(IN_CLASSB_NET) &  ntohl(addr4))  ) {
         return 'b';
     }
 
-    if (  !(~(IN_CLASSC_NET) &  ntohl(addr4))  ){
+    if (  !(~(IN_CLASSC_NET) &  ntohl(addr4))  ) {
         return 'c';
     }
 
@@ -127,15 +127,15 @@ int gnb_address_list_find(gnb_address_list_t *address_list, gnb_address_t *addre
 
     for ( i=0; i < address_list->num; i++ ) {
 
-        if ( address->type != address_list->array[i].type ){
+        if ( address->type != address_list->array[i].type ) {
             continue;
         }
 
-        if ( AF_INET == address->type && 0 == memcmp(address_list->array[i].m_address4, address->m_address4, 4) ){
+        if ( AF_INET == address->type && 0 == memcmp(address_list->array[i].m_address4, address->m_address4, 4) ) {
             return i;
         }
 
-        if ( AF_INET6 == address->type && 0 == memcmp(address_list->array[i].m_address6, address->m_address6, 16)){
+        if ( AF_INET6 == address->type && 0 == memcmp(address_list->array[i].m_address6, address->m_address6, 16)) {
             return i;
         }
 
@@ -155,7 +155,7 @@ int gnb_address_list_get_free_idx(gnb_address_list_t *address_list) {
 
     for ( i=0; i < address_list->size; i++ ) {
 
-        if ( 0 == address_list->array[i].port ){
+        if ( 0 == address_list->array[i].port ) {
             free_idx = i;
             break;
         }
@@ -178,7 +178,7 @@ void gnb_address_list_update(gnb_address_list_t *address_list, gnb_address_t *ad
 
     idx = gnb_address_list_find(address_list, address);
 
-    if ( -1 != idx ){
+    if ( -1 != idx ) {
         goto finish;
     }
 
@@ -186,11 +186,11 @@ void gnb_address_list_update(gnb_address_list_t *address_list, gnb_address_t *ad
 
 finish:
 
-    if ( 0 == address_list->array[idx].port ){
+    if ( 0 == address_list->array[idx].port ) {
 
-        if( address_list->num < address_list->size ){
+        if ( address_list->num < address_list->size ) {
             address_list->num += 1;
-        }else if(address_list->num > address_list->size){
+        } else if (address_list->num > address_list->size) {
             address_list->num = address_list->size;
         }
 
@@ -204,9 +204,7 @@ finish:
 void gnb_set_address4(gnb_address_t *address, struct sockaddr_in *in){
 
     address->type = AF_INET;
-
     address->port = in->sin_port;
-
     memcpy(&address->address.addr4, &in->sin_addr.s_addr ,sizeof(struct in_addr));
 
 }
@@ -227,13 +225,13 @@ char * gnb_get_address4string(void *byte4, char *dest, uint8_t addr_secure){
 
     char *p;
 
-    if(addr_secure){
+    if (addr_secure) {
 
         p = dest;
 
-        while( '\0' != *p ){
+        while( '\0' != *p ) {
 
-            if( '.' == *p ){
+            if ( '.' == *p ) {
                 break;
             }
 
@@ -255,13 +253,13 @@ char * gnb_get_address6string(void *byte16, char *dest, uint8_t addr_secure){
 
     char *p;
 
-    if(addr_secure){
+    if (addr_secure) {
 
         p = dest;
 
-        while( '\0' != *p ){
+        while ( '\0' != *p ) {
 
-            if( ':' == *p ){
+            if ( ':' == *p ) {
                 break;
             }
 
@@ -285,13 +283,13 @@ char * gnb_get_socket4string(struct sockaddr_in *in, char *dest, uint8_t addr_se
 
     char *p;
 
-    if(addr_secure){
+    if (addr_secure) {
 
         p = dest;
 
-        while( '\0' != *p ){
+        while ( '\0' != *p ) {
 
-            if( '.' == *p ){
+            if ( '.' == *p ) {
                 break;
             }
 
@@ -315,13 +313,13 @@ char * gnb_get_socket6string(struct sockaddr_in6 *in6, char *dest, uint8_t addr_
 
     char *p;
 
-    if(addr_secure){
+    if (addr_secure) {
 
         p = dest+1;
 
-        while( '\0' != *p ){
+        while ( '\0' != *p ) {
 
-            if( ':' == *p ){
+            if ( ':' == *p ) {
                 break;
             }
 
@@ -339,9 +337,9 @@ char * gnb_get_socket6string(struct sockaddr_in6 *in6, char *dest, uint8_t addr_
 
 char * gnb_get_sockaddress_string(gnb_sockaddress_t *sockaddress, char *dest, uint8_t addr_secure){
 
-    if ( AF_INET6 == sockaddress->addr_type ){
+    if ( AF_INET6 == sockaddress->addr_type ) {
         dest = gnb_get_socket6string(&sockaddress->addr.in6,dest,addr_secure);
-    }else if ( AF_INET == sockaddress->addr_type ){
+    } else if ( AF_INET == sockaddress->addr_type ) {
         dest = gnb_get_socket4string(&sockaddress->addr.in,dest,addr_secure);
     }
 
@@ -358,22 +356,22 @@ char * gnb_get_ip_port_string(gnb_address_t *address, char *dest, uint8_t addr_s
 
     p = dest;
 
-    if ( AF_INET6 == address->type ){
+    if ( AF_INET6 == address->type ) {
         inet_ntop(AF_INET6, &address->address.addr6, buf, INET6_ADDRSTRLEN);
         snprintf(dest, GNB_IP6_PORT_STRING_SIZE,"[%s:%d]",buf,ntohs(address->port));
         p++;
-    }else if( AF_INET == address->type ){
+    } else if ( AF_INET == address->type ) {
         inet_ntop(AF_INET, &address->address.addr4, buf, INET_ADDRSTRLEN);
         snprintf(dest, GNB_IP6_PORT_STRING_SIZE,"%s:%d",buf,ntohs(address->port));
-    }else{
+    } else {
         snprintf(dest, GNB_IP6_PORT_STRING_SIZE,"NONE_ADDRESS");
     }
 
-    if(addr_secure){
+    if (addr_secure) {
 
-        while( '\0' != *p ){
+        while ( '\0' != *p ) {
 
-            if( '.' == *p || ':' == *p ){
+            if ( '.' == *p || ':' == *p ) {
                 break;
             }
 
@@ -391,11 +389,11 @@ char * gnb_get_ip_port_string(gnb_address_t *address, char *dest, uint8_t addr_s
 
 int gnb_cmp_sockaddr_in6(struct sockaddr_in6 *in1, struct sockaddr_in6 *in2){
 
-    if ( in1->sin6_port != in2->sin6_port ){
+    if ( in1->sin6_port != in2->sin6_port ) {
         return 1;
     }
 
-    if ( 0 != memcmp( &in1->sin6_addr, &in2->sin6_addr, 16) ){
+    if ( 0 != memcmp( &in1->sin6_addr, &in2->sin6_addr, 16) ) {
         return 2;
     }
 
@@ -406,11 +404,11 @@ int gnb_cmp_sockaddr_in6(struct sockaddr_in6 *in1, struct sockaddr_in6 *in2){
 
 int gnb_cmp_sockaddr_in(struct sockaddr_in *in1, struct sockaddr_in *in2){
 
-    if ( in1->sin_port != in2->sin_port ){
+    if ( in1->sin_port != in2->sin_port ) {
         return 1;
     }
 
-    if ( in1->sin_addr.s_addr != in2->sin_addr.s_addr  ){
+    if ( in1->sin_addr.s_addr != in2->sin_addr.s_addr ) {
         return 2;
     }
 
@@ -423,11 +421,11 @@ void gnb_set_sockaddress4(gnb_sockaddress_t *sockaddress, int protocol, const ch
 
     sockaddress->addr_type = AF_INET;
 
-    if (GNB_PROTOCOL_TCP == protocol){
+    if (GNB_PROTOCOL_TCP == protocol) {
         sockaddress->protocol = SOCK_STREAM;
-    }else if (GNB_PROTOCOL_UDP == protocol){
+    } else if (GNB_PROTOCOL_UDP == protocol) {
         sockaddress->protocol = SOCK_DGRAM;
-    }else{
+    } else {
         sockaddress->protocol = SOCK_DGRAM;
     }
 
@@ -435,9 +433,9 @@ void gnb_set_sockaddress4(gnb_sockaddress_t *sockaddress, int protocol, const ch
 
     sockaddress->m_in4.sin_family = AF_INET;
 
-    if ( NULL != host ){
+    if ( NULL != host ) {
         inet_pton(AF_INET, host, (struct in_addr *)&sockaddress->m_in4.sin_addr.s_addr);
-    }else{
+    } else {
         sockaddress->m_in4.sin_addr.s_addr = htonl(INADDR_ANY);
     }
 
@@ -452,11 +450,11 @@ void gnb_set_sockaddress6(gnb_sockaddress_t *sockaddress, int protocol, const ch
 
     sockaddress->addr_type = AF_INET6;
 
-    if (GNB_PROTOCOL_TCP == protocol){
+    if (GNB_PROTOCOL_TCP == protocol) {
         sockaddress->protocol = SOCK_STREAM;
-    }else if (GNB_PROTOCOL_UDP == protocol){
+    } else if (GNB_PROTOCOL_UDP == protocol) {
         sockaddress->protocol = SOCK_DGRAM;
-    }else{
+    } else {
         sockaddress->protocol = SOCK_DGRAM;
     }
 
@@ -464,9 +462,9 @@ void gnb_set_sockaddress6(gnb_sockaddress_t *sockaddress, int protocol, const ch
 
     sockaddress->m_in6.sin6_family = AF_INET6;
 
-    if ( NULL != host ){
+    if ( NULL != host ) {
         inet_pton( AF_INET6, host, &sockaddress->m_in6.sin6_addr);
-    }else{
+    } else {
         sockaddress->m_in6.sin6_addr = in6addr_any;
     }
 
@@ -495,9 +493,9 @@ gnb_address_t gnb_get_address4_from_string(const char *sockaddress4_string){
 
     char *p = sockaddress4_string_copy;
 
-    for( i=0; i<sockaddress4_string_len; i++){
+    for ( i=0; i<sockaddress4_string_len; i++) {
 
-        if ( ':' == *p ){
+        if ( ':' == *p ) {
             *p = '\0';
             break;
         }
@@ -510,7 +508,7 @@ gnb_address_t gnb_get_address4_from_string(const char *sockaddress4_string){
 
     ul = strtoul(p, NULL, 10);
 
-    if( ULONG_MAX == ul ){
+    if ( ULONG_MAX == ul ) {
         return address;
     }
 
@@ -531,9 +529,9 @@ char* gnb_hide_adrress_string(char*adrress_string){
 
     p = adrress_string;
 
-    while( '\0' != *p ){
+    while ( '\0' != *p ) {
 
-        if( '.' == *p || ':' == *p ){
+        if ( '.' == *p || ':' == *p ) {
             break;
         }
 
@@ -550,7 +548,7 @@ char* gnb_hide_adrress_string(char*adrress_string){
 
 void gnb_address_list3_fifo(gnb_address_list_t *address_list, gnb_address_t *address){
 
-    /*暂时没有实现真正的 fifo*/
+    /*现在没有实现真正的 fifo*/
     memcpy( &address_list->array[0], address, sizeof(gnb_address_t) );
     address_list->num = 1;
 

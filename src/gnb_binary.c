@@ -133,21 +133,21 @@ void *gnb_hex2bin(char *hex_string, void *bin, size_t bin_size){
     int l;
     int i;
 
-    for(i = 0; i < bin_size; i++) {
+    for (i = 0; i < bin_size; i++) {
 
-        if(!isxdigit(hex_string[i * 2]) || !isxdigit(hex_string[i * 2 + 1])) {
+        if (!isxdigit(hex_string[i * 2]) || !isxdigit(hex_string[i * 2 + 1])) {
             return NULL;
         }
 
-        if ( isdigit( hex_string[i * 2] )){
+        if ( isdigit( hex_string[i * 2] )) {
             h = hex_string[i * 2] - '0';
-        }else{
+        } else {
             h = toupper(hex_string[i * 2]) - 'A' + 10;
         }
 
-        if ( isdigit( hex_string[i * 2 + 1] )){
+        if ( isdigit( hex_string[i * 2 + 1] )) {
             l = hex_string[i * 2 + 1] - '0';
-        }else{
+        } else {
             l = toupper(hex_string[i * 2 + 1]) - 'A' + 10;
         }
 

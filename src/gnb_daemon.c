@@ -44,7 +44,7 @@ int gnb_daemon(){
 
   pid = fork();
 
-  if ( 0 != pid ){
+  if ( 0 != pid ) {
       exit(0);
   }
 
@@ -54,7 +54,7 @@ int gnb_daemon(){
 
   pid = fork();
 
-  if ( 0 != pid ){
+  if ( 0 != pid ) {
       exit(0);
   }
 
@@ -64,7 +64,7 @@ int gnb_daemon(){
 
   fd = open("/dev/null", O_RDWR);
 
-  if ( -1 == fd ){
+  if ( -1 == fd ) {
       return -1;
   }
 
@@ -91,7 +91,7 @@ void save_pid(const char *pid_file){
 
     file = fopen(pid_file,"w");
 
-    if (NULL==file){
+    if ( NULL==file ) {
         printf("open pid file[%s] err\n",pid_file);
         exit(1);
     }

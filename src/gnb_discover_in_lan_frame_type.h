@@ -15,33 +15,45 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef GNB_FWDU2_FRAME_TYPE_H
-#define GNB_FWDU2_FRAME_TYPE_H
+#ifndef GNB_DISCOVER_IN_LAN_FRAME_TYPE_H
+#define GNB_DISCOVER_IN_LAN_FRAME_TYPE_H
 
 #include "stdint.h"
 #include "gnb_core_frame_type_defs.h"
 
 #pragma pack(push, 1)
 
-typedef struct _gnb_fwdu2_frame_head_t{
+typedef struct _discover_lan_in_frame_t {
 
-	uint32_t dst_uuid32;     //网络字节序
+    struct __attribute__((__packed__)) discover_lan_in_data {
 
-	uint8_t  fwd_addr_type;
-	uint8_t  fwd_addr[16];
-	uint16_t fwd_in_port;    //网络字节序
-	uint16_t fwd_out_port;   //网络字节序
+    	unsigned char arg0;
+    	unsigned char arg1;
+    	unsigned char arg2;
+    	unsigned char arg3;
 
-	uint8_t  dst_addr_type;
-	uint8_t  dst_addr[16];
-	uint16_t dst_port;       //网络字节序
+    	unsigned char src_key512[64];
+    	uint32_t      src_uuid32;
 
-	unsigned char passcode[4];
+    	uint8_t  src_addr6_a[16];
+    	uint16_t src_port6_a;
 
-}__attribute__ ((__packed__)) gnb_fwdu2_frame_head_t;
+    	uint8_t  src_addr4[4];
+    	uint16_t src_port4;
+
+    	uint64_t src_ts_usec;
+
+    	char text[256];
+    	char attachment[128];
+
+    }data;
+
+    unsigned char src_sign[ED25519_SIGN_SIZE];
+
+}__attribute__ ((__packed__)) discover_lan_in_frame_t;
 
 #pragma pack(pop)
 
-#define GNB_MAX_FWDU2_FRAME_SIZE       (32*1024)
+#define PAYLOAD_DISCOVER_LAN_IN_FRAME_PAYLOAD_SIZE (sizeof(gnb_payload16_t) + sizeof(discover_lan_in_frame_t))
 
 #endif

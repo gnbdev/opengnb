@@ -44,10 +44,9 @@
 #endif
 
 #include "gnb_alloc.h"
-
 #include "gnb_hash32.h"
-
 #include "gnb_payload16.h"
+#include "gnb_core_frame_type_defs.h"
 #include "gnb_tun_drv.h"
 #include "gnb_pf.h"
 #include "gnb_address.h"
@@ -79,8 +78,8 @@ typedef struct _gnb_core_t{
 	int time_seed_update_factor;
 	unsigned char time_seed[64];
 
-	unsigned char ed25519_private_key[64];
-	unsigned char ed25519_public_key[32];
+	unsigned char *ed25519_private_key;
+	unsigned char *ed25519_public_key;
 
 	gnb_conf_t *conf;
 
@@ -159,29 +158,9 @@ typedef struct _gnb_core_t{
 }gnb_core_t;
 
 
-#define GNB_PAYLOAD_TYPE_FWDU0              0x03
-
-#define GNB_PAYLOAD_TYPE_IPFRAME            0x04
-#define GNB_PAYLOAD_SUB_TYPE_IPFRAME_INIT   (0x0)
-#define GNB_PAYLOAD_SUB_TYPE_IPFRAME_STD    (0x1)
-#define GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY  (0x1 << 1)
-
-
-#define GNB_PAYLOAD_TYPE_INDEX              0x08
-#define PAYLOAD_SUB_TYPE_POST_ADDR          (0x1)
-#define PAYLOAD_SUB_TYPE_ECHO_ADDR          (0x2)
-#define PAYLOAD_SUB_TYPE_REQUEST_ADDR       (0x3)
-#define PAYLOAD_SUB_TYPE_PUSH_ADDR          (0x4)
-#define PAYLOAD_SUB_TYPE_DETECT_ADDR        (0x5)
-
-
-#define GNB_PAYLOAD_TYPE_NODE               0x09
-#define GNB_PAYLOAD_TYPE_UDPLOG             0x44
-
 #define GNB_ADDR_TYPE_NONE              (0x0)
 #define GNB_ADDR_TYPE_IPV4              (0x1)
 #define GNB_ADDR_TYPE_IPV6              (0x1 << 1)
-
 
 #define GNB_LOG_ID_CORE                  0
 #define GNB_LOG_ID_PF                    1
@@ -191,8 +170,7 @@ typedef struct _gnb_core_t{
 #define GNB_LOG_ID_INDEX_SERVICE_WORKER  5
 #define GNB_LOG_ID_DETECT_WORKER         6
 
-#define GNB_VERSION_STRING    "GNB  version 1.2.8.2  protocol version 1.1.2"
+#define GNB_VERSION_STRING    "GNB  version 1.2.8.4  protocol version 1.1.3"
 #define GNB_COPYRIGHT_STRING  "Copyright (C) 2019 gnbdev<gnbdev@qq.com>"
 #define GNB_URL_STRING        "https://github.com/gnbdev/opengnb"
 #endif
-

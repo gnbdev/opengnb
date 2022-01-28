@@ -36,10 +36,13 @@
 
 /*秒*/
 uint64_t gnb_timestamp_sec(){
+
     int ret;
     struct timeval cur_time;
     uint64_t u64;
+
     ret = gettimeofday(&cur_time,NULL);
+
     if (0!=ret) {
         return 0;
     }
@@ -51,14 +54,19 @@ uint64_t gnb_timestamp_sec(){
 }
 
 uint64_t gnb_timestamp_usec(){
+
     int ret;
     struct timeval cur_time;
     uint64_t u64;
+
     ret = gettimeofday(&cur_time,NULL);
+
     if (0!=ret) {
         return 0;
     }
+
     u64 = (uint64_t)cur_time.tv_sec*1000000 + cur_time.tv_usec;
+
     return u64;
 }
 
@@ -119,5 +127,3 @@ int gnb_now_yday(){
     return ltm.tm_yday;
 
 }
-
-

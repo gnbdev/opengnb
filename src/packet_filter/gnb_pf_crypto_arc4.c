@@ -159,19 +159,19 @@ static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 
     gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t *)GNB_PF_GET_CTX(gnb_core, gnb_pf_crypto_arc4);
 
-    if ( ctx->save_time_seed_update_factor != gnb_core->time_seed_update_factor ){
+    if ( ctx->save_time_seed_update_factor != gnb_core->time_seed_update_factor ) {
         init_arc4_keys(gnb_core);
     }
 
     struct arc4_sbox sbox;
 
-    if (NULL==pf_ctx->dst_node){
+    if (NULL==pf_ctx->dst_node) {
         return GNB_PF_ERROR;
     }
 
     struct arc4_sbox *sbox_init = (struct arc4_sbox *)GNB_HASH32_UINT32_GET_PTR(ctx->arc4_ctx_map, pf_ctx->dst_uuid32);
 
-    if (NULL==sbox_init){
+    if (NULL==sbox_init) {
         GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "gnb_pf_crypto_arc4 tun_frame node[%u] miss key\n", pf_ctx->dst_node->uuid32);
         return GNB_PF_ERROR;
     }
@@ -190,13 +190,13 @@ static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 */
 static int pf_tun_fwd_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 
-    if ( !(pf_ctx->fwd_payload->sub_type & GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY) ){
+    if ( !(pf_ctx->fwd_payload->sub_type & GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY) ) {
         return pf_ctx->pf_status;
     }
 
     gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t *)GNB_PF_GET_CTX(gnb_core, gnb_pf_crypto_arc4);
 
-    if ( ctx->save_time_seed_update_factor != gnb_core->time_seed_update_factor ){
+    if ( ctx->save_time_seed_update_factor != gnb_core->time_seed_update_factor ) {
         init_arc4_keys(gnb_core);
     }
 
@@ -206,7 +206,7 @@ static int pf_tun_fwd_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 
         struct arc4_sbox *sbox_init = (struct arc4_sbox *)GNB_HASH32_UINT32_GET_PTR(ctx->arc4_ctx_map, pf_ctx->fwd_node->uuid32 );
 
-        if (NULL==sbox_init){
+        if (NULL==sbox_init) {
             GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "gnb_pf_crypto_arc4 tun_frame node[%u] miss key\n", pf_ctx->dst_node->uuid32);
             return GNB_PF_ERROR;
         }
@@ -235,11 +235,11 @@ static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
     uint32_t *src_fwd_nodeid_ptr;
     uint16_t payload_size;
 
-    if ( !(pf_ctx->fwd_payload->sub_type & GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY) ){
+    if ( !(pf_ctx->fwd_payload->sub_type & GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY) ) {
         return pf_ctx->pf_status;
     }
 
-    if ( ctx->save_time_seed_update_factor != gnb_core->time_seed_update_factor ){
+    if ( ctx->save_time_seed_update_factor != gnb_core->time_seed_update_factor ) {
         init_arc4_keys(gnb_core);
     }
 
@@ -251,7 +251,7 @@ static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 
     struct arc4_sbox *sbox_init = (struct arc4_sbox *)GNB_HASH32_UINT32_GET_PTR(ctx->arc4_ctx_map, pf_ctx->src_fwd_uuid32);
 
-    if (NULL==sbox_init){
+    if (NULL==sbox_init) {
         GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "gnb_pf_crypto_arc4 pf_inet_frame_cb node[%u] miss key\n", pf_ctx->src_fwd_uuid32);
         return GNB_PF_ERROR;
     }
@@ -272,15 +272,15 @@ static int pf_inet_route_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 
     gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t *)GNB_PF_GET_CTX(gnb_core, gnb_pf_crypto_arc4);
 
-    if ( ctx->save_time_seed_update_factor != gnb_core->time_seed_update_factor ){
+    if ( ctx->save_time_seed_update_factor != gnb_core->time_seed_update_factor ) {
         init_arc4_keys(gnb_core);
     }
 
-    if (GNB_PF_FWD_TUN==pf_ctx->pf_fwd){
+    if (GNB_PF_FWD_TUN==pf_ctx->pf_fwd) {
 
         struct arc4_sbox *sbox_init = (struct arc4_sbox *)GNB_HASH32_UINT32_GET_PTR(ctx->arc4_ctx_map, pf_ctx->src_uuid32);
 
-        if (NULL==sbox_init){
+        if (NULL==sbox_init) {
             GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "gnb_pf_crypto_arc4 inet_route node[%u] miss key\n", pf_ctx->src_uuid32);
             return GNB_PF_ERROR;
         }
@@ -302,24 +302,24 @@ static int pf_inet_fwd_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 
     struct arc4_sbox sbox;
 
-    if ( !(pf_ctx->fwd_payload->sub_type & GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY) ){
+    if ( !(pf_ctx->fwd_payload->sub_type & GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY) ) {
         return pf_ctx->pf_status;
     }
 
-    if ( ctx->save_time_seed_update_factor != gnb_core->time_seed_update_factor ){
+    if ( ctx->save_time_seed_update_factor != gnb_core->time_seed_update_factor ) {
         init_arc4_keys(gnb_core);
     }
 
     if (GNB_PF_FWD_INET==pf_ctx->pf_fwd) {
 
-        if ( NULL==pf_ctx->fwd_node ){
+        if ( NULL==pf_ctx->fwd_node ) {
             pf_ctx->pf_status = GNB_PF_NOROUTE;
             goto finish;
         }
 
         struct arc4_sbox *sbox_init = (struct arc4_sbox *)GNB_HASH32_UINT32_GET_PTR(ctx->arc4_ctx_map, pf_ctx->fwd_node->uuid32);
 
-        if (NULL==sbox_init){
+        if (NULL==sbox_init) {
             GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "gnb_pf_crypto_arc4 pf_inet_frame_cb node[%u] miss key\n", pf_ctx->fwd_node->uuid32);
             return GNB_PF_ERROR;
         }

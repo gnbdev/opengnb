@@ -81,13 +81,13 @@ gnb_kv32_t *gnb_kv32_create(gnb_hash32_map_t *hash32_map, u_char *key, uint32_t 
     
     if ( 0 != key_len ) {
         r_key_len = key_len;
-    }else{
+    } else {
         r_key_len = sizeof(void *);
     }
 
     if ( 0 != value_len ) {
         r_value_len = value_len;
-    }else{
+    } else {
         r_value_len = sizeof(void *);
     }
 
@@ -105,7 +105,7 @@ gnb_kv32_t *gnb_kv32_create(gnb_hash32_map_t *hash32_map, u_char *key, uint32_t 
     memcpy(kv->key->data, key, key_len);
     kv->key->size = key_len;
 
-    if ( 0 != value_len ){
+    if ( 0 != value_len ) {
         memcpy(kv->value->data, value, value_len);
         kv->value->size = value_len;
     } else {
@@ -135,7 +135,7 @@ gnb_kv32_t *gnb_hash32_set(gnb_hash32_map_t *hash32_map, u_char *key, uint32_t k
     
     gnb_hash32_bucket_t *bucket = hash32_map->buckets[bucket_idx];
 
-    if ( NULL == bucket->kv_chain ){
+    if ( NULL == bucket->kv_chain ) {
         bucket->kv_chain = gnb_kv32_create(hash32_map, key, key_len, value, value_len);
         bucket->kv_chain->nex = NULL;
         bucket->chain_len = 1;
@@ -158,7 +158,7 @@ gnb_kv32_t *gnb_hash32_set(gnb_hash32_map_t *hash32_map, u_char *key, uint32_t k
 
             kv = kv_chain;
 
-            if ( 0 != value_len ){
+            if ( 0 != value_len ) {
                  memcpy(kv->value->data, value, value_len);
                  kv->value->size = value_len;
             } else {
@@ -176,7 +176,7 @@ gnb_kv32_t *gnb_hash32_set(gnb_hash32_map_t *hash32_map, u_char *key, uint32_t k
         
     }while (kv_chain);
 
-    if ( NULL == kv ){
+    if ( NULL == kv ) {
         pre_kv_chain->nex = gnb_kv32_create(hash32_map, key, key_len, value, value_len);
         bucket->chain_len++;
         hash32_map->kv_num++;
@@ -200,7 +200,7 @@ int gnb_hash32_store(gnb_hash32_map_t *hash32_map, u_char *key, uint32_t key_len
     
     gnb_hash32_bucket_t *bucket = hash32_map->buckets[bucket_idx];
 
-    if ( NULL == bucket->kv_chain ){
+    if ( NULL == bucket->kv_chain ) {
         bucket->kv_chain = gnb_kv32_create(hash32_map, key, key_len, value, value_len);
         bucket->chain_len = 1;
         hash32_map->kv_num++;
@@ -223,11 +223,8 @@ int gnb_hash32_store(gnb_hash32_map_t *hash32_map, u_char *key, uint32_t key_len
             gnb_kv32_release(hash32_map, kv_chain);
 
             if ( bucket->kv_chain != kv_chain ) {
-
                 pre_kv_chain->nex = gnb_kv32_create(hash32_map, key, key_len, value, value_len);
-
             } else {
-
                 bucket->kv_chain = gnb_kv32_create(hash32_map, key, key_len, value, value_len);
             }
 
@@ -239,7 +236,7 @@ int gnb_hash32_store(gnb_hash32_map_t *hash32_map, u_char *key, uint32_t key_len
         
     }while (kv_chain);
 
-    if ( NULL == kv ){
+    if ( NULL == kv ) {
         pre_kv_chain->nex = gnb_kv32_create(hash32_map, key, key_len, value, value_len);
         bucket->chain_len++;
         hash32_map->kv_num++;
@@ -263,7 +260,7 @@ gnb_kv32_t *gnb_hash32_get(gnb_hash32_map_t *hash32_map, u_char *key, uint32_t k
     
     gnb_hash32_bucket_t *bucket = hash32_map->buckets[bucket_idx];
 
-    if ( NULL == bucket->kv_chain ){
+    if ( NULL == bucket->kv_chain ) {
         goto finish;
     }
 
@@ -302,7 +299,7 @@ gnb_kv32_t *gnb_hash32_del(gnb_hash32_map_t *hash32_map, u_char *key, uint32_t k
     
     gnb_hash32_bucket_t *bucket = hash32_map->buckets[bucket_idx];
     
-    if ( NULL == bucket->kv_chain ){
+    if ( NULL == bucket->kv_chain ) {
         goto finish;
     }
 
@@ -314,13 +311,14 @@ gnb_kv32_t *gnb_hash32_del(gnb_hash32_map_t *hash32_map, u_char *key, uint32_t k
 
         hash32_map->kv_num--;
         
-        if ( 1 == bucket->chain_len ){
+        if ( 1 == bucket->chain_len ) {
             bucket->kv_chain = NULL;
             bucket->chain_len = 0;
-        }else{
+        } else {
             bucket->kv_chain = kv_chain->nex;
             bucket->chain_len--;
         }
+
         goto finish;
 
     }
@@ -369,12 +367,12 @@ gnb_kv32_t **gnb_hash32_array(gnb_hash32_map_t *hash32_map, uint32_t *num){
 
     gnb_hash32_bucket_t *bucket;
     
-    if ( 0 == hash32_map->kv_num ){
+    if ( 0 == hash32_map->kv_num ) {
         *num = 0;
         return NULL;
     }
 
-    if ( hash32_map->kv_num < (*num) ){
+    if ( hash32_map->kv_num < (*num) ) {
         *num = hash32_map->kv_num;
     }
 
@@ -414,12 +412,12 @@ uint32_t* gnb_hash32_uint32_keys(gnb_hash32_map_t *hash32_map, uint32_t *num){
 
     gnb_hash32_bucket_t *bucket;
     
-    if ( 0 == hash32_map->kv_num ){
+    if ( 0 == hash32_map->kv_num ) {
         *num = 0;
         return NULL;
     }
 
-    if ( hash32_map->kv_num < (*num) ){
+    if ( hash32_map->kv_num < (*num) ) {
         *num = hash32_map->kv_num;
     }
 
@@ -458,12 +456,12 @@ uint64_t* gnb_hash32_uint64_keys(gnb_hash32_map_t *hash32_map, uint32_t *num){
 
     gnb_hash32_bucket_t *bucket;
     
-    if ( 0 == hash32_map->kv_num ){
+    if ( 0 == hash32_map->kv_num ) {
         *num = 0;
         return NULL;
     }
 
-    if ( hash32_map->kv_num < (*num) ){
+    if ( hash32_map->kv_num < (*num) ) {
         *num = hash32_map->kv_num;
     }
 
@@ -502,12 +500,12 @@ u_char** gnb_hash32_string_keys(gnb_hash32_map_t *hash32_map, uint32_t *num){
 
     gnb_hash32_bucket_t *bucket;
     
-    if ( 0 == hash32_map->kv_num ){
+    if ( 0 == hash32_map->kv_num ) {
         *num = 0;
         return NULL;
     }
     
-    if ( hash32_map->kv_num < (*num) ){
+    if ( hash32_map->kv_num < (*num) ) {
         *num = hash32_map->kv_num;
     }
 
@@ -537,4 +535,3 @@ u_char** gnb_hash32_string_keys(gnb_hash32_map_t *hash32_map, uint32_t *num){
     return string_array;
 
 }
-

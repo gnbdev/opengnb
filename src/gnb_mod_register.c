@@ -37,13 +37,13 @@ gnb_pf_t* gnb_find_pf_mod_by_name(const char *name){
 
     int i;
 
-    for(i=0; i<num; i++){
+    for (i=0; i<num; i++) {
 
-        if (NULL==gnb_pf_mods[i]){
+        if (NULL==gnb_pf_mods[i]) {
             break;
         }
 
-        if ( 0 == strncmp(gnb_pf_mods[i]->name,name,128)){
+        if ( 0 == strncmp(gnb_pf_mods[i]->name,name,128)) {
             return gnb_pf_mods[i];
         }
 

@@ -287,11 +287,11 @@ static void load_node_cache(gnb_core_t *gnb_core){
 
         push_address_list = (gnb_address_list_t *)&node->push_address_block;
 
-        if( AF_INET6 == address_st.type) {
+        if ( AF_INET6 == address_st.type) {
 
             gnb_address_list_update(push_address_list, &address_st);
 
-        } else if( AF_INET == address_st.type ) {
+        } else if ( AF_INET == address_st.type ) {
 
             gnb_address_list_update(push_address_list, &address_st);
 
@@ -807,7 +807,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             if ( !strncmp(value, "binary", sizeof("binary")-1) ) {
                 gnb_core->conf->log_udp_type = GNB_LOG_UDP_TYPE_BINARY;
-            }else{
+            } else {
                 gnb_core->conf->log_udp_type = GNB_LOG_UDP_TYPE_TEXT;
             }
 
@@ -969,7 +969,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
             num = sscanf(line_buffer,"%32[^ ] %d", field, &value_int);
 
-            if ( 2 != num ){
+            if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "pf-route-mode", node_conf_file);
                 exit(1);
             }
@@ -1128,7 +1128,6 @@ static void load_route_config(gnb_core_t *gnb_core){
             continue;
         }
 
-
         ret = gnb_test_field_separator(line_buffer);
 
         if ( GNB_CONF_FIELD_SEPARATOR_TYPE_SLASH == ret ) {
@@ -1277,16 +1276,16 @@ static void set_node_route_mode(gnb_core_t *gnb_core, uint32_t uuid32, char *rou
         node->node_relay_mode |= GNB_NODE_RELAY_FORCE;
     }
 
-    if( NULL != strstr(route_mode_string,"auto") ) {
+    if ( NULL != strstr(route_mode_string,"auto") ) {
         node->node_relay_mode &= ~GNB_NODE_RELAY_FORCE;
         node->node_relay_mode |= GNB_NODE_RELAY_AUTO;
     }
 
-    if( NULL != strstr(route_mode_string,"balance") ) {
+    if ( NULL != strstr(route_mode_string,"balance") ) {
         node->node_relay_mode |= GNB_NODE_RELAY_BALANCE;
     }
 
-    if( NULL != strstr(route_mode_string,"static") ) {
+    if ( NULL != strstr(route_mode_string,"static") ) {
         node->node_relay_mode |= GNB_NODE_RELAY_STATIC;
     }
 

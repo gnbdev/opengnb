@@ -72,7 +72,7 @@ gnb_lru32_t *gnb_lru32_create(gnb_heap_t *heap, uint32_t max_size,uint32_t block
 
     lru->doubly_linked_list = gnb_doubly_linked_list_create(lru->heap);
 
-    if ( 0 != lru->block_size ){
+    if ( 0 != lru->block_size ) {
         lru->udata_fixed_pool = gnb_fixed_pool_create(heap,max_size, lru->block_size);
     }
 
@@ -87,7 +87,7 @@ gnb_lru32_t *gnb_lru32_create(gnb_heap_t *heap, uint32_t max_size,uint32_t block
 
 void gnb_lru32_release(gnb_lru32_t *lru){
 
-    if ( 0 != lru->block_size ){
+    if ( 0 != lru->block_size ) {
         gnb_fixed_pool_release(lru->heap,lru->udata_fixed_pool);
     }
 
@@ -202,7 +202,7 @@ void gnb_lru32_fixed_store(gnb_lru32_t *lru, unsigned char *key, uint32_t key_le
 
     gnb_lru32_node_t *lru_node;
 
-    if( 0 == lru->block_size ){
+    if ( 0 == lru->block_size ) {
         return;
     }
 
@@ -257,6 +257,7 @@ gnb_lru32_node_t* gnb_lru32_hash_get(gnb_lru32_t *lru, unsigned char *key, uint3
 gnb_lru32_node_t* gnb_lru32_get(gnb_lru32_t *lru, unsigned char *key, uint32_t key_len){
 
     gnb_kv32_t *kv32 = gnb_hash32_get(lru->lru_node_map,key, (uint32_t)key_len);
+
     if (NULL==kv32) {
         return NULL;
     }
@@ -274,6 +275,7 @@ gnb_lru32_node_t* gnb_lru32_get(gnb_lru32_t *lru, unsigned char *key, uint32_t k
 void gnb_lru32_movetohead(gnb_lru32_t *lru, unsigned char *key, uint32_t key_len){
 
     gnb_kv32_t *kv32 = gnb_hash32_get(lru->lru_node_map,key, (uint32_t)key_len);
+
     if (NULL==kv32) {
         return;
     }
@@ -308,6 +310,7 @@ void* gnb_lru32_pop_by_key(gnb_lru32_t *lru, unsigned char *key, uint32_t key_le
     pop_udata = pop_lru_node->udata;
 
     gnb_kv32_t *kv32 = gnb_hash32_del(lru->lru_node_map, pop_lru_node->kv->key->data, pop_lru_node->kv->key->size);
+
     if (NULL!=kv32) {
         gnb_kv32_release(lru->lru_node_map,kv32);
     }
@@ -329,7 +332,7 @@ void* gnb_lru32_pop_head(gnb_lru32_t *lru){
 
     gnb_doubly_linked_list_node_t *head_dl_node;
 
-    if ( 0 == lru->size || NULL==lru->doubly_linked_list->head ){
+    if ( 0 == lru->size || NULL==lru->doubly_linked_list->head ) {
         return NULL;
     }
 
@@ -342,6 +345,7 @@ void* gnb_lru32_pop_head(gnb_lru32_t *lru){
     pop_udata = pop_lru_node->udata;
 
     gnb_kv32_t *kv32 = gnb_hash32_del(lru->lru_node_map, pop_lru_node->kv->key->data, pop_lru_node->kv->key->size);
+
     if (NULL!=kv32) {
         gnb_kv32_release(lru->lru_node_map,kv32);
     }
@@ -400,7 +404,7 @@ void* gnb_lru32_get_head(gnb_lru32_t *lru){
 
     gnb_lru32_node_t *pop_lru_node;
 
-    if ( 0 == lru->size || NULL==lru->doubly_linked_list->head ){
+    if ( 0 == lru->size || NULL==lru->doubly_linked_list->head ) {
         return NULL;
     }
 
@@ -423,7 +427,7 @@ void* gnb_lru32_get_tail(gnb_lru32_t *lru){
 
     gnb_lru32_node_t *pop_lru_node;
 
-    if ( 0 == lru->size || NULL==lru->doubly_linked_list->tail ){
+    if ( 0 == lru->size || NULL==lru->doubly_linked_list->tail ) {
         return NULL;
     }
 

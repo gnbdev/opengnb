@@ -72,8 +72,8 @@ int gnb_load_keypair(gnb_core_t *gnb_core){
 
     private_file_fd = open(node_private_file_name, O_RDONLY);
 
-    if ( -1 == private_file_fd ){
-        printf("load node private file[%s] error\n",node_private_file_name);
+    if ( -1 == private_file_fd ) {
+        GNB_ERROR1(gnb_core->log, GNB_LOG_ID_CORE, "load node private file[%s] error\n", node_private_file_name);
         exit(0);
     }
 
@@ -81,22 +81,22 @@ int gnb_load_keypair(gnb_core_t *gnb_core){
 
     close(private_file_fd);
 
-    if ( 128 != rlen ){
-        printf("load node private file[%s]  key error\n",node_private_file_name);
+    if ( 128 != rlen ) {
+        GNB_ERROR1(gnb_core->log, GNB_LOG_ID_CORE, "load node private file[%s]  key error\n", node_private_file_name);
         exit(0);
     }
 
-    p = gnb_hex2bin(hex_string, gnb_core->ed25519_private_key,64);
+    p = gnb_hex2bin(hex_string, gnb_core->ed25519_private_key, 64);
 
-    if ( NULL==p ){
-        printf("setup private key error\n");
+    if ( NULL==p ) {
+        GNB_ERROR1(gnb_core->log, GNB_LOG_ID_CORE, "setup private key error\n");
         exit(0);
     }
 
     public_file_fd = open(node_public_file_name, O_RDONLY);
 
-    if ( -1 == public_file_fd ){
-        printf("load node public file [%s] error\n",node_public_file_name);
+    if ( -1 == public_file_fd ) {
+        GNB_ERROR1(gnb_core->log, GNB_LOG_ID_CORE, "load node public file [%s] error\n", node_public_file_name);
         exit(0);
     }
 
@@ -104,15 +104,15 @@ int gnb_load_keypair(gnb_core_t *gnb_core){
 
     close(public_file_fd);
 
-    if ( 64 != rlen ){
-        printf("load node public file[%s] key error\n",node_public_file_name);
+    if ( 64 != rlen ) {
+        GNB_ERROR1(gnb_core->log, GNB_LOG_ID_CORE, "load node public file[%s] key error\n", node_public_file_name);
         exit(0);
     }
 
-    p = gnb_hex2bin(hex_string, gnb_core->ed25519_public_key,32);
+    p = gnb_hex2bin(hex_string, gnb_core->ed25519_public_key, 32);
 
-    if ( NULL==p ){
-        printf("setup public key error\n");
+    if ( NULL==p ) {
+        GNB_ERROR1(gnb_core->log, GNB_LOG_ID_CORE, "setup public key error\n");
         exit(0);
     }
 
@@ -135,7 +135,7 @@ int gnb_load_public_key(gnb_core_t *gnb_core, uint32_t uuid32, unsigned char *pu
 
     public_file_fd = open(node_public_file_name, O_RDONLY);
 
-    if ( -1 == public_file_fd ){
+    if ( -1 == public_file_fd ) {
         return -1;
     }
 
@@ -143,7 +143,7 @@ int gnb_load_public_key(gnb_core_t *gnb_core, uint32_t uuid32, unsigned char *pu
 
     close(public_file_fd);
 
-    if ( 64 != rlen ){
+    if ( 64 != rlen ) {
         return -2;
     }
 
@@ -159,9 +159,9 @@ void gnb_build_crypto_key(gnb_core_t *gnb_core, gnb_node_t *node){
     //passcode 将在这个函数中发挥比较重要的作用
     unsigned char buffer[64+4];
 
-    if ( GNB_CRYPTO_KEY_UPDATE_INTERVAL_NONE != gnb_core->conf->crypto_key_update_interval ){
+    if ( GNB_CRYPTO_KEY_UPDATE_INTERVAL_NONE != gnb_core->conf->crypto_key_update_interval ) {
         memcpy(buffer,gnb_core->time_seed,32);
-    }else {
+    } else {
         memcpy(buffer,node->shared_secret,32);
     }
 
@@ -211,9 +211,7 @@ void gnb_update_time_seed(gnb_core_t *gnb_core, uint64_t now_sec){
 int gnb_verify_seed_time(gnb_core_t *gnb_core, uint64_t now_sec){
 
     time_t t;
-
     struct tm ltm;
-
     int r = 0;
 
     t = (time_t)now_sec;
@@ -221,21 +219,14 @@ int gnb_verify_seed_time(gnb_core_t *gnb_core, uint64_t now_sec){
     gmtime_r(&t, &ltm);
 
     if ( GNB_CRYPTO_KEY_UPDATE_INTERVAL_HOUR == gnb_core->conf->crypto_key_update_interval ) {
-
         r = (ltm.tm_hour + 1) - gnb_core->time_seed_update_factor;
         gnb_core->time_seed_update_factor = ltm.tm_hour+1;
-
-    }else if ( GNB_CRYPTO_KEY_UPDATE_INTERVAL_MINUTE == gnb_core->conf->crypto_key_update_interval ) {
-
+    } else if ( GNB_CRYPTO_KEY_UPDATE_INTERVAL_MINUTE == gnb_core->conf->crypto_key_update_interval ) {
         r = (ltm.tm_min+1) - gnb_core->time_seed_update_factor;
         gnb_core->time_seed_update_factor = (ltm.tm_min+1);
-
-    }else{
-
+    } else {
         r = (ltm.tm_hour+1) - gnb_core->time_seed_update_factor;
-
         gnb_core->time_seed_update_factor = ltm.tm_hour+1;
-
     }
 
     return r;
@@ -245,9 +236,7 @@ int gnb_verify_seed_time(gnb_core_t *gnb_core, uint64_t now_sec){
 void gnb_build_passcode(void *passcode_bin, char *string_in) {
 
     char   passcode_string[9];
-
     size_t passcode_string_len;
-
     char   *passcode_string_offset;
 
     memset(passcode_string, 0, 9);
@@ -255,34 +244,24 @@ void gnb_build_passcode(void *passcode_bin, char *string_in) {
     passcode_string_len = strlen(string_in);
 
     if ( passcode_string_len>2 && '0' == string_in[0] && 'x' == string_in[1] ) {
-
         passcode_string_offset = string_in + 2;
         passcode_string_len -= 2;
-
     } else {
-
         passcode_string_offset = string_in;
-
     }
 
     if ( passcode_string_len > 8 ) {
-
         passcode_string_len = 8;
-
     }
 
     if ( 0 != passcode_string_len ) {
-
         memcpy(passcode_string, passcode_string_offset, passcode_string_len);
-
     }
 
     passcode_bin = gnb_hex2bin(passcode_string, passcode_bin, 4);
 
     if ( NULL != passcode_bin ) {
-
         memcpy(passcode_bin, passcode_string, 4);
-
     }
 
 }

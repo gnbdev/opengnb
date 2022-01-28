@@ -56,9 +56,7 @@
 #include "gnb_node.h"
 #include "gnb_ring_buffer.h"
 #include "gnb_worker_queue_data.h"
-
 #include "gnb_fwdu2_frame_type.h"
-
 #include "gnb_time.h"
 #include "gnb_udp.h"
 
@@ -264,7 +262,7 @@ static void handle_udp(gnb_core_t *gnb_core, uint8_t socket_idx, int af){
 
     gnb_sockaddress_t node_addr_st;
 
-    switch (af){
+    switch (af) {
 
         case AF_INET6:
 
@@ -311,7 +309,7 @@ static void handle_udp(gnb_core_t *gnb_core, uint8_t socket_idx, int af){
     gnb_worker_queue_data_t *receive_queue_data;
 
     //收到 index 类型的paload 就放到 index_worker 或 index_service_worker queue 中
-    if( GNB_PAYLOAD_TYPE_INDEX == gnb_core->inet_payload->type ){
+    if( GNB_PAYLOAD_TYPE_INDEX == gnb_core->inet_payload->type ) {
 
         switch ( gnb_core->inet_payload->sub_type ) {
 
@@ -375,7 +373,6 @@ static void handle_udp(gnb_core_t *gnb_core, uint8_t socket_idx, int af){
         }
 
         gnb_ring_buffer_push_submit(gnb_core->node_worker->ring_buffer);
-
         gnb_core->node_worker->notify(gnb_core->node_worker);
 
         goto finish;
@@ -408,7 +405,7 @@ static int handle_tun(gnb_core_t *gnb_core){
     //tun模式下这里得到的payload是ip分组, tap模式下是以太网分组,现在都是tun模式
     rlen = gnb_core->drv->read_tun(gnb_core, gnb_core->tun_payload->data + gnb_core->tun_payload_offset, GNB_TUN_PAYLOAD_BLOCK_SIZE);
 
-    if ( rlen<=0 ){
+    if ( rlen<=0 ) {
         goto finish;
     }
 
@@ -513,9 +510,7 @@ static void* udp_loop_thread_func( void *data ) {
     gnb_worker->thread_worker_flag     = 1;
     gnb_worker->thread_worker_run_flag = 1;
 
-
     gnb_core->loop_flag = 1;
-
     uint64_t pre_usec = 0l;
 
     while (gnb_core->loop_flag) {
@@ -557,11 +552,9 @@ static void* udp_loop_thread_func( void *data ) {
                     handle_udp(gnb_core, i, AF_INET);
                 }
 
-
             }
 
         }
-
 
     }//while()
 
@@ -592,16 +585,11 @@ static void* udp_loop_thread_func( void *data ) {
 static void* tun_udp_loop_thread_func(void *data){
 
     gnb_worker_t *gnb_worker = (gnb_worker_t *)data;
-
     main_worker_ctx_t *main_worker_ctx = gnb_worker->ctx;
-
     gnb_core_t *gnb_core = main_worker_ctx->gnb_core;
 
-
     int n_ready;
-
     struct timeval timeout;
-
     fd_set readfds;
     fd_set allset;
 
@@ -614,7 +602,7 @@ static void* tun_udp_loop_thread_func(void *data){
 
         if ( -1 == gnb_core->tun_fd ) {
             GNB_LOG3(gnb_core->log, GNB_LOG_ID_MAIN_WORKER, "tun_fd[%d] err\n", gnb_core->tun_fd);
-            return NULL;
+            exit(1);
         }
 
         FD_SET(gnb_core->tun_fd, &allset);
@@ -626,11 +614,11 @@ static void* tun_udp_loop_thread_func(void *data){
 
     if ( gnb_core->conf->udp_socket_type & GNB_ADDR_TYPE_IPV6 ) {
 
-        for( i=0; i < gnb_core->conf->udp6_socket_num; i++ ) {
+        for ( i=0; i < gnb_core->conf->udp6_socket_num; i++ ) {
 
             FD_SET(gnb_core->udp_ipv6_sockets[i], &allset);
 
-            if( gnb_core->udp_ipv6_sockets[i] > maxfd ) {
+            if ( gnb_core->udp_ipv6_sockets[i] > maxfd ) {
                 maxfd = gnb_core->udp_ipv6_sockets[i];
             }
 
@@ -640,7 +628,7 @@ static void* tun_udp_loop_thread_func(void *data){
 
     if ( gnb_core->conf->udp_socket_type & GNB_ADDR_TYPE_IPV4 ) {
 
-        for( i=0; i < gnb_core->conf->udp4_socket_num; i++ ) {
+        for ( i=0; i < gnb_core->conf->udp4_socket_num; i++ ) {
 
             FD_SET(gnb_core->udp_ipv4_sockets[i], &allset);
 
@@ -649,7 +637,6 @@ static void* tun_udp_loop_thread_func(void *data){
             }
 
         }
-
 
     }
 
@@ -662,6 +649,8 @@ static void* tun_udp_loop_thread_func(void *data){
 
     static unsigned long c = 0;
 
+    GNB_LOG1(gnb_core->log, GNB_LOG_ID_MAIN_WORKER, "start %s success!\n", gnb_worker->name);
+
     while(gnb_core->loop_flag){
 
         readfds = allset;
@@ -671,7 +660,7 @@ static void* tun_udp_loop_thread_func(void *data){
 
         n_ready = select( maxfd + 1, &readfds, NULL, NULL, &timeout );
 
-        if (-1 == n_ready) {
+        if ( -1 == n_ready ) {
 
             if ( EINTR == errno ) {
                 //检查一下有没到这里
@@ -734,7 +723,6 @@ static void* tun_udp_loop_thread_func(void *data){
 
     }
 
-
     if ( gnb_core->conf->activate_tun ) {
         FD_CLR(gnb_core->tun_fd, &allset);
     }
@@ -760,7 +748,7 @@ static void init(gnb_worker_t *gnb_worker, void *ctx){
 
     gnb_worker->ctx = main_worker_ctx;
 
-    GNB_LOG1(gnb_core->log,GNB_LOG_ID_MAIN_WORKER,"%s init finish\n", gnb_worker->name);
+    GNB_LOG1(gnb_core->log, GNB_LOG_ID_MAIN_WORKER, "%s init finish\n", gnb_worker->name);
 }
 
 

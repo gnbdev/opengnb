@@ -86,7 +86,6 @@ int gnb_test_field_separator(char *config_string){
 }
 
 
-
 gnb_node_t * gnb_node_init(gnb_core_t *gnb_core, uint32_t uuid32){
 
     gnb_node_t *node = &gnb_core->ctl_block->node_zone->node[gnb_core->node_nums];

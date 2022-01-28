@@ -18,6 +18,9 @@
 #ifndef GNB_INDEX_FRAME_TYPE_H
 #define GNB_INDEX_FRAME_TYPE_H
 
+#include "stdint.h"
+#include "gnb_core_frame_type_defs.h"
+
 //向 index node 提交地址时间间隔，默认为 60 秒
 #define GNB_POST_ADDR_INTERVAL_TIME_SEC  60
 
@@ -35,7 +38,6 @@
 
 #pragma pack(push, 1)
 
-#define INDEX_ED25519_SIGN_SIZE   64
 #define NODE_RANDOM_SEQUENCE_SIZE 32
 #define GNB_KEY_ADDRESS_NUM 3
 
@@ -69,7 +71,7 @@ typedef struct _post_addr_frame_t {
 		 * PUSH ADDR 给到请求节点上，请求节点会用公钥检验这个签名, 这样包括 attachment 在内的数据都可以防止伪造
 		 * */
 		unsigned char node_random_sequence[NODE_RANDOM_SEQUENCE_SIZE];
-		unsigned char node_random_sequence_sign[INDEX_ED25519_SIGN_SIZE];
+		unsigned char node_random_sequence_sign[ED25519_SIGN_SIZE];
 
 		char text[32];
 
@@ -77,7 +79,7 @@ typedef struct _post_addr_frame_t {
 
 	}data;
 
-	unsigned char src_sign[INDEX_ED25519_SIGN_SIZE];
+	unsigned char src_sign[ED25519_SIGN_SIZE];
 
 }__attribute__ ((__packed__)) post_addr_frame_t;
 
@@ -104,7 +106,7 @@ typedef struct _echo_addr_frame_t {
 
 	}data;
 
-	unsigned char src_sign[INDEX_ED25519_SIGN_SIZE];
+	unsigned char src_sign[ED25519_SIGN_SIZE];
 
 }__attribute__ ((__packed__)) echo_addr_frame_t;
 
@@ -135,7 +137,7 @@ typedef struct _request_addr_frame_t {
 
 	}data;
 
-	unsigned char src_sign[INDEX_ED25519_SIGN_SIZE];
+	unsigned char src_sign[ED25519_SIGN_SIZE];
 
 }__attribute__ ((__packed__)) request_addr_frame_t;
 
@@ -176,7 +178,7 @@ typedef struct _push_addr_frame_t {
 		uint16_t port4_c;
 
 		unsigned char node_random_sequence[NODE_RANDOM_SEQUENCE_SIZE];
-		unsigned char node_random_sequence_sign[INDEX_ED25519_SIGN_SIZE];
+		unsigned char node_random_sequence_sign[ED25519_SIGN_SIZE];
 
 		uint64_t src_ts_usec;
 		uint64_t idx_ts_usec;
@@ -187,10 +189,11 @@ typedef struct _push_addr_frame_t {
 
 	}data;
 
-	unsigned char src_sign[INDEX_ED25519_SIGN_SIZE];
+	unsigned char src_sign[ED25519_SIGN_SIZE];
 
 }__attribute__ ((__packed__)) push_addr_frame_t;
 
+#define PUSH_ADDR_FRAME_PAYLOAD_SIZE    (sizeof(gnb_payload16_t) + sizeof(push_addr_frame_t))
 
 typedef struct _detect_addr_frame_t {
 
@@ -213,13 +216,11 @@ typedef struct _detect_addr_frame_t {
 
 	}data;
 
-	unsigned char src_sign[INDEX_ED25519_SIGN_SIZE];
+	unsigned char src_sign[ED25519_SIGN_SIZE];
 
 }__attribute__ ((__packed__)) detect_addr_frame_t;
 
 
 #pragma pack(pop)
 
-
 #endif
-

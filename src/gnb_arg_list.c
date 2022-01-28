@@ -39,7 +39,7 @@ void gnb_arg_list_release(gnb_arg_list_t *arg_list){
     
     if (arg_list->argc > 0) {
         
-        for ( i=0; i<arg_list->argc; i++ ){
+        for ( i=0; i<arg_list->argc; i++ ) {
             free(arg_list->argv[i]);
         }
         
@@ -74,11 +74,11 @@ int gnb_arg_list_to_string(gnb_arg_list_t *arg_list, char *string, size_t string
 
     size_t copied_len = 0;
 
-    for( i=0; i < arg_list->argc; i++){
+    for (i=0; i < arg_list->argc; i++) {
 
         argv_len = strlen( arg_list->argv[i] );
 
-        if ( (copied_len + argv_len) > string_len ){
+        if ( (copied_len + argv_len) > string_len ) {
             break;
         }
 
@@ -93,7 +93,7 @@ int gnb_arg_list_to_string(gnb_arg_list_t *arg_list, char *string, size_t string
 
     }
 
-    if( p == string ){
+    if ( p == string ) {
         return -1;
     }
 
@@ -150,9 +150,7 @@ gnb_arg_list_t *gnb_arg_string_to_list(char *string, int num){
                 
             }
             
-            if ( ARG_STRING == status &&
-                ( SINGLE_QUOTES_SEPARATOR == separator || DOUBLE_QUOTES_SEPARATOR == separator ) )
-            {
+            if ( ARG_STRING == status && ( SINGLE_QUOTES_SEPARATOR == separator || DOUBLE_QUOTES_SEPARATOR == separator ) ) {
    
                 *arg_p = *p;
                 arg_p++;
@@ -195,7 +193,7 @@ gnb_arg_list_t *gnb_arg_string_to_list(char *string, int num){
             arg_p++;
             goto next;
             
-        }else if( SPACE_SEPARATOR != separator ){
+        } else if ( SPACE_SEPARATOR != separator ) {
         
             status = ARG_STRING;
 
@@ -221,4 +219,3 @@ next:
     return arg_list;
     
 }
-

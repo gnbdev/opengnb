@@ -67,8 +67,8 @@ gnb_payload16_t *gnb_payload16_dup(gnb_payload16_t *gnb_payload16_in){
 uint16_t gnb_payload16_set_size(gnb_payload16_t *gnb_payload16, uint16_t new_size){
 
     gnb_payload16->size = htons(new_size);
-
     return new_size;
+
 }
 
 uint16_t gnb_payload16_size(gnb_payload16_t *gnb_payload16){
@@ -113,8 +113,6 @@ void gnb_payload16_ctx_free(gnb_payload16_ctx_t *gnb_payload16_ctx) {
 }
 
 
-
-
 #define GNB_FRAME_STATUS_HEAD 0
 #define GNB_FRAME_STATUS_PART 1
 int gnb_payload16_handle(void *data, size_t data_size, gnb_payload16_ctx_t *gnb_payload16_ctx, gnb_payload16_handle_cb_t cb) {
@@ -132,7 +130,7 @@ int gnb_payload16_handle(void *data, size_t data_size, gnb_payload16_ctx_t *gnb_
 
         frame_size = ntohs(*(uint16_t *)data);
 
-        if (0==frame_size){
+        if ( 0==frame_size ) {
             return -1;
         }
 
@@ -142,7 +140,7 @@ int gnb_payload16_handle(void *data, size_t data_size, gnb_payload16_ctx_t *gnb_
 
         if ( frame_size == data_size) {
             
-            if ( frame_size > gnb_payload16_ctx->max_payload_size ){
+            if ( frame_size > gnb_payload16_ctx->max_payload_size ) {
                 return -3;
             }
 
@@ -169,10 +167,9 @@ int gnb_payload16_handle(void *data, size_t data_size, gnb_payload16_ctx_t *gnb_
 
         case GNB_FRAME_STATUS_PART:
             //对于长的frame，这个case出现的概率比较大，所以放前面
-
             frame_size = ntohs(*(uint16_t *)gnb_payload16_ctx->buffer);
 
-            if ( frame_size > gnb_payload16_ctx->max_payload_size ){
+            if ( frame_size > gnb_payload16_ctx->max_payload_size ) {
                 return -4;
             }
 
@@ -210,7 +207,7 @@ int gnb_payload16_handle(void *data, size_t data_size, gnb_payload16_ctx_t *gnb_
             //这里其实不算太复杂，就是要处理一些极端的情况
             if ( 0 == gnb_payload16_ctx->r_len ) {
                 //ctx的暂存区为空的情况下，未处理的数据大于 2 byte，此时可以获得frame的首部
-                if (remain_data_len >=2){
+                if ( remain_data_len >=2 ) {
 
                     memcpy(gnb_payload16_ctx->buffer, data+receive_bytes_offset, 2);
                     receive_bytes_offset += 2;
@@ -228,7 +225,7 @@ int gnb_payload16_handle(void *data, size_t data_size, gnb_payload16_ctx_t *gnb_
 
             } else if ( gnb_payload16_ctx->r_len > 0 ) {
 
-                if ( remain_data_len >= (2 - gnb_payload16_ctx->r_len) ){
+                if ( remain_data_len >= (2 - gnb_payload16_ctx->r_len) ) {
                     //ctx的暂存区已经有数据的情况下，ctx的暂存区的数据 合并上 未处理的数据能够取到 2byte 的frame首部
                     memcpy(gnb_payload16_ctx->buffer+gnb_payload16_ctx->r_len, data+receive_bytes_offset, 2-gnb_payload16_ctx->r_len);
                     receive_bytes_offset  += (2-gnb_payload16_ctx->r_len);
@@ -246,7 +243,7 @@ int gnb_payload16_handle(void *data, size_t data_size, gnb_payload16_ctx_t *gnb_
 
             }
 
-            if ( 2 == gnb_payload16_ctx->r_len ){
+            if ( 2 == gnb_payload16_ctx->r_len ) {
                 //已经取到2byte 的frame首部
 
                 frame_size = ntohs(*(uint16_t *)gnb_payload16_ctx->buffer);
@@ -261,10 +258,10 @@ int gnb_payload16_handle(void *data, size_t data_size, gnb_payload16_ctx_t *gnb_
                 }
 
                 //根据 frame_size 创建 payload 结构体
-                if ( frame_size > gnb_payload16_ctx->max_payload_size ){
+                if ( frame_size > gnb_payload16_ctx->max_payload_size ) {
                     return -3;
                 }
-                //gnb_payload16_ctx->gnb_payload16 = gnb_payload16_init(0x0,frame_size);
+
                 memcpy( (void *)gnb_payload16_ctx->gnb_payload16, gnb_payload16_ctx->buffer, 2);
                 //此时，由于gnb_payload16_ctx->r_len == 2，因此在循环的时候，状态会切换到 FE_FRAME_STATUS_PART
 

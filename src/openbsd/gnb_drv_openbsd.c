@@ -56,17 +56,17 @@
 
 void bind_socket_if(gnb_core_t *gnb_core){
 
-    if( '\0' == gnb_core->conf->socket_ifname[0] ){
+    if ( '\0' == gnb_core->conf->socket_ifname[0] ) {
         return;
     }
 
     int i;
 
-    for( i=0; i < gnb_core->conf->udp6_socket_num; i++ ){
+    for ( i=0; i < gnb_core->conf->udp6_socket_num; i++ ) {
         setsockopt(gnb_core->udp_ipv6_sockets[i], SOL_SOCKET,IP_RECVIF, gnb_core->conf->socket_ifname, strlen(gnb_core->conf->socket_ifname));
     }
 
-    for( i=0; i < gnb_core->conf->udp4_socket_num; i++ ){
+    for ( i=0; i < gnb_core->conf->udp4_socket_num; i++ ) {
         setsockopt(gnb_core->udp_ipv4_sockets[i], SOL_SOCKET,IP_RECVIF, gnb_core->conf->socket_ifname, strlen(gnb_core->conf->socket_ifname));
     }
 
@@ -83,7 +83,7 @@ static void if_up_script(gnb_core_t *gnb_core){
 
     ret = system(cmd);
 
-    if ( -1==ret || 0 ==ret ){
+    if ( -1==ret || 0 ==ret ) {
         return;
     }
 
@@ -101,7 +101,7 @@ static void if_down_script(gnb_core_t *gnb_core){
 
     ret = system(cmd);
 
-    if ( -1==ret || 0 ==ret ){
+    if ( -1==ret || 0 ==ret ) {
         return;
     }
 
@@ -172,8 +172,8 @@ static void set_route4(gnb_core_t *gnb_core){
     rtmsg.hdr.rtm_msglen = sizeof(rtmsg);
     
     wlen = write(s, &rtmsg, sizeof(rtmsg));
-    
-    if ( -1==wlen ){
+
+    if ( -1==wlen ) {
         perror("#set_route4 write");
         return;
     }
@@ -194,7 +194,7 @@ static void setifmtu(char *if_name,int mtu) {
 
     ifr.ifr_mtu = mtu;
 
-    if((socket_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+    if ((socket_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         perror("socket ");
 
     }
@@ -232,8 +232,7 @@ static int set_addr4(char *if_name, char *ip, char *netmask) {
     
     int socket_fd;
     
-    if((socket_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
-    {
+    if ( (socket_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
         perror("socket ");
         return -1;
     }
@@ -278,7 +277,7 @@ static int set_addr6(char *if_name, char *ip, char *netmask) {
 
     int socket_fd;
 
-    if((socket_fd = socket(AF_INET6, SOCK_DGRAM, 0)) < 0) {
+    if ( (socket_fd = socket(AF_INET6, SOCK_DGRAM, 0)) < 0 ) {
         perror("socket ");
         return -1;
     }
@@ -305,7 +304,7 @@ int init_tun_openbsd(gnb_core_t *gnb_core){
 
 static int open_tun_openbsd(gnb_core_t *gnb_core){
 
-    if ( -1 != gnb_core->tun_fd ){
+    if ( -1 != gnb_core->tun_fd ) {
         return -1;
     }
     
@@ -317,7 +316,7 @@ static int open_tun_openbsd(gnb_core_t *gnb_core){
 
     gnb_core->tun_fd = open(name, O_RDWR);
 
-    if (-1==gnb_core->tun_fd){
+    if (-1==gnb_core->tun_fd) {
         perror("open");
         exit(1);
     }
@@ -347,11 +346,12 @@ static int read_tun_openbsd(gnb_core_t *gnb_core, void *buf, size_t buf_size){
     
     iph = (struct ip *) buf;
     
-    if(iph->ip_v == 6)
+    if (iph->ip_v == 6) {
         type = htonl(AF_INET6);
-    else
+    } else {
         type = htonl(AF_INET);
-    
+    }
+
     iv[0].iov_base = (char *)&type;
     iv[0].iov_len = sizeof (type);
     iv[1].iov_base = buf;
@@ -380,11 +380,12 @@ static int write_tun_openbsd(gnb_core_t *gnb_core, void *buf, size_t buf_size){
     
     iph = (struct ip *) buf;
     
-    if(iph->ip_v == 6)
+    if (iph->ip_v == 6) {
         type = htonl(AF_INET6);
-    else
+    } else {
         type = htonl(AF_INET);
-    
+    }
+
     iv[0].iov_base = (char *)&type;
     iv[0].iov_len  = sizeof (type);
     iv[1].iov_base = buf;

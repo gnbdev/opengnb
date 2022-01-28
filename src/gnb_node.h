@@ -42,11 +42,6 @@ gnb_address_t* gnb_select_index_address(gnb_core_t *gnb_core, uint64_t now_sec);
 
 gnb_address_t* gnb_select_available_address4(gnb_core_t *gnb_core, gnb_node_t *node);
 
-//把最合适的 address_list 里的 address 设给 node
-void gnb_set_node_address4(gnb_node_t *node);
-void gnb_set_node_address6(gnb_node_t *node);
-
-
 int gnb_send_to_node(gnb_core_t *gnb_core, gnb_node_t *node, gnb_payload16_t *payload, unsigned char addr_type_bits);
 
 int gnb_forward_payload_to_node(gnb_core_t *gnb_core, gnb_node_t *node, gnb_payload16_t *payload);

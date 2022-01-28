@@ -18,9 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-
 #include <unistd.h>
-
 #include <string.h>
 #include <getopt.h>
 
@@ -109,6 +107,7 @@ void gnb_setup_es_argv(char *es_argv_string);
 
 gnb_arg_list_t *gnb_es_arg_list;
 int is_self_test = 0;
+int is_verbose   = 0;
 
 gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
@@ -164,7 +163,6 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
     conf->crypto_passcode[3] = 0x9d;
 
     conf->multi_index_type   = GNB_MULTI_ADDRESS_TYPE_SIMPLE_LOAD_BALANCE;
-
     conf->multi_forward_type = GNB_MULTI_ADDRESS_TYPE_SIMPLE_LOAD_BALANCE;
 
     conf->if_dump = 0;
@@ -183,7 +181,6 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
     conf->index_service_log_level = GNB_LOG_LEVEL_UNSET;
     conf->detect_log_level  = GNB_LOG_LEVEL_UNSET;
 
-
     conf->udp_socket_type = GNB_ADDR_TYPE_IPV4 | GNB_ADDR_TYPE_IPV6;
 
     conf->node_woker_queue_length  = 32;
@@ -195,7 +192,6 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
     conf->port_detect_start = DETECT_PORT_START;
     conf->port_detect_end   = DETECT_PORT_END;
-
     conf->port_detect_range = DETECT_PORT_RANGE;
 
     conf->daemon = 0;
@@ -222,7 +218,6 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
     #endif
 
     char *binary_dir;
-
     binary_dir = gnb_get_file_dir(argv[0], conf->binary_dir);
 
     if ( NULL==binary_dir ){
@@ -253,10 +248,9 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
     struct option long_options[] = {
 
       { "conf",     required_argument, 0, 'c' },
-
       { "nodeid",   required_argument, 0, 'n' },
 
-      { "public-index-service",  no_argument,  0, 'P' },
+      { "public-index-service",  no_argument, 0, 'P' },
 
       { "index-address",  required_argument, 0, 'I' },
       { "node-address",   required_argument, 0, 'a' },
@@ -265,9 +259,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
       { "ifname",   required_argument, 0, 'i' },
       { "mtu",      required_argument, 0, SET_MTU },
       { "crypto",   required_argument, 0, SET_CRYPTO_TPYE },
-
       { "passcode", required_argument,  0, 'p' },
-
       { "crypto-key-update-interval", required_argument,  0, SET_CRYPTO_KEY_UPDATE_INTERVAL },
       { "multi-index-type",    required_argument,  0, SET_MULTI_INDEX_TYPE },
       { "multi-forward-type",  required_argument,  0, SET_MULTI_FORWARD_TYPE },
@@ -275,17 +267,16 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
       { "address-secure",      required_argument,  0, SET_ADDR_SECURE },
 
       { "listen",              required_argument,  0, 'l' },
-	  { "ctl-block",           required_argument,  0, 'b' },
+      { "ctl-block",           required_argument,  0, 'b' },
       { "if-dump",             required_argument,  0, SET_IF_DUMP },
 
       { "ipv4-only", no_argument,   0, '4'},
       { "ipv6-only", no_argument,   0, '6'},
 
       { "daemon",    no_argument,   0, 'd' },
-
       { "quiet",     no_argument,   0, 'q' },
-
       { "selftest",  no_argument,   0, 't' },
+      { "verbose",   no_argument,   0, 'V' },
 
       { "es-argv",                   required_argument,  0,   'e' },
 
@@ -340,7 +331,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
     while (1) {
 
-        opt = getopt_long(argc, argv, "c:n:a:r:PI:b:l:i:46dp:e:tqh",long_options, &option_index);
+        opt = getopt_long(argc, argv, "c:n:a:r:PI:b:l:i:46dp:e:tqVh",long_options, &option_index);
 
         if ( -1 == opt ) {
             break;
@@ -399,7 +390,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
             break;
 
         case 'b':
-        	ctl_block_file = optarg;
+            ctl_block_file = optarg;
             break;
 
         case '4':
@@ -424,6 +415,9 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
         case 't':
             is_self_test = 1;
+            break;
+        case 'V':
+            is_verbose = 1;
             break;
 
         case SET_NODE_WORKER_QUEUE:
@@ -712,7 +706,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
                 if ( NULL != optarg ) {
                     snprintf(conf->log_udp_sockaddress4_string, GNB_IP4_PORT_STRING_SIZE, "%s", optarg);
                 } else {
-                    snprintf(conf->log_udp_sockaddress4_string, GNB_IP4_PORT_STRING_SIZE, "%s", "127.0.0.1:9000");
+                    snprintf(conf->log_udp_sockaddress4_string, GNB_IP4_PORT_STRING_SIZE, "%s", "127.0.0.1:8666");
                 }
 
                 break;
@@ -824,7 +818,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
     }
 
     if ( NULL != ctl_block_file ) {
-    	snprintf(conf->map_file,        PATH_MAX+NAME_MAX, "%s",       ctl_block_file);
+        snprintf(conf->map_file,        PATH_MAX+NAME_MAX, "%s",       ctl_block_file);
     }
 
     #ifdef __UNIX_LIKE_OS__
@@ -895,7 +889,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
 static void show_useage(int argc,char *argv[]){
 
-	show_description();
+    show_description();
 
     printf("Usage: %s [-i IFNAME] -c CONFIG_PATH [OPTION]\n", argv[0]);
     printf("Command Summary:\n");
@@ -904,7 +898,7 @@ static void show_useage(int argc,char *argv[]){
     printf("  -n, --nodeid                     nodeid\n");
     printf("  -P, --public-index-service       run as public index service\n");
 
-	printf("  -I, --index-address              index address\n");
+    printf("  -I, --index-address              index address\n");
     printf("  -a, --node-address               node ip address\n");
     printf("  -r, --node-route                 node route\n");
     printf("  -i, --ifname                     TUN Device Name\n");
@@ -918,6 +912,7 @@ static void show_useage(int argc,char *argv[]){
     printf("  -l, --listen                     listen address default is '0.0.0.0:9001'\n");
     printf("  -b, --ctl-block                  ctl block mapper file\n");
     printf("  -e, --es-argv                    pass-through gnb_es argv\n");
+    printf("  -V, --verbose                    verbose mode\n");
 
     printf("      --node-woker-queue           node  woker queue length\n");
     printf("      --index-woker-queue          index woker queue length\n");
@@ -950,7 +945,7 @@ static void show_useage(int argc,char *argv[]){
     printf("      --pid-file                   pid file\n");
     printf("      --node-cache-file            node address cache file\n");
     printf("      --log-file-path              log file path\n");
-    printf("      --log-udp4                   send log to the address ipv4 default is '127.0.0.1:9000'\n");
+    printf("      --log-udp4                   send log to the address ipv4 default is '127.0.0.1:8666'\n");
     printf("      --log-udp-type               log udp type 'binary' or 'text' default is 'binary'\n");
     printf("      --console-log-level          log console level 0-3\n");
     printf("      --file-log-level             log file level    0-3\n" );

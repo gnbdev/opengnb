@@ -70,34 +70,38 @@ gnb_mmap_block_t* gnb_mmap_create(const char *filename, size_t block_size, int m
 
     int prot;
 
-    if ( mmap_type & GNB_MMAP_TYPE_READWRITE){
+    if ( (mmap_type & GNB_MMAP_TYPE_CREATE) && (mmap_type & GNB_MMAP_TYPE_READWRITE) ) {
         oflag = O_RDWR|O_CREAT;
-    }else{
+    } else if (mmap_type & GNB_MMAP_TYPE_READWRITE) {
+        oflag = O_RDWR;
+    } else {
         oflag = O_RDONLY;
     }
 
     fd = open (filename, oflag, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
 
-    if ( -1 == fd ){
+    if ( -1 == fd ) {
         return NULL;
     }
 
-    if ( mmap_type & GNB_MMAP_TYPE_CREATE){
+    if ( mmap_type & GNB_MMAP_TYPE_CREATE) {
+
         if ( -1 == ftruncate(fd,block_size) ) {
             close(fd);
             return NULL;
         }
+
     }
 
-    if ( mmap_type & GNB_MMAP_TYPE_READWRITE){
+    if ( mmap_type & GNB_MMAP_TYPE_READWRITE) {
         prot = PROT_READ|PROT_WRITE;
-    }else{
+    } else {
         prot = PROT_READ;
     }
 
     block = mmap(NULL, block_size, prot, MAP_SHARED, fd, 0);
 
-    if( NULL==block ){
+    if ( NULL==block ) {
         close(fd);
         return NULL;
     }
@@ -111,8 +115,8 @@ gnb_mmap_block_t* gnb_mmap_create(const char *filename, size_t block_size, int m
     mmap_block->block_size = block_size;
     mmap_block->mmap_type = mmap_type;
 
-    if ( mmap_type & GNB_MMAP_TYPE_CREATE ){
-        memset(mmap_block->block,0,block_size);
+    if ( mmap_type & GNB_MMAP_TYPE_CREATE ) {
+        memset(mmap_block->block, 0, block_size);
     }
 
     return mmap_block;
@@ -126,7 +130,7 @@ void gnb_mmap_release(gnb_mmap_block_t *mmap_block){
 
     close(mmap_block->fd);
 
-    if ( mmap_block->mmap_type & (GNB_MMAP_TYPE_READWRITE|GNB_MMAP_TYPE_CLEANEXIT) ){
+    if ( mmap_block->mmap_type & (GNB_MMAP_TYPE_CREATE|GNB_MMAP_TYPE_CLEANEXIT) ) {
         unlink(mmap_block->filename);
     }
 
@@ -149,7 +153,7 @@ gnb_mmap_block_t* gnb_mmap_create(const char *filename, size_t block_size, int m
 
     mapping_name = gnb_bin2hex_string((void *)filename, strlen(filename), mapping_buffer);
 
-    if ( NULL==mapping_name ){
+    if ( NULL==mapping_name ) {
         return NULL;
     }
 
@@ -162,19 +166,27 @@ gnb_mmap_block_t* gnb_mmap_create(const char *filename, size_t block_size, int m
 
     int prot;
 
-    if ( mmap_type & GNB_MMAP_TYPE_READWRITE){
+
+    if ( (mmap_type & GNB_MMAP_TYPE_CREATE) && (mmap_type & GNB_MMAP_TYPE_READWRITE) ) {
         oflag1 = GENERIC_READ | GENERIC_WRITE;
         oflag2 = FILE_SHARE_READ | FILE_SHARE_WRITE;
         oflag3 = OPEN_ALWAYS;
         oflag4 = PAGE_READWRITE;
         prot   = FILE_MAP_WRITE  | FILE_MAP_READ;
-    }else{
+    } else if ( mmap_type & GNB_MMAP_TYPE_READWRITE ) {
+        oflag1 = GENERIC_READ | GENERIC_WRITE;
+        oflag2 = FILE_SHARE_READ | FILE_SHARE_WRITE;
+        oflag3 = OPEN_EXISTING;
+        oflag4 = PAGE_READWRITE;
+        prot   = FILE_MAP_WRITE  | FILE_MAP_READ;
+    } else {
         oflag1 = GENERIC_READ    | GENERIC_WRITE;
         oflag2 = FILE_SHARE_READ | FILE_SHARE_WRITE;
         oflag3 = OPEN_EXISTING;
         oflag4 = PAGE_READWRITE;
         prot   = FILE_MAP_READ;
     }
+
 
     HANDLE file_descriptor = CreateFile(filename,
         oflag1,
@@ -185,7 +197,7 @@ gnb_mmap_block_t* gnb_mmap_create(const char *filename, size_t block_size, int m
         NULL);
 
 
-    if ( INVALID_HANDLE_VALUE == file_descriptor ){
+    if ( INVALID_HANDLE_VALUE == file_descriptor ) {
         return NULL;
     }
 
@@ -197,13 +209,13 @@ gnb_mmap_block_t* gnb_mmap_create(const char *filename, size_t block_size, int m
         block_size,
         mapping_name);
 
-    if ( NULL == map_handle ){
+    if ( NULL == map_handle ) {
         return NULL;
     }
 
     block = MapViewOfFile(map_handle,prot,0,0,block_size);
 
-    if( NULL==block ){
+    if ( NULL==block ) {
         CloseHandle(map_handle);
         CloseHandle(file_descriptor);
         return NULL;
@@ -219,7 +231,7 @@ gnb_mmap_block_t* gnb_mmap_create(const char *filename, size_t block_size, int m
     mmap_block->block_size = block_size;
     mmap_block->mmap_type = mmap_type;
 
-    if ( mmap_type & GNB_MMAP_TYPE_CREATE ){
+    if ( mmap_type & GNB_MMAP_TYPE_CREATE ) {
         memset(mmap_block->block,0,block_size);
     }
 
@@ -239,9 +251,7 @@ void gnb_mmap_release(gnb_mmap_block_t *mmap_block){
 
 }
 
-
 #endif
-
 
 
 void* gnb_mmap_get_block(gnb_mmap_block_t *mmap_block){
@@ -255,5 +265,3 @@ size_t gnb_mmap_get_size(gnb_mmap_block_t *mmap_block){
     return mmap_block->block_size;
 
 }
-
-

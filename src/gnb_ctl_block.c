@@ -40,7 +40,6 @@
 ssize_t gnb_ctl_file_size(const char *filename) {
 
     struct stat s;
-
     int ret;
 
     ret = stat(filename,&s);
@@ -73,7 +72,7 @@ gnb_ctl_block_t *gnb_ctl_block_build(void *memory, size_t node_num){
     block->size = sizeof(gnb_ctl_magic_number_t);
     ctl_block->magic_number = (gnb_ctl_magic_number_t *)block->data;
     off_set += sizeof(gnb_block32_t) + sizeof(gnb_ctl_magic_number_t);
-    snprintf((char *)ctl_block->magic_number->data, 16, "%s", "GNB Ver1.1");
+    snprintf((char *)ctl_block->magic_number->data, 16, "%s", "GNB Ver1.2.8");
 
     ctl_block->entry_table256[GNB_CTL_CONF] = off_set;
     block = memory + ctl_block->entry_table256[GNB_CTL_CONF];
@@ -172,13 +171,13 @@ gnb_ctl_block_t *gnb_get_ctl_block(const char *ctl_block_file, int flag){
 
     ctl_file_size = gnb_ctl_file_size(ctl_block_file);
 
-    if ( ctl_file_size < (ssize_t)MIN_CTL_BLOCK_FILE_SIZE ){
+    if ( ctl_file_size < (ssize_t)MIN_CTL_BLOCK_FILE_SIZE ) {
         return NULL;
     }
 
     mmap_block = gnb_mmap_create(ctl_block_file, ctl_file_size, GNB_MMAP_TYPE_READWRITE);
 
-    if ( NULL == mmap_block ){
+    if ( NULL == mmap_block ) {
         return NULL;
     }
 
@@ -186,7 +185,7 @@ gnb_ctl_block_t *gnb_get_ctl_block(const char *ctl_block_file, int flag){
 
     mem_magic_number = (char *)memory;
 
-    if ( 'G' != mem_magic_number[0] || 'N' != mem_magic_number[1] || 'B' != mem_magic_number[2] ){
+    if ( 'G' != mem_magic_number[0] || 'N' != mem_magic_number[1] || 'B' != mem_magic_number[2] ) {
         return NULL;
     }
 
@@ -198,15 +197,15 @@ gnb_ctl_block_t *gnb_get_ctl_block(const char *ctl_block_file, int flag){
 
     ctl_block->mmap_block = mmap_block;
 
-    if ( now_sec < ctl_block->status_zone->keep_alive_ts_sec ){
+    if ( now_sec < ctl_block->status_zone->keep_alive_ts_sec ) {
         goto finish_error;
     }
 
-    if ( now_sec == ctl_block->status_zone->keep_alive_ts_sec ){
+    if ( now_sec == ctl_block->status_zone->keep_alive_ts_sec ) {
         return ctl_block;
     }
 
-    if ( (now_sec - ctl_block->status_zone->keep_alive_ts_sec) < GNB_CTL_KEEP_ALIVE_TS ){
+    if ( (now_sec - ctl_block->status_zone->keep_alive_ts_sec) < GNB_CTL_KEEP_ALIVE_TS ) {
         return ctl_block;
     }
 

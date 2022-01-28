@@ -65,7 +65,7 @@ pid_t gnb_exec(char *app_filename, char *current_path, gnb_arg_list_t *arg_list,
     ret = chdir(current_path);
 
     if( 0 != ret ){
-    	goto finish;
+        goto finish;
     }
 
     fd = open("/dev/null", O_RDWR);
@@ -79,7 +79,7 @@ pid_t gnb_exec(char *app_filename, char *current_path, gnb_arg_list_t *arg_list,
     ret = execve(app_filename, argv, NULL);
 
     if( -1==ret ){
-    	goto finish;
+        goto finish;
     }
 
 finish:

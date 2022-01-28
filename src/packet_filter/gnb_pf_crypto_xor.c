@@ -53,7 +53,7 @@ static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 
     ctx->save_time_seed_update_factor = gnb_core->time_seed_update_factor;
 
-    if (NULL==pf_ctx->dst_node){
+    if (NULL==pf_ctx->dst_node) {
         return GNB_PF_ERROR;
     }
 
@@ -62,14 +62,15 @@ static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 
     unsigned char *p = (unsigned char *)pf_ctx->ip_frame;
 
-    for ( i=0; i<pf_ctx->ip_frame_size; i++ ){
+    for ( i=0; i<pf_ctx->ip_frame_size; i++ ) {
 
         *p = *p ^ pf_ctx->dst_node->crypto_key[j];
 
         p++;
 
         j++;
-        if (j>=64){
+
+        if ( j >= 64 ) {
             j = 0;
         }
 
@@ -105,14 +106,13 @@ static int pf_tun_fwd_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
         //for ( i=0; i < gnb_core->route_frame_head_size; i++ ){
         for ( i=0; i < (gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(uint32_t)); i++ ){
 
-
             *p = *p ^ pf_ctx->fwd_node->crypto_key[j];
 
             p++;
 
             j++;
 
-            if (j>=64){
+            if ( j >= 64 ) {
                 j = 0;
             }
 
@@ -141,7 +141,7 @@ static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
     uint32_t *src_fwd_nodeid_ptr;
     uint16_t payload_size;
 
-    if ( !(pf_ctx->fwd_payload->sub_type & GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY) ){
+    if ( !(pf_ctx->fwd_payload->sub_type & GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY) ) {
         return pf_ctx->pf_status;
     }
 
@@ -153,7 +153,7 @@ static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 
     pf_ctx->src_fwd_node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, pf_ctx->src_fwd_uuid32);
 
-    if ( NULL==pf_ctx->src_fwd_node ){
+    if ( NULL==pf_ctx->src_fwd_node ) {
         pf_ctx->pf_status = GNB_PF_NOROUTE;
         goto finish;
     }
@@ -167,14 +167,14 @@ static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
     p = (unsigned char *)pf_ctx->fwd_payload->data;
 
     //for ( i=0; i<gnb_core->route_frame_head_size; i++ ){
-    for ( i=0; i < (gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(uint32_t)); i++ ){
+    for ( i=0; i < (gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(uint32_t)); i++ ) {
         *p = *p ^ pf_ctx->src_fwd_node->crypto_key[j];
 
         p++;
 
         j++;
 
-        if (j>=64){
+        if ( j >= 64 ) {
             j = 0;
         }
 
@@ -205,17 +205,18 @@ static int pf_inet_route_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
     if (GNB_PF_FWD_TUN==pf_ctx->pf_fwd){
 
         src_node = pf_ctx->src_node;
-        if ( NULL == src_node ){
+
+        if ( NULL == src_node ) {
             return GNB_PF_ERROR;
         }
 
-        for ( i=0; i<pf_ctx->ip_frame_size; i++ ){
+        for ( i=0; i<pf_ctx->ip_frame_size; i++ ) {
 
             *p = *p ^ src_node->crypto_key[j];
 
             p++;
             j++;
-            if (j>=64){
+            if ( j >= 64 ) {
                 j = 0;
             }
 
@@ -254,14 +255,15 @@ static int pf_inet_fwd_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
         p = (unsigned char *)pf_ctx->fwd_payload->data;
 
         //for ( i=0; i < gnb_core->route_frame_head_size; i++ ){
-        for ( i=0; i < (gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(uint32_t)); i++ ){
+        for ( i=0; i < (gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(uint32_t)); i++ ) {
+
             *p = *p ^ pf_ctx->fwd_node->crypto_key[j];
 
             p++;
 
             j++;
 
-            if (j>=64){
+            if ( j >= 64 ) {
                 j = 0;
             }
 

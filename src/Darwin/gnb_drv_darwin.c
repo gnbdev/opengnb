@@ -164,8 +164,8 @@ static void set_route4(gnb_core_t *gnb_core){
     rtmsg.hdr.rtm_msglen = sizeof(rtmsg);
     
     wlen = write(s, &rtmsg, sizeof(rtmsg));
-    
-    if ( -1==wlen ){
+
+    if ( -1==wlen ) {
         perror("#set_route4 write");
         return;
     }
@@ -178,7 +178,7 @@ static int set_addr6(char *if_name, char *ip, char *netmask) {
 
     //不要设置 in6_addreq.ifra_dstaddr 成员,  ioctl 会提示参数不正确
     struct in6_aliasreq in6_addreq = {
-    	{ 0 },
+        { 0 },
         { 0 },
         { 0 },
         { 0 },
@@ -326,7 +326,7 @@ static int set_addr4(char *if_name, char *ip, char *netmask) {
     
     int socket_fd;
     
-    if((socket_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+    if ( (socket_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
         perror("socket ");
         return -1;
     }
@@ -378,7 +378,7 @@ static int read_tun_darwin(gnb_core_t *gnb_core, void *buf, size_t buf_size){
     iph = (struct ip *) buf;
     
     if ( 6 == iph->ip_v ) {
-    	type = htonl(AF_INET6);
+        type = htonl(AF_INET6);
     } else {
         type = htonl(AF_INET);
     }
@@ -412,7 +412,7 @@ static int write_tun_darwin(gnb_core_t *gnb_core, void *buf, size_t buf_size){
     iph = (struct ip *) buf;
 
     if ( 6 == iph->ip_v ) {
-    	type = htonl(AF_INET6);
+        type = htonl(AF_INET6);
     } else {
         type = htonl(AF_INET);
     }

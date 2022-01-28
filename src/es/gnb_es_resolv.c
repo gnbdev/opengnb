@@ -50,17 +50,17 @@ static char * check_domain_name(char *host_string){
 
     int i;
 
-    for( i=0; i<NAME_MAX; i++ ){
+    for ( i=0; i<NAME_MAX; i++ ) {
 
-        if( '\0' == host_string[i] ){
+        if ( '\0' == host_string[i] ) {
             return NULL;
         }
 
-        if ( '.' == host_string[i] ){
+        if ( '.' == host_string[i] ) {
             continue;
         }
 
-        if ( host_string[i] >= 'a' && host_string[i] <= 'z' ){
+        if ( host_string[i] >= 'a' && host_string[i] <= 'z' ) {
             return host_string;
         }
 
@@ -88,7 +88,7 @@ static void gnb_do_resolv_node_address(gnb_node_t *node, char *host_string, uint
 
     ret = getaddrinfo(host_string, NULL, &hints, &result);
 
-    if ( -1 == ret ){
+    if ( -1 == ret ) {
         return;
     }
 
@@ -130,7 +130,6 @@ static void gnb_do_resolv_node_address(gnb_node_t *node, char *host_string, uint
 
         }
 
-
     }
 
     freeaddrinfo(result);
@@ -139,18 +138,17 @@ static void gnb_do_resolv_node_address(gnb_node_t *node, char *host_string, uint
 
     int j;
 
-    for( j=0; j<resolv_address_list->size; j++ ){
+    for( j=0; j<resolv_address_list->size; j++ ) {
 
         gnb_address = &resolv_address_list->array[j];
 
-        if (0==gnb_address->port){
+        if (0==gnb_address->port) {
             continue;
         }
 
         GNB_LOG1(log, GNB_LOG_ID_ES_RESOLV, "resolv [%s]>[%s]\n", host_string, GNB_IP_PORT_STR1(gnb_address));
 
     }
-
 
 }
 
@@ -195,7 +193,7 @@ void gnb_resolv_address(gnb_es_ctx *es_ctx){
             break;
         }
 
-        if ('#' == line_buffer[0]){
+        if ('#' == line_buffer[0]) {
             continue;
         }
 
@@ -206,17 +204,17 @@ void gnb_resolv_address(gnb_es_ctx *es_ctx){
             continue;
         }
 
-        if ( 0 == port ){
+        if ( 0 == port ) {
             continue;
         }
 
-        if ( NULL == check_domain_name(host_string) ){
+        if ( NULL == check_domain_name(host_string) ) {
             continue;
         }
 
         node = (gnb_node_t *)GNB_HASH32_UINT32_GET_PTR(es_ctx->uuid_node_map, uuid32);
 
-        if ( NULL == node ){
+        if ( NULL == node ) {
             continue;
         }
 
@@ -237,7 +235,7 @@ void gnb_load_wan_ipv6_address(gnb_es_ctx *es_ctx){
 
     gnb_log_ctx_t *log = es_ctx->log;
 
-    if ( NULL == es_ctx->wan_address6_file ){
+    if ( NULL == es_ctx->wan_address6_file ) {
         return;
     }
 
@@ -245,7 +243,7 @@ void gnb_load_wan_ipv6_address(gnb_es_ctx *es_ctx){
 
     file = fopen(es_ctx->wan_address6_file,"r");
 
-    if ( NULL == file ){
+    if ( NULL == file ) {
         return;
     }
 
@@ -264,7 +262,7 @@ void gnb_load_wan_ipv6_address(gnb_es_ctx *es_ctx){
     if (s <= 0) {
         memset(&es_ctx->ctl_block->core_zone->wan_addr6,0,16);
         es_ctx->ctl_block->core_zone->wan_port6 = 0;
-    }else{
+    } else {
         es_ctx->ctl_block->core_zone->wan_port6 = htons(conf->udp6_ports[0]);
         GNB_LOG1(log, GNB_LOG_ID_ES_RESOLV, "load wan address6[%s:%d]\n", host_string, conf->udp6_ports[0]);
     }

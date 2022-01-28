@@ -28,10 +28,11 @@
 
 #include "gnb_alloc.h"
 #include "gnb_conf_type.h"
-#include "gnb_log.h"
-
 #include "gnb_ctl_block.h"
 #include "gnb_hash32.h"
+#include "gnb_worker_type.h"
+#include "gnb_log.h"
+
 
 typedef struct _gnb_es_ctx{
 
@@ -45,11 +46,13 @@ typedef struct _gnb_es_ctx{
 	int udp_socket4;
 	int udp_socket6;
 
+	int udp_discover_recv_socket4;
+
 	gnb_ctl_block_t  *ctl_block;
 
-	gnb_conf_t *conf;
-
 	gnb_hash32_map_t *uuid_node_map;
+
+	gnb_worker_t *discover_in_lan_worker;
 
 	char *pid_file;
 
@@ -59,7 +62,8 @@ typedef struct _gnb_es_ctx{
 	int upnp_opt;
 	int resolv_opt;
 
-	int broadcast_addres_opt;
+	int broadcast_address_opt;
+	int discover_in_lan_opt;
 	int dump_address_opt;
 
 	int if_up_opt;
@@ -71,9 +75,14 @@ typedef struct _gnb_es_ctx{
 
 }gnb_es_ctx;
 
-#define GNB_LOG_ID_ES_CORE          0
-#define GNB_LOG_ID_ES_UPNP          1
-#define GNB_LOG_ID_ES_RESOLV        2
-#define GNB_LOG_ID_ES_BROADCAST     3
+
+#define GNB_LOG_ID_ES_CORE                0
+#define GNB_LOG_ID_ES_UPNP                1
+#define GNB_LOG_ID_ES_RESOLV              2
+#define GNB_LOG_ID_ES_BROADCAST           3
+#define GNB_LOG_ID_ES_DISCOVER_IN_LAN     4
+
+
+#define DISCOVER_LAN_IN_BROADCAST_PORT    8998
 
 #endif

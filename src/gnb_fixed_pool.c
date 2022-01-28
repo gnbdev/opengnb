@@ -42,9 +42,7 @@ gnb_fixed_pool_t* gnb_fixed_pool_create(gnb_heap_t *heap, uint32_t array_len, ui
     fixed_pool = (gnb_fixed_pool_t *)gnb_heap_alloc(heap, sizeof(gnb_fixed_pool_t) + sizeof(void *) * array_len );
     
     fixed_pool->num = array_len;
-    
     fixed_pool->bsize = bsize;
-
     fixed_pool->block = gnb_heap_alloc(heap,bsize * array_len);
 
     memset(fixed_pool->block, 0, bsize * array_len);
@@ -69,16 +67,14 @@ gnb_fixed_pool_t* gnb_fixed_pool_create(gnb_heap_t *heap, uint32_t array_len, ui
 
 void* gnb_fixed_pool_pop(gnb_fixed_pool_t *fixed_pool){
     
-    if ( 0 == fixed_pool->num ){
+    if ( 0 == fixed_pool->num ) {
         return NULL;
     }
 
     void *block;
 
     block = fixed_pool->array[fixed_pool->num-1];
-    
     fixed_pool->array[fixed_pool->num-1] = NULL;
-    
     fixed_pool->num--;
 
     return block;
@@ -92,14 +88,13 @@ uint32_t gnb_fixed_pool_push(gnb_fixed_pool_t *fixed_pool, void *block){
         return 0;
     }
 
-    if ( NULL != fixed_pool->array[fixed_pool->num] ){
+    if ( NULL != fixed_pool->array[fixed_pool->num] ) {
         return -1;
     }
     
     fixed_pool->array[fixed_pool->num] = block;
-
     fixed_pool->num++;
-    
+
     return fixed_pool->num;
 
 }
