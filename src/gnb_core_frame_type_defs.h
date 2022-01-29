@@ -38,16 +38,14 @@
 #define PAYLOAD_SUB_TYPE_PONG2              (0x3)
 #define PAYLOAD_SUB_TYPE_LAN_PING           (0x4)
 
-
 #define GNB_PAYLOAD_TYPE_LAN_DISCOVER       (0x43)
 
-
 #define GNB_PAYLOAD_TYPE_UDPLOG             (0x44)
+#define GNB_ES_PAYLOAD_TYPE_UDPLOG          (0x45)
 
-#define GNB_PAYLOAD_TYPE_FWDU2              0x46 //'F'
+#define GNB_PAYLOAD_TYPE_FWDU2              (0x46) //'F'
 #define GNB_PAYLOAD_SUB_TYPE_FWDU2_IPV6     '6'
 #define GNB_PAYLOAD_SUB_TYPE_FWDU2_IPV4     '4'
-
 
 #define ED25519_SIGN_SIZE   64
 

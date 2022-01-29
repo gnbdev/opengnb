@@ -33,9 +33,8 @@
 #include "gnb_log.h"
 #include "gnb_conf_type.h"
 #include "gnb_ctl_block.h"
+#include "gnb_core_frame_type_defs.h"
 #include "es/gnb_es_type.h"
-
-#define GNB_ES_PAYLOAD_TYPE_UDPLOG       0x45
 
 gnb_es_ctx* gnb_es_ctx_create(int is_service, char *ctl_block_file,gnb_log_ctx_t *log);
 void gnb_es_ctx_init(gnb_es_ctx *es_ctx);
