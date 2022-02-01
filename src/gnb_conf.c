@@ -38,7 +38,7 @@ char * check_domain_name(char *host_string){
 
     for( i=0; i<NAME_MAX; i++ ) {
 
-        if( '\0' == host_string[i] ) {
+        if ( '\0' == host_string[i] ) {
             return NULL;
         }
 
@@ -178,16 +178,18 @@ return value:
 */
 int check_listen_string(char *listen_string){
 
-    if ( '[' == listen_string[0] ){
+    if ( '[' == listen_string[0] ) {
         return 6;
     }
 
     int i;
 
     for ( i=0; i<strlen(listen_string); i++ ) {
+
         if ( ':' == listen_string[i] ) {
             return 4;
         }
+
     }
 
     return 0;
@@ -212,7 +214,6 @@ void gnb_setup_listen_addr_port(char *listen_address_string, uint16_t *port_ptr,
     if ( AF_INET6 == addr_type ) {
 
         if ( '[' != sockaddress_string[0] ) {
-
             return;
         }
 

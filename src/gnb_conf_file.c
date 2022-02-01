@@ -219,7 +219,7 @@ static void load_node_cache(gnb_core_t *gnb_core){
 
     file = fopen(gnb_core->conf->node_cache_file,"r");
 
-    if (NULL==file){
+    if (NULL==file) {
         return;
     }
 
@@ -288,15 +288,10 @@ static void load_node_cache(gnb_core_t *gnb_core){
         push_address_list = (gnb_address_list_t *)&node->push_address_block;
 
         if ( AF_INET6 == address_st.type) {
-
             gnb_address_list_update(push_address_list, &address_st);
-
         } else if ( AF_INET == address_st.type ) {
-
             gnb_address_list_update(push_address_list, &address_st);
-
         }
-
 
     }while(1);
 
@@ -356,7 +351,6 @@ static void local_node_file_config(gnb_core_t *gnb_core){
             continue;
         }
 
-
         if ( !strncmp(line_buffer, "ifname", sizeof("ifname")-1) ) {
 
             num = sscanf(line_buffer,"%32[^ ] %2s", field, value);
@@ -371,7 +365,6 @@ static void local_node_file_config(gnb_core_t *gnb_core){
             gnb_core->conf->ifname[15] = '\0';
 
         }
-
 
         if ( !strncmp(line_buffer, "nodeid", sizeof("nodeid")-1) ) {
 
@@ -564,7 +557,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
         }
 
 
-        if (!strncmp(line_buffer, "passcode", sizeof("passcode")-1) ) {
+        if ( !strncmp(line_buffer, "passcode", sizeof("passcode")-1) ) {
 
             num = sscanf(line_buffer,"%32[^ ] %10s", field, value);
 
@@ -578,7 +571,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
         }
 
 
-        if (!strncmp(line_buffer, "quiet", sizeof("quiet")-1) ) {
+        if ( !strncmp(line_buffer, "quiet", sizeof("quiet")-1) ) {
 
             num = sscanf(line_buffer,"%32[^ ] %2s", field, value);
 
@@ -841,7 +834,6 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         }
 
-
         if ( !strncmp(line_buffer, "udp-log-level", sizeof("udp-log-level")-1) ) {
 
             num = sscanf(line_buffer,"%32[^ ] %u", field, &log_level);
@@ -854,7 +846,6 @@ static void local_node_file_config(gnb_core_t *gnb_core){
             gnb_core->conf->udp_log_level = log_level;
 
         }
-
 
         if ( !strncmp(line_buffer, "core-log-level", sizeof("core-log-level")-1) ) {
 
@@ -882,7 +873,6 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         }
 
-
         if ( !strncmp(line_buffer, "main-log-level", sizeof("main-log-level")-1) ) {
 
             num = sscanf(line_buffer,"%32[^ ] %u", field, &log_level);
@@ -895,7 +885,6 @@ static void local_node_file_config(gnb_core_t *gnb_core){
             gnb_core->conf->main_log_level = log_level;
 
         }
-
 
         if ( !strncmp(line_buffer, "node-log-level", sizeof("node-log-level")-1) ) {
 
@@ -910,7 +899,6 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         }
 
-
         if ( !strncmp(line_buffer, "index-log-level", sizeof("index-log-level")-1) ) {
 
             num = sscanf(line_buffer,"%32[^ ] %u", field, &log_level);
@@ -924,7 +912,6 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         }
 
-
         if ( !strncmp(line_buffer, "index-service-log-level", sizeof("index-service-log-level")-1) ) {
 
             num = sscanf(line_buffer,"%32[^ ] %u", field, &log_level);
@@ -937,7 +924,6 @@ static void local_node_file_config(gnb_core_t *gnb_core){
             gnb_core->conf->index_service_log_level = log_level;
 
         }
-
 
         if ( !strncmp(line_buffer, "node-detect-log-level", sizeof("node-detect-log-level")-1) ) {
 
@@ -964,7 +950,6 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         }
 
-
         if (!strncmp(line_buffer, "pf-route-mode", sizeof("pf-route-mode")-1) ) {
 
             num = sscanf(line_buffer,"%32[^ ] %d", field, &value_int);
@@ -978,7 +963,6 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         }
 
-
         if ( !strncmp(line_buffer, "pf-route", sizeof("pf-route")-1) ) {
 
             num = sscanf(line_buffer,"%32[^ ] %s", field, gnb_core->conf->pf_route);
@@ -989,7 +973,6 @@ static void local_node_file_config(gnb_core_t *gnb_core){
             }
 
         }
-
 
     }while(1);
 
@@ -1137,7 +1120,6 @@ static void load_route_config(gnb_core_t *gnb_core){
         } else {
             num = 0;
         }
-
 
         if ( 3 != num ) {
             continue;
@@ -1395,7 +1377,6 @@ void gnb_config_file(gnb_core_t *gnb_core){
         snprintf(gnb_core->local_node->tun_ipv4_netmask,INET_ADDRSTRLEN,"%s", "255.255.255.0");
     }
 #endif
-
 
     load_route_node_config(gnb_core);
 

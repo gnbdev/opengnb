@@ -434,7 +434,7 @@ gnb_address_t* gnb_select_available_address4(gnb_core_t *gnb_core, gnb_node_t *n
 
     address_list = (gnb_address_list_t *)&node->dynamic_address_block;
 
-    for( i=0; i<address_list->num; i++ ) {
+    for ( i=0; i<address_list->num; i++ ) {
 
         if (AF_INET != address_list->array[i].type) {
             continue;
@@ -486,11 +486,9 @@ gnb_address_t* gnb_select_available_address4(gnb_core_t *gnb_core, gnb_node_t *n
 
     }
 
-
     if ( NULL != address ) {
         goto finish;
     }
-
 
     address_list = (gnb_address_list_t *)&node->static_address_block;
 
@@ -576,7 +574,7 @@ int gnb_forward_payload_to_node(gnb_core_t *gnb_core, gnb_node_t *node, gnb_payl
 
         if ( node->addr4_ping_latency_usec >= node->addr6_ping_latency_usec ) {
             goto send_by_ipv6;
-        }else{
+        } else {
             goto send_by_ipv4;
         }
 

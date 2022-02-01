@@ -231,7 +231,7 @@ static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
         pf_ctx->fwd_payload->sub_type |= GNB_PAYLOAD_SUB_TYPE_IPFRAME_STD;
         ret = GNB_PF_NEXT;
         goto handle_relay;
-    }else{
+    } else {
         ret = GNB_PF_DROP;
         goto handle_relay;
     }
@@ -266,9 +266,7 @@ handle_relay:
     relay_nodeid_ptr = (uint32_t *)( pf_ctx->fwd_payload->data + sizeof(gnb_route_frame_head_t) + pf_ctx->ip_frame_size );
 
     for ( relay_nodeid_idx=0; relay_nodeid_idx < relay_count; relay_nodeid_idx++ ) {
-
         relay_nodeid_ptr[ relay_nodeid_idx ] = htonl( pf_ctx->dst_node->route_node[ pf_ctx->dst_node->selected_route_node ][ relay_nodeid_idx ] );
-
     }
 
     relay_nodeid_ptr[ relay_nodeid_idx ] = htonl(gnb_core->local_node->uuid32);
@@ -279,7 +277,7 @@ handle_relay:
 
     new_payload_size = org_payload_size + relay_count*sizeof(uint32_t) + sizeof(uint32_t);
 
-    if ( new_payload_size > GNB_MAX_PAYLOAD_SIZE ){
+    if ( new_payload_size > GNB_MAX_PAYLOAD_SIZE ) {
         ret = GNB_PF_DROP;
         goto finish;
     }
@@ -288,7 +286,7 @@ handle_relay:
 
     pf_ctx->fwd_node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, pf_ctx->dst_node->route_node[ pf_ctx->dst_node->selected_route_node ][ relay_count-1 ]);
 
-    if ( NULL==pf_ctx->fwd_node ){
+    if ( NULL==pf_ctx->fwd_node ) {
         ret = GNB_PF_NOROUTE;
         goto finish;
     }
@@ -317,7 +315,7 @@ handle_relay:
 
 finish:
 
-    GNB_LOG3(gnb_core->log,GNB_LOG_ID_PF,"pf_tun_route_cb [%u]>[%u] in_ttl[%u] ip_frame_size[%d]\n", pf_ctx->src_uuid32, pf_ctx->dst_uuid32, pf_ctx->in_ttl, pf_ctx->ip_frame_size);
+    GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "pf_tun_route_cb [%u]>[%u] pf_ctx->in_ttl[%u] route_frame_head->ttl[%u] ip_frame_size[%d]\n", pf_ctx->src_uuid32, pf_ctx->dst_uuid32, pf_ctx->in_ttl, route_frame_head->ttl, pf_ctx->ip_frame_size);
 
     return ret;
 

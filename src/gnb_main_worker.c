@@ -141,7 +141,7 @@ void gnb_send_fwdu0_frame(gnb_core_t *gnb_core, gnb_node_t *dst_node, gnb_payloa
 
     gnb_send_to_address(gnb_core, fwd_address, fwd_payload);
 
-    if ( 1==gnb_core->conf->if_dump ){
+    if ( 1==gnb_core->conf->if_dump ) {
         GNB_LOG3(gnb_core->log,GNB_LOG_ID_MAIN_WORKER, "send ufwd4 =>[%s]=>dst_addr[%s:%d]\n",GNB_IP_PORT_STR1(fwd_address), GNB_ADDR4STR2(fwdu0_frame_head->dst_addr4), ntohs(fwdu0_frame_head->dst_port4));
     }
 
@@ -189,7 +189,7 @@ static void handle_fwdu2_frame(gnb_core_t *gnb_core, gnb_payload16_t *payload){
     uint32_t dst_uuid32 = ntohl(fwdu2_frame_head->dst_uuid32);
 
     //to gnb node or fwd node
-    if ( dst_uuid32 != gnb_core->local_node->uuid32 ){
+    if ( dst_uuid32 != gnb_core->local_node->uuid32 ) {
 
         fwd_node = (gnb_node_t *)GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, dst_uuid32);
 
@@ -221,8 +221,8 @@ static void handle_fwdu2_frame(gnb_core_t *gnb_core, gnb_payload16_t *payload){
 
     gnb_send_to_address(gnb_core, &fwd_address_st, payload);
 
-    if ( 1==gnb_core->conf->if_dump ){
-        GNB_LOG3(gnb_core->log,GNB_LOG_ID_MAIN_WORKER, "handle fwdu2_frame => [%s]\n",GNB_IP_PORT_STR1(&fwd_address_st) );
+    if ( 1==gnb_core->conf->if_dump ) {
+        GNB_LOG3(gnb_core->log,GNB_LOG_ID_MAIN_WORKER, "handle fwdu2_frame => [%s]\n", GNB_IP_PORT_STR1(&fwd_address_st) );
     }
 
 }
@@ -248,7 +248,7 @@ static gnb_worker_queue_data_t* make_worker_receive_queue_data(gnb_worker_t *wor
 
     receive_queue_data->data.node_in.socket_idx = socket_idx;
 
-    memcpy(&receive_queue_data->data.node_in.payload_st,payload,gnb_payload16_size(payload));
+    memcpy(&receive_queue_data->data.node_in.payload_st, payload, gnb_payload16_size(payload));
 
     return receive_queue_data;
 
@@ -478,7 +478,7 @@ static void* udp_loop_thread_func( void *data ) {
 
     if ( gnb_core->conf->udp_socket_type & GNB_ADDR_TYPE_IPV6 ) {
 
-        for( i=0; i < gnb_core->conf->udp6_socket_num; i++ ) {
+        for ( i=0; i < gnb_core->conf->udp6_socket_num; i++ ) {
 
             FD_SET(gnb_core->udp_ipv6_sockets[i], &allset);
 
@@ -492,7 +492,7 @@ static void* udp_loop_thread_func( void *data ) {
 
     if ( gnb_core->conf->udp_socket_type & GNB_ADDR_TYPE_IPV4 ) {
 
-        for( i=0; i < gnb_core->conf->udp4_socket_num; i++ ) {
+        for ( i=0; i < gnb_core->conf->udp4_socket_num; i++ ) {
 
             FD_SET(gnb_core->udp_ipv4_sockets[i], &allset);
 
@@ -803,11 +803,9 @@ static int start(gnb_worker_t *gnb_worker){
             gnb_bind_udp_socket_ipv4(gnb_core->udp_ipv4_sockets[i], gnb_core->conf->listen_address4_string, gnb_core->conf->udp4_ports[i]);
 
             if ( 0==gnb_core->conf->udp4_ports[i] ) {
-
                 sockaddr_len = sizeof(struct sockaddr_in);
                 getsockname( gnb_core->udp_ipv4_sockets[i], (struct sockaddr *)&sockaddr, &sockaddr_len );
                 gnb_core->conf->udp4_ports[i] = ntohs(sockaddr.sin_port);
-
             }
 
             gnb_core->conf->udp4_ext_ports[i] = gnb_core->conf->udp4_ports[i];
