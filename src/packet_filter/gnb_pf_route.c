@@ -133,7 +133,7 @@ handle_ip_frame:
 
     route_frame_head = (gnb_route_frame_head_t *)pf_ctx->fwd_payload->data;
 
-    //在moon_frame_head 中填上magic number,接收方要检验
+    //在frame head 中填上magic number,接收方要检验
     route_frame_head->magic[0] = 'S';
     route_frame_head->magic[1] = 'U';
 
