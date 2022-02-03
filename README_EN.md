@@ -1,5 +1,5 @@
 # OpenGNB
-## [Chinese](/README.md) ## English
+[Chinese](/README.md) English
 
 GNB is open source de-centralized VPN to achieve layer3 network via p2p with the ultimate capability of NAT Traversal.
 > Allows you to form a company-home network into a direct-access local area network.
