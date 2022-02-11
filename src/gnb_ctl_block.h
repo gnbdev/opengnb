@@ -33,7 +33,6 @@
 #define CTL_BLOCK_ES_MAGIC_IDX 3
 #define CTL_BLOCK_VT_MAGIC_IDX 4
 
-
 typedef struct _gnb_ctl_magic_number_t {
 
 	unsigned char data[16];
@@ -131,4 +130,3 @@ gnb_ctl_block_t *gnb_get_ctl_block(const char *ctl_block_file, int flag);
 #define GNB_CTL_KEEP_ALIVE_TS 15
 
 #endif
-

@@ -154,7 +154,9 @@ void gnb_ctl_block_setup(gnb_ctl_block_t *ctl_block, void *memory){
 
 }
 
-
+/*
+ flag = 0 readonly
+*/
 gnb_ctl_block_t *gnb_get_ctl_block(const char *ctl_block_file, int flag){
 
     ssize_t ctl_file_size = 0;
@@ -196,6 +198,10 @@ gnb_ctl_block_t *gnb_get_ctl_block(const char *ctl_block_file, int flag){
     gnb_ctl_block_setup(ctl_block, memory);
 
     ctl_block->mmap_block = mmap_block;
+
+    if ( 0 == flag ) {
+    	return ctl_block;
+    }
 
     if ( now_sec < ctl_block->status_zone->keep_alive_ts_sec ) {
         goto finish_error;

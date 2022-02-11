@@ -207,17 +207,6 @@ void log_out_description(gnb_log_ctx_t *log){
     GNB_LOG1(log, GNB_LOG_ID_CORE, "%s\n", GNB_COPYRIGHT_STRING);
     GNB_LOG1(log, GNB_LOG_ID_CORE, "Site: %s\n", GNB_URL_STRING);
 
-    int idx = 0;
-
-    GNB_LOG1(log, GNB_LOG_ID_CORE, "registered packet filter:");
-
-    while ( NULL != gnb_pf_mods[idx] ) {
-        GNB_LOG1(log, GNB_LOG_ID_CORE, " %s", gnb_pf_mods[idx]->name);
-        idx++;
-    }
-
-    GNB_LOG1(log, GNB_LOG_ID_CORE, "\n");
-
     #ifndef GNB_SKIP_BUILD_TIME
     GNB_LOG1(log, GNB_LOG_ID_CORE, "%s\n", GNB_BUILD_STRING);
     #endif
@@ -256,6 +245,8 @@ int main (int argc,char *argv[]){
     int pid;
 
     int ret;
+
+    setvbuf(stdout,NULL,_IOLBF,0);
 
     #ifdef _WIN32
     WSADATA wsaData;

@@ -180,7 +180,6 @@ void gnb_ctl_dump_status(gnb_ctl_block_t *ctl_block, int reachabl_opt){
 
     }
 
-
 }
 
 
@@ -308,4 +307,3 @@ void gnb_ctl_dump_address_list(gnb_ctl_block_t *ctl_block,int reachabl_opt){
     }
 
 }
-

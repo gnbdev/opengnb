@@ -20,6 +20,7 @@
 
 #include <stdint.h>
 
+
 typedef struct _gnb_block32_t {
     uint32_t size;
     unsigned char data[0];

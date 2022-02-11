@@ -268,13 +268,22 @@ static void load_node_cache(gnb_core_t *gnb_core){
 
         if ( NULL != strchr(host_string, '.') ) {
             //ipv4
-            inet_pton(AF_INET, host_string, (struct in_addr *)&address_st.m_address4);
-            address_st.type = AF_INET;
+        	ret = inet_pton(AF_INET, host_string, &address_st.m_address4);\
+            if ( ret >0 ) {
+            	address_st.type = AF_INET;
+            } else {
+            	address_st.type = AF_UNSPEC;
+            }
 
         } else if ( NULL != strchr(host_string, ':') ) {
             //ipv6
-            inet_pton(AF_INET6, host_string, (struct in_addr *)&address_st.m_address6);
-            address_st.type = AF_INET6;
+            ret = inet_pton(AF_INET6, host_string, &address_st.m_address6);
+            if ( ret >0 ) {
+            	address_st.type = AF_INET6;
+            } else {
+            	address_st.type = AF_UNSPEC;
+            }
+
         } else {
             continue;
         }
@@ -287,7 +296,7 @@ static void load_node_cache(gnb_core_t *gnb_core){
 
         push_address_list = (gnb_address_list_t *)&node->push_address_block;
 
-        if ( AF_INET6 == address_st.type) {
+        if ( AF_INET6 == address_st.type ) {
             gnb_address_list_update(push_address_list, &address_st);
         } else if ( AF_INET == address_st.type ) {
             gnb_address_list_update(push_address_list, &address_st);
@@ -300,7 +309,6 @@ static void load_node_cache(gnb_core_t *gnb_core){
     return;
 
 }
-
 
 
 static void local_node_file_config(gnb_core_t *gnb_core){

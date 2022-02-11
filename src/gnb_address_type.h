@@ -37,6 +37,7 @@
 #define GNB_IP6_PORT_STRING_SIZE ( 46 + 2 + sizeof("65535") + 1 )
 #define GNB_IP4_PORT_STRING_SIZE ( 16 + 1 + sizeof("65535") + 1 )
 
+#pragma pack(push, 1)
 typedef struct _gnb_address_t{
 
 	int  type; //AF_INET AF_INET6
@@ -46,9 +47,11 @@ typedef struct _gnb_address_t{
 
 	//最后更新时间
 	uint64_t ts_sec;
+	//uint64_t ts_sec __attribute__ ( (aligned(8)));
 
 	//延时 可以经过ping pong后算出
 	uint64_t delay_usec;
+	//uint64_t delay_usec __attribute__ ( (aligned(8)));
 
 	union{
 		uint8_t  addr4[4];
@@ -62,7 +65,7 @@ typedef struct _gnb_address_t{
 	uint16_t port;
 
 }gnb_address_t;
-
+#pragma pack(pop)
 
 typedef struct _gnb_address_list_t{
 
@@ -101,6 +104,7 @@ typedef struct _gnb_sockaddress_t{
 	socklen_t socklen;
 
 }gnb_sockaddress_t;
+
 
 
 #endif

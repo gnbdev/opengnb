@@ -78,7 +78,7 @@ gnb_mmap_block_t* gnb_mmap_create(const char *filename, size_t block_size, int m
         oflag = O_RDONLY;
     }
 
-    fd = open (filename, oflag, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+    fd = open(filename, oflag, S_IRUSR|S_IWUSR);
 
     if ( -1 == fd ) {
         return NULL;

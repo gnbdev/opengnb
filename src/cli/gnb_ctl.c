@@ -69,6 +69,8 @@ int main (int argc,char *argv[]){
 
     gnb_ctl_block_t *ctl_block;
 
+    setvbuf(stdout,NULL,_IOLBF,0);
+
     int address_opt  = 0;
     int core_opt     = 0;
     int show_opt     = 0;
@@ -138,7 +140,7 @@ int main (int argc,char *argv[]){
         exit(0);
     }
 
-    ctl_block = gnb_get_ctl_block(ctl_block_file, 1);
+    ctl_block = gnb_get_ctl_block(ctl_block_file, 0);
 
     if ( NULL==ctl_block ){
         printf("open ctl block error [%s]\n",ctl_block_file);
@@ -157,11 +159,9 @@ int main (int argc,char *argv[]){
         gnb_ctl_dump_status(ctl_block,reachabl_opt);
     }
 
-
     if (address_opt){
         gnb_ctl_dump_address_list(ctl_block,reachabl_opt);
     }
-
 
 #ifdef _WIN32
     WSACleanup();
@@ -170,4 +170,3 @@ int main (int argc,char *argv[]){
     return 0;
 
 }
-
