@@ -131,8 +131,7 @@ This part of the document has not been translated into English
 
 ## GNB在OpenWRT上
 
-GNB 完美支持 OpenWRT 平台
-由[Hoowa Sun](https://github.com/hoowa)为 GNB 项目制作了 [GNB 在 OpenWRT 上的打包工程](https://github.com/gnbdev/opengnb-openwrt "opengnb-openwrt")
+GNB 支持 OpenWRT 平台需要用户自行编译
 
 
 ## GNB在Linux发行版上
