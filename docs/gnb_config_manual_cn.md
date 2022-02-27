@@ -17,7 +17,7 @@ conf/1002
 conf/1003
 ```
 
-目录下有几个配置文件 node.conf route.conf address.conf
+1001,1002,1003目录下应有这几个配置文件 node.conf route.conf address.conf
 
 GNB节点通过非对称加密来交换通讯的密钥，这是GNB节点通信的基础，因此需要为每个GNB节点创建一组公私钥，两个节点需要交换公钥才能进行通讯。
 
@@ -33,6 +33,10 @@ GNB 提供了一个名为 gnb_crypto 命令行工具，用于生成公私钥，
 
 `conf/1001/security/` 目录下应该有 `1001.private` `1001.public`
 `conf/1001/ed25519/`  目录下应该有 `1002.public`  `1003.public`
+
+启动 1001 节点的命令可以是
+
+`gnb -c $path_conf/1001`
 
 script/目录下存放了一组脚本
 
