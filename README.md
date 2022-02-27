@@ -140,10 +140,7 @@ i|0|103.27.187.204|9001
 
 ## GNB在OpenWRT上
 
-GNB 完美支持 OpenWRT 平台
-由[Hoowa Sun](https://github.com/hoowa)为 GNB 项目制作了 [GNB 在 OpenWRT 上的打包工程](https://github.com/gnbdev/opengnb-openwrt "opengnb-openwrt")
-
-
+GNB 支持 OpenWRT 平台,需要用户自行编译。
 
 ## GNB在Linux发行版上
 由[《铜豌豆 Linux》](https://www.atzlinux.com)项目为 GNB 项目制做了 Linux 下的 deb 格式软件包，详情请访问[铜豌豆软件源](https://www.atzlinux.com/allpackages.htm)。
