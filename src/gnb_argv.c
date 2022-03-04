@@ -105,6 +105,9 @@ void gnb_setup_es_argv(char *es_argv_string);
 #define SET_FWDU0                      (GNB_OPT_INIT + 43)
 #define SET_FWDU1                      (GNB_OPT_INIT + 44)
 
+#define SET_SYSTEMD_DAEMON             (GNB_OPT_INIT + 45)
+
+
 gnb_arg_list_t *gnb_es_arg_list;
 int is_self_test = 0;
 int is_verbose   = 0;
@@ -195,6 +198,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
     conf->port_detect_range = DETECT_PORT_RANGE;
 
     conf->daemon = 0;
+    conf->systemd_daemon = 0;
 
     #if defined(__FreeBSD__)
     snprintf(conf->ifname,NAME_MAX,"%s","tun0");
@@ -274,9 +278,12 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
       { "ipv6-only", no_argument,   0, '6'},
 
       { "daemon",    no_argument,   0, 'd' },
+
       { "quiet",     no_argument,   0, 'q' },
       { "selftest",  no_argument,   0, 't' },
       { "verbose",   no_argument,   0, 'V' },
+
+	  { "systemd",   no_argument,   0, SET_SYSTEMD_DAEMON },
 
       { "es-argv",                   required_argument,  0,   'e' },
 
@@ -419,6 +426,10 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
         case 'V':
             is_verbose = 1;
             break;
+
+        case SET_SYSTEMD_DAEMON:
+        	conf->systemd_daemon = 1;
+        	break;
 
         case SET_NODE_WORKER_QUEUE:
             conf->node_woker_queue_length = (uint16_t)strtoul(optarg, NULL, 10);
@@ -722,6 +733,9 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
     }
 
+    if ( 0 != conf->systemd_daemon ) {
+    	conf->daemon = 0;
+    }
 
     if ( 1 == conf->public_index_service ) {
         conf->activate_tun                  = 0;
@@ -913,6 +927,8 @@ static void show_useage(int argc,char *argv[]){
     printf("  -b, --ctl-block                  ctl block mapper file\n");
     printf("  -e, --es-argv                    pass-through gnb_es argv\n");
     printf("  -V, --verbose                    verbose mode\n");
+
+    printf("      --systemd                    systemd daemon\n");
 
     printf("      --node-woker-queue           node  woker queue length\n");
     printf("      --index-woker-queue          index woker queue length\n");

@@ -65,7 +65,7 @@ void* gnb_heap_alloc(gnb_heap_t *gnb_heap, uint32_t size){
 
     if ( gnb_heap->max_fragment == gnb_heap->fragment_nums ) {
         printf("gnb heap is full\n");
-        exit(0);
+        exit(1);
         return NULL;
     }
 

@@ -361,7 +361,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "ifname", sizeof("ifname")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer, "%32[^ ] %2s", field, value);
 
             if ( 2 != num ) {
                 printf("config ifname error in [%s]\n", node_conf_file);
@@ -376,7 +376,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "nodeid", sizeof("nodeid")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %u", field, &gnb_core->conf->local_uuid);
+            num = sscanf(line_buffer, "%32[^ ] %u", field, &gnb_core->conf->local_uuid);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "nodeid", node_conf_file);
@@ -388,7 +388,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "listen", sizeof("listen")-1) ) {
 
-            num = sscanf(line_buffer,"%128[^ ] %128s", field, value);
+            num = sscanf(line_buffer, "%128[^ ] %128s", field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "listen", node_conf_file);
@@ -447,9 +447,9 @@ static void local_node_file_config(gnb_core_t *gnb_core){
         }
 
 
-        if ( !strncmp(line_buffer, "ctl-block", sizeof("ctl-block")-1) ) {
+        if ( !strncmp(line_buffer, "ctl-block", sizeof("ctl-block")-1) && 0 == gnb_core->conf->systemd_daemon ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %s", field, gnb_core->conf->map_file);
+            num = sscanf(line_buffer, "%32[^ ] %s", field, gnb_core->conf->map_file);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "ctl-block", node_conf_file);
@@ -461,7 +461,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "socket-if-name", sizeof("socket-if-name")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %s", field, gnb_core->conf->socket_ifname);
+            num = sscanf(line_buffer, "%32[^ ] %s", field, gnb_core->conf->socket_ifname);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "socket-if-name", node_conf_file);
@@ -471,9 +471,9 @@ static void local_node_file_config(gnb_core_t *gnb_core){
         }
 
 
-        if ( !strncmp(line_buffer, "pid-file", sizeof("pid-file")-1) ) {
+        if ( !strncmp(line_buffer, "pid-file", sizeof("pid-file")-1) && 0 == gnb_core->conf->systemd_daemon ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %s", field, gnb_core->conf->pid_file);
+            num = sscanf(line_buffer, "%32[^ ] %s", field, gnb_core->conf->pid_file);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "pid-file", node_conf_file);
@@ -499,7 +499,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if (!strncmp(line_buffer, "multi-socket", sizeof("multi-socket")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer, "%32[^ ] %2s", field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "multi-socket", node_conf_file);
@@ -535,7 +535,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if (!strncmp(line_buffer, "ipv4-only", sizeof("ipv4-only")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer, "%32[^ ] %2s", field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "ipv4-only", node_conf_file);
@@ -551,7 +551,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if (!strncmp(line_buffer, "ipv6-only", sizeof("ipv6-only")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer, "%32[^ ] %2s", field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "ipv6-only", node_conf_file);
@@ -567,7 +567,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "passcode", sizeof("passcode")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %10s", field, value);
+            num = sscanf(line_buffer, "%32[^ ] %10s", field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "passcode", node_conf_file);
@@ -597,19 +597,19 @@ static void local_node_file_config(gnb_core_t *gnb_core){
         }
 
 
-        if (!strncmp(line_buffer, "daemon", sizeof("daemon")-1) ) {
+        if ( !strncmp(line_buffer, "daemon", sizeof("daemon")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer, "%32[^ ] %2s", field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "daemon", node_conf_file);
                 exit(1);
             }
 
-            if ( !strncmp(value, "on", sizeof("on")-1) ) {
+            if ( !strncmp(value, "on", sizeof("on")-1) && 0 == gnb_core->conf->systemd_daemon ) {
                 gnb_core->conf->daemon = 1;
             } else {
-                gnb_core->conf->quiet = 0;
+                gnb_core->conf->daemon = 0;
             }
 
         }
@@ -617,7 +617,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "mtu", sizeof("mtu")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %d", field, &gnb_core->conf->mtu);
+            num = sscanf(line_buffer, "%32[^ ] %d", field, &gnb_core->conf->mtu);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "mtu", node_conf_file);
@@ -628,7 +628,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "set-tun", sizeof("set-tun")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer, "%32[^ ] %2s", field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "set-tun", node_conf_file);
@@ -646,7 +646,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "address-secure", sizeof("address-secure")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer, "%32[^ ] %2s", field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "address-secure", node_conf_file);
@@ -682,7 +682,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "index-worker", sizeof("index-worker")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer, "%32[^ ] %2s", field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "index-worker", node_conf_file);
@@ -700,7 +700,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "index-service-worker", sizeof("index-service-worker")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer, "%32[^ ] %2s", field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "index-service-worker", node_conf_file);
@@ -717,7 +717,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "node-detect-worker", sizeof("node-detect-worker")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer, "%32[^ ] %2s", field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "node-detect-worker", node_conf_file);
@@ -735,7 +735,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "port-detect-range", sizeof("port-detect-range")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %hu", field, &gnb_core->conf->port_detect_range);
+            num = sscanf(line_buffer, "%32[^ ] %hu", field, &gnb_core->conf->port_detect_range);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "port-detect-range", node_conf_file);
@@ -747,7 +747,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "port-detect-start", sizeof("port-detect-start")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %hu", field, &gnb_core->conf->port_detect_start);
+            num = sscanf(line_buffer, "%32[^ ] %hu", field, &gnb_core->conf->port_detect_start);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "port-detect-start", node_conf_file);
@@ -759,7 +759,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "port-detect-end", sizeof("port-detect-end")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %hu", field, &gnb_core->conf->port_detect_end);
+            num = sscanf(line_buffer, "%32[^ ] %hu", field, &gnb_core->conf->port_detect_end);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "port-detect-end", node_conf_file);
@@ -769,9 +769,9 @@ static void local_node_file_config(gnb_core_t *gnb_core){
         }
 
 
-        if ( !strncmp(line_buffer, "log-file-path", sizeof("log-file-path")-1) ) {
+        if ( !strncmp(line_buffer, "log-file-path", sizeof("log-file-path")-1) && 0 == gnb_core->conf->systemd_daemon ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %s", field, gnb_core->conf->log_path);
+            num = sscanf(line_buffer, "%32[^ ] %s", field, gnb_core->conf->log_path);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "log-file-path", node_conf_file);
@@ -783,9 +783,9 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "log-udp4", sizeof("log-udp4")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %s", field, gnb_core->conf->log_udp_sockaddress4_string);
+            num = sscanf(line_buffer, "%32[^ ] %s", field, gnb_core->conf->log_udp_sockaddress4_string);
 
-            if (1 == num) {
+            if ( 1 == num ) {
                 snprintf(gnb_core->conf->log_udp_sockaddress4_string, 16 + 1 + sizeof("65535"), "%s", "127.0.0.1:9000");
             }
 
@@ -799,7 +799,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if (!strncmp(line_buffer, "log-udp-type", sizeof("log-udp-type")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer, "%32[^ ] %2s", field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "log-udp-type", node_conf_file);
@@ -817,7 +817,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "console-log-level", sizeof("console-log-level")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %u", field, &log_level);
+            num = sscanf(line_buffer, "%32[^ ] %u", field, &log_level);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "console-log-level", node_conf_file);
@@ -831,7 +831,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "file-log-level", sizeof("file-log-level")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %u", field, &log_level);
+            num = sscanf(line_buffer, "%32[^ ] %u", field, &log_level);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "file-log-level", node_conf_file);
@@ -844,7 +844,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "udp-log-level", sizeof("udp-log-level")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %u", field, &log_level);
+            num = sscanf(line_buffer, "%32[^ ] %u", field, &log_level);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "udp-log-level", node_conf_file);
@@ -857,7 +857,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "core-log-level", sizeof("core-log-level")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %u", field, &log_level);
+            num = sscanf(line_buffer, "%32[^ ] %u", field, &log_level);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "core-log-level", node_conf_file);
@@ -870,7 +870,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "pf-log-level", sizeof("pf-log-level")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %u", field, &log_level);
+            num = sscanf(line_buffer, "%32[^ ] %u", field, &log_level);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "pf-log-level", node_conf_file);
@@ -883,7 +883,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "main-log-level", sizeof("main-log-level")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %u", field, &log_level);
+            num = sscanf(line_buffer, "%32[^ ] %u", field, &log_level);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "main-log-level", node_conf_file);
@@ -896,7 +896,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "node-log-level", sizeof("node-log-level")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %u", field, &log_level);
+            num = sscanf(line_buffer, "%32[^ ] %u", field, &log_level);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "node-log-level", node_conf_file);
@@ -909,7 +909,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "index-log-level", sizeof("index-log-level")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %u", field, &log_level);
+            num = sscanf(line_buffer, "%32[^ ] %u", field, &log_level);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "index-log-level", node_conf_file);
@@ -922,7 +922,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "index-service-log-level", sizeof("index-service-log-level")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %u", field, &log_level);
+            num = sscanf(line_buffer, "%32[^ ] %u", field, &log_level);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "index-service-log-level", node_conf_file);
@@ -935,7 +935,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "node-detect-log-level", sizeof("node-detect-log-level")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %u", field, &log_level);
+            num = sscanf(line_buffer, "%32[^ ] %u", field, &log_level);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "node-detect-log-level", node_conf_file);
@@ -949,7 +949,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "log-file-path", sizeof("log-file-path")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %s", field, gnb_core->conf->log_path);
+            num = sscanf(line_buffer, "%32[^ ] %s", field, gnb_core->conf->log_path);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "log-file-path", node_conf_file);
@@ -960,7 +960,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if (!strncmp(line_buffer, "pf-route-mode", sizeof("pf-route-mode")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %d", field, &value_int);
+            num = sscanf(line_buffer, "%32[^ ] %d", field, &value_int);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "pf-route-mode", node_conf_file);
@@ -973,7 +973,7 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "pf-route", sizeof("pf-route")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %s", field, gnb_core->conf->pf_route);
+            num = sscanf(line_buffer, "%32[^ ] %s", field, gnb_core->conf->pf_route);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "pf-route", node_conf_file);

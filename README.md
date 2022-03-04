@@ -121,11 +121,6 @@ i|0|39.108.10.191|9001
 i|0|101.32.178.3|9001
 i|0|103.27.187.204|9001
 ```
-### GNB 知识点
-* [GNB 配置及命令行参数](docs/gnb_config_manual_cn.md)
-* [GNB 配置图图解](docs/gnb_setup.md)
-* [GNB 的诊断功能](docs/gnb_diagnose.md)
-* [使用 gnb_udp_over_tcp给 GNB 增加重传包能力](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp")
 
 
 
@@ -136,11 +131,19 @@ i|0|103.27.187.204|9001
 3. 在 Windows 平台下 GNB 的 IPV6 目前无法正常工作;
 4. GNB 的使用虚拟网卡的工作在 TUN 模式下实现三层交换,不支持 TAP 模式即不支持二层交换;
 
+### GNB 知识点
+* [GNB 配置及命令行参数](docs/gnb_config_manual_cn.md)
+* [GNB 配置图图解](docs/gnb_setup.md)
+* [GNB 的诊断功能](docs/gnb_diagnose.md)
+* [使用 gnb_udp_over_tcp给 GNB 增加重传包能力](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp")
+
 
 
 ## GNB在OpenWRT上
 
 GNB 支持 OpenWRT 平台,需要用户自行编译。
+
+
 
 ## GNB在Linux发行版上
 由[《铜豌豆 Linux》](https://www.atzlinux.com)项目为 GNB 项目制做了 Linux 下的 deb 格式软件包，详情请访问[铜豌豆软件源](https://www.atzlinux.com/allpackages.htm)。
@@ -152,7 +155,9 @@ yay -Sy opengnb
 # 安装开发版
 yay -Sy  opengnb-git
 ```
-详情请访问 [opengnb](https://aur.archlinux.org/packages/opengnb/) [opengnb-git](https://aur.archlinux.org/packages/opengnb-git/)
+详情请访问 [https://aur.archlinux.org/packages/opengnb/](https://aur.archlinux.org/packages/opengnb/) 
+
+[https://aur.archlinux.org/packages/opengnb-git/](https://aur.archlinux.org/packages/opengnb-git/)
 
 [gnb 在各平台的编译发行版下载](https://github.com/gnbdev/gnb_build "gnb_build")
 

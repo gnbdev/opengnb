@@ -19,6 +19,7 @@
 #include <stdarg.h>
 #include <time.h>
 #include <sys/time.h>
+#include <signal.h>
 
 #include "gnb.h"
 #include "gnb_svr.h"
@@ -50,6 +51,15 @@ extern gnb_arg_list_t *gnb_es_arg_list;
 
 extern int is_self_test;
 
+void signal_handler(int signum){
+
+	if ( SIGTERM == signum ) {
+		unlink(gnb_core->conf->pid_file);
+		exit(0);
+	}
+
+}
+
 static void self_test(){
 
     int i;
@@ -64,6 +74,9 @@ static void self_test(){
     int ret;
 
     char es_arg_string[GNB_ARG_STRING_MAX_SIZE];
+
+    GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "selftest daemon='%d'\n", gnb_core->conf->daemon );
+    GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "selftest systemd_daemon='%d'\n", gnb_core->conf->systemd_daemon );
 
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "selftest local node=%lu\n", gnb_core->local_node->uuid32);
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "selftest tun ipv4[%s]\n",   GNB_ADDR4STR_PLAINTEXT1(&gnb_core->local_node->tun_addr4));
@@ -116,7 +129,7 @@ static void self_test(){
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "selftest GNB_LOG_ID_DETECT_WORKER console_level=%d, file_level=%d, udp_level=%d\n",
             gnb_core->log->config_table[GNB_LOG_ID_DETECT_WORKER].console_level, gnb_core->log->config_table[GNB_LOG_ID_DETECT_WORKER].file_level, gnb_core->log->config_table[GNB_LOG_ID_DETECT_WORKER].udp_level);
 
-    if ( 1 == gnb_core->conf->activate_tun && 0 == gnb_core->conf->public_index_service) {
+    if ( 1 == gnb_core->conf->activate_tun && 0 == gnb_core->conf->public_index_service ) {
 
         ctl_block = gnb_core->ctl_block;
 
@@ -141,7 +154,7 @@ static void self_test(){
 
                 gnb_address = &static_address_list->array[j];
 
-                if (0==gnb_address->port){
+                if ( 0 == gnb_address->port ) {
                     continue;
                 }
 
@@ -270,10 +283,16 @@ int main (int argc,char *argv[]){
         return 1;
     }
 
-    GNB_LOG1(gnb_core->log,GNB_LOG_ID_CORE, "gnb core created!\n");
+    GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "gnb core created!\n");
+
+    signal(SIGPIPE, SIG_IGN);
 
     #ifdef __UNIX_LIKE_OS__
-    if (gnb_core->conf->daemon) {
+
+    signal(SIGALRM, signal_handler);
+    signal(SIGTERM, signal_handler);
+
+    if ( gnb_core->conf->daemon ) {
         gnb_daemon();
     }
 

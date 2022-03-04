@@ -115,13 +115,6 @@ i|0|101.32.178.3|9001
 i|0|103.27.187.204|9001
 ```
 
-### GNB Knowledge Points
-This part of the document has not been translated into English
-* [GNB 配置及命令行参数](docs/gnb_config_manual_cn.md)
-* [GNB 配置图图解](docs/gnb_setup.md)
-* [GNB 的诊断功能](docs/gnb_diagnose.md)
-* [使用 gnb_udp_over_tcp给 GNB 增加重传包能力](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp")
-
 ## GNB limitations
 1. GNB does not support *Classless Inter-Domain Routing (CIDR)*, only supports Class A, B, C networks;
 2. GNB does not forward IP frames of the default route (Default route). In `host to net` and `net to net` modes, GNB can forward data for a specific subnet, but does not support full traffic forwarding;
@@ -129,26 +122,9 @@ This part of the document has not been translated into English
 4. The work of GNB using virtual network card implements Layer 3 switching in TUN mode, and does not support Layer 2 switching if it does not support TAP mode;
 
 
-## GNB在OpenWRT上
+### GNB Knowledge Points
+This part of the document has not been translated into English
 
-GNB 支持 OpenWRT 平台需要用户自行编译
-
-
-## GNB在Linux发行版上
-由[《铜豌豆 Linux》](https://www.atzlinux.com)项目为 GNB 项目制做了 Linux 下的 deb 格式软件包，详情请访问[铜豌豆软件源](https://www.atzlinux.com/allpackages.htm)。
-
-由 [taotieren](https://github.com/taotieren) 为 GNB 项目制作了 Arch Linux 的 AUR 包,安装方式如下
-```bash
-# 安装发行版
-yay -Sy opengnb 
-# 安装开发版
-yay -Sy  opengnb-git
-```
-详情请访问 [opengnb](https://aur.archlinux.org/packages/opengnb/) [opengnb-git](https://aur.archlinux.org/packages/opengnb-git/)
-
-[gnb 在各平台的编译发行版下载](https://github.com/gnbdev/gnb_build "gnb_build")
-
-[gnb_udp_over_tcp](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp") 是一个为 GNB 开发的通过 tcp 链路中转 UDP 分组转发的服务，也可以为其他基于 UDP 协议的服务中转数据。
 
 ---
-[免责声明](docs/disclaimer.md)
+[disclaimer](docs/disclaimer.md)

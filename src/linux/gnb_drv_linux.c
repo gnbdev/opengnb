@@ -155,7 +155,7 @@ static int set_addr4(char *interface_name, char *ip, char *netmask){
 
     if ( ioctl(socket_fd, SIOCSIFADDR, &ifr) < 0 ) {
         perror("ioctl addr4 SIOCSIFADDR");
-        exit(0);
+        exit(1);
     }
 
     struct ifreq ifr_mask;
@@ -174,7 +174,7 @@ static int set_addr4(char *interface_name, char *ip, char *netmask){
 
     if ( ioctl(socket_fd, SIOCSIFNETMASK, &ifr_mask ) < 0 ) {
         perror("ioctl addr4 SIOCSIFNETMASK");
-        exit(0);
+        exit(1);
     }
 
     close(socket_fd);

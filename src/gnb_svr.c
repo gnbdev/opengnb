@@ -35,7 +35,6 @@
 #endif
 
 #include <sys/time.h>
-#include <signal.h>
 
 #include "gnb_conf_file.h"
 #include "gnb_config_lite.h"
@@ -58,9 +57,6 @@ void log_out_description(gnb_log_ctx_t *log);
 extern  gnb_arg_list_t *gnb_es_arg_list;
 extern int is_verbose;
 
-void signal_handler(int signum){
-
-}
 
 static void gnb_setup_env(gnb_core_t *gnb_core){
 
@@ -99,7 +95,7 @@ static void init_ctl_block(gnb_core_t *gnb_core, gnb_conf_t *conf){
 
     if (NULL==mmap_block) {
         printf("init_ctl_block error[%p]\n",mmap_block);
-        exit(0);
+        exit(1);
     }
 
     memory = gnb_mmap_get_block(mmap_block);
@@ -710,12 +706,6 @@ void gnb_core_index_service_start(gnb_core_t *gnb_core){
 
     int ret;
 
-    signal(SIGTERM,SIG_IGN);
-
-#ifdef __UNIX_LIKE_OS__
-    signal(SIGALRM,signal_handler);
-#endif
-
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"GNB Public Index Service Start.....\n");
 
     gnb_core->index_service_worker->start(gnb_core->index_service_worker);
@@ -730,12 +720,6 @@ void gnb_core_index_service_start(gnb_core_t *gnb_core){
 void gnb_core_start(gnb_core_t *gnb_core){
 
     int ret;
-
-    signal(SIGPIPE,SIG_IGN);
-
-#ifdef __UNIX_LIKE_OS__
-    signal(SIGALRM,signal_handler);
-#endif
 
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "Start.....\n");
 
@@ -923,7 +907,7 @@ void primary_process_loop( gnb_core_t *gnb_core ){
 
         if ( 0!=ret ) {
             perror("gettimeofday");
-            exit(0);
+            exit(1);
         }
 
         gnb_core->ctl_block->status_zone->keep_alive_ts_sec = (uint64_t)gnb_core->now_timeval.tv_sec;
