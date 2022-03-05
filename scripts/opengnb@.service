@@ -19,9 +19,10 @@ After=network-online.target
 After=network.target
 
 [Service]
-Type=exec
+#为了兼容老版本systemd所做的妥协(本应首选使用 exec )
+Type=simple
 PIDFile=/run/opengnb-%I.pid
-ExecStartPre=mkdir -p /var/log/opengnb/%I
+ExecStartPre=/bin/mkdir -p /var/log/opengnb/%I
 ExecStart=/usr/sbin/gnb --conf=/etc/opengnb/%I --pid-file=/run/opengnb-%I.pid --map-file=/var/cache/opengnb/%I.map --node-cache-file=/var/cache/opengnb/%I.dump --log-file-path=/var/log/opengnb/%I
 
 [Install]
