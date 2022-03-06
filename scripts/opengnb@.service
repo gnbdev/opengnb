@@ -1,0 +1,31 @@
+#########################
+#(1)发行版软件包应该将此单元模板应放置在 /usr/lib/systemd/system/ 目录中
+#(2)可以使用例如 systemctl start|stop opengnb@xxx.service 这样的命令启动/停止"xxx"服务实例("xxx"表示使用"/etc/opengnb/xxx"配置目录)
+#(3)可以使用例如 systemctl enable|disable opengnb@xxx.service 这样的命令开启/关闭"xxx"服务实例的自动启动
+#   上述命令等价于创建/删除 /etc/systemd/system/multi-user.target.wants/opengnb@xxx.service 软连接(指向 /usr/lib/systemd/system/opengnb@.service )
+#(4)配置目录的名称(也就是"/etc/opengnb/xxx"中的"xxx")只能使用ASCII字母/数字/下划线(也就是只能使用 "a-z" "A-Z" "0-9" "_" 字符)
+#########################
+
+[Unit]
+Description="GNB NAT Traversal P2P VPN"
+Documentation=https://github.com/gnbdev/opengnb/blob/master/docs/gnb_config_manual_cn.md https://github.com/gnbdev/opengnb/blob/master/docs/gnb_setup.md
+#开机时，确保在网络接通之后才会启动
+Wants=network-online.target
+After=network-online.target
+#开机时，确保在DNS解析就绪之后才会启动
+#Wants=nss-lookup.target
+#After=nss-lookup.target
+#关机时，确保在关闭网络之前已经停止
+After=network.target
+
+[Service]
+#为兼容 systemd 老版本所做的妥协(v240 以上版本建议设置为 Type=exec )
+Type=simple
+PIDFile=/run/opengnb-%I.pid
+ExecStartPre=/bin/mkdir -p /var/log/opengnb/%I
+ExecStart=/usr/sbin/gnb --systemd --conf=/etc/opengnb/%I --pid-file=/run/opengnb-%I.pid --map-file=/var/cache/opengnb/%I.map --node-cache-file=/var/cache/opengnb/%I.dump --log-file-path=/var/log/opengnb/%I
+
+[Install]
+WantedBy=multi-user.target
+#默认实例名称(仅当 systemctl enable 命令没有指定实例名称时有意义)
+DefaultInstance=default
