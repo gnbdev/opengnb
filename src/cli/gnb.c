@@ -285,10 +285,9 @@ int main (int argc,char *argv[]){
 
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "gnb core created!\n");
 
-    signal(SIGPIPE, SIG_IGN);
-
     #ifdef __UNIX_LIKE_OS__
 
+    signal(SIGPIPE, SIG_IGN);
     signal(SIGALRM, signal_handler);
     signal(SIGTERM, signal_handler);
 

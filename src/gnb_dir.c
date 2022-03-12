@@ -35,38 +35,33 @@
 #endif
 
 
-char *gnb_get_file_dir(char *file_name, char *file_dir){
-
-    char *string = strdup(file_name);
-
-    size_t string_len = strlen( (const char *)string );
-
-    int i;
-
-    for ( i=string_len-1; i>0; i-- ) {
-
-        if ( '/'==string[i] || '\\'==string[i] ) {
-            string[i]='\0';
-            break;
-        }
-
-    }
+char *gnb_get_file_dir(char *in_file_name, char *file_dir){
 
 #if __UNIX_LIKE_OS__
-    if ( NULL == realpath(string,file_dir) ) {
-        free(string);
+    if ( NULL == realpath(in_file_name, file_dir) ) {
         return NULL;
     }
 #endif
 
 #ifdef _WIN32
-    if ( NULL == _fullpath(file_dir, string, PATH_MAX) ) {
-        free(string);
+    if ( NULL == _fullpath(file_dir, in_file_name , PATH_MAX) ) {
         return NULL;
     }
 #endif
 
-    free(string);
+    size_t string_len = strlen( (const char *)file_dir );
+
+    int i;
+
+    for ( i=string_len-1; i>0; i-- ) {
+
+        if ( GNB_FILE_SP==file_dir[i] ) {
+        	file_dir[i]='\0';
+            break;
+        }
+
+    }
+
     return file_dir;
 
 }

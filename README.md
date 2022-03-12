@@ -123,7 +123,6 @@ i|0|103.27.187.204|9001
 ```
 
 
-
 ## GNB的限制
 
 1. GNB 不支持 *无类别域间路由（Classless Inter-Domain Routing、CIDR）*,  仅支持 A,B,C 类网络;
@@ -138,15 +137,15 @@ i|0|103.27.187.204|9001
 * [使用 gnb_udp_over_tcp给 GNB 增加重传包能力](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp")
 
 
-
 ## GNB在OpenWRT上
 
 GNB 支持 OpenWRT 平台,需要用户自行编译。
 
 
-
 ## GNB在Linux发行版上
 由[《铜豌豆 Linux》](https://www.atzlinux.com)项目为 GNB 项目制做了 Linux 下的 deb 格式软件包，详情请访问[铜豌豆软件源](https://www.atzlinux.com/allpackages.htm)。
+
+由 [金步国](https://github.com/jinbuguo) 为 GNB 项目制作了 systemd 的脚本
 
 由 [taotieren](https://github.com/taotieren) 为 GNB 项目制作了 Arch Linux 的 AUR 包,安装方式如下
 ```bash
