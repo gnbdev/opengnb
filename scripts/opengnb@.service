@@ -8,7 +8,9 @@
 
 [Unit]
 Description="GNB NAT Traversal P2P VPN"
-Documentation=https://github.com/gnbdev/opengnb/blob/master/docs/gnb_config_manual_cn.md https://github.com/gnbdev/opengnb/blob/master/docs/gnb_setup.md
+Documentation=https://github.com/gnbdev/opengnb/blob/master/docs/gnb_config_manual_cn.md \
+https://github.com/gnbdev/opengnb/blob/master/docs/gnb_setup.md \
+https://github.com/gnbdev/opengnb/blob/master/README_EN.md
 #开机时，确保在网络接通之后才会启动
 Wants=network-online.target
 After=network-online.target
