@@ -415,9 +415,10 @@ int main (int argc,char *argv[]){
     err = WSAStartup(MAKEWORD(2, 2), &wsaData );
 #endif
 
-
 #ifdef __UNIX_LIKE_OS__
-    save_pid(es_ctx->pid_file);
+    if ( 1==es_ctx->service_opt || 1==es_ctx->daemon ) {
+    	save_pid(es_ctx->pid_file);
+    }
 #endif
 
     gnb_es_ctx_init(es_ctx);
@@ -431,4 +432,3 @@ int main (int argc,char *argv[]){
     return 0;
 
 }
-
