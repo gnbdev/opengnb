@@ -33,7 +33,10 @@ Copy `gnb` `gnb_crypto` `gnb_ctl` `gnb_es` to host A and host B respectively.
 
 Assuming that host A and host B need to temporarily penetrate the intranet interconnection in two different LANs, the fastest way is to run gnb through lite mode. In lite mode, asymmetric encryption is not enabled, and only through **passcode** and The node id generates the encryption key, so the security will be much less modular than working with asymmetric encryption.
 
-**passcode** is a 32-bit hexadecimal string with a length of 8 characters, which can be represented as **0xFFFFFFFF** or **FFFFFFFF**, under a public index **passcode** is the same GNB node It is considered to be a node on the same virtual network. Please choose a **passcode** that will not be the same as other users as much as possible. Here, for the convenience of demonstration, the **passcode** is selected as `12345678`, and the parameter **-p ** Used to specify the **passcode** to start the node. Do not use such a simple **passcode** in actual use, it may conflict with other users who also use `12345678` as **passcode** and cause communication failure.
+**passcode** is a 32-bit hexadecimal string with a length of 8 characters, which can be represented as **0xFFFFFFFF** or **FFFFFFFF**, under a public index **passcode** is the same GNB node It is considered to be a node on the same virtual network.
+Please choose a **passcode** that will not be the same as other users as much as possible.
+Here, for the convenience of demonstration, the **passcode** is selected as `12345678`, and the parameter **-p ** Used to specify the **passcode** to start the node.
+Do not use such a simple **passcode** in actual use, it may conflict with other users who also use `12345678` as **passcode** and cause communication failure.
 
 ### Step 3: Start the first node
 Executed with **root** on host A
