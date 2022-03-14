@@ -25,7 +25,7 @@ After=network.target
 Type=simple
 PIDFile=/run/opengnb-%I.pid
 ExecStartPre=/bin/mkdir -p /var/log/opengnb/%I
-ExecStart=/usr/sbin/gnb --systemd --conf=/etc/opengnb/%I --pid-file=/run/opengnb-%I.pid --ctl-block=/var/cache/opengnb/%I.map --node-cache-file=/var/cache/opengnb/%I.dump --log-file-path=/var/log/opengnb/%I
+ExecStart=/usr/sbin/gnb --systemd --conf=/etc/opengnb/%I --pid-file=/run/opengnb-%I.pid --ctl-block=/var/cache/opengnb/%I.map --node-cache-file=/var/cache/opengnb/%I.dump --log-file-path=/var/log/opengnb/%I --ifname=gnb_tun_%I
 
 [Install]
 WantedBy=multi-user.target
