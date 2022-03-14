@@ -912,9 +912,9 @@ static void show_useage(int argc,char *argv[]){
     printf("  -n, --nodeid                     nodeid\n");
     printf("  -P, --public-index-service       run as public index service\n");
 
-    printf("  -I, --index-address              index address\n");
-    printf("  -a, --node-address               node ip address\n");
-    printf("  -r, --node-route                 node route\n");
+    printf("  -I, --index-address              setup index address\n");
+    printf("  -a, --node-address               setup node address\n");
+    printf("  -r, --node-route                 setup node route\n");
     printf("  -i, --ifname                     TUN Device Name\n");
     printf("  -4, --ipv4-only                  Use IPv4 Only\n");
     printf("  -6, --ipv6-only                  Use IPv6 Only\n");
