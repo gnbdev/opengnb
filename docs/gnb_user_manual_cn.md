@@ -210,7 +210,7 @@ GNB 支持IPV6和IPV4。
 ```
 es-argv      "--upnp"
 ```
-尝试打开 unpn ，让来自 WAN 的 IP 分组更容易被传入。
+尝试打开 upnp ，让来自 WAN 的 IP 分组更容易被传入。
 
 ```
 multi-socket on
