@@ -137,7 +137,7 @@ i|0|103.27.187.204|9001
 
 ### GNB 相关文档
 
-* [GNB 用户手册](docs/gnb_config_manual_cn.md)
+* [GNB 用户手册](docs/gnb_user_manual_cn.md)
 * [GNB 的调试诊断](docs/gnb_diagnose_cn.md)
 
 
