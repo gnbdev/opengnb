@@ -1,14 +1,14 @@
 # OpenGNB 
-Chinese  [English](/README_EN.md)
+[Chinese](/README.md) [English](/README_en.md)
 
 [OpenGNB](https://github.com/gnbdev/opengnb "OpenGNB") 是一个开源的去中心化的具有极致内网穿透能力的通过 P2P 进行三层网络交换的虚拟组网系统。
 > 可以让你把公司-家庭网络组成直接访问的局域网。
 
-
-出于安全考虑，GNB 项目相关所有代码以开源方式发布,当前发布的源码支持以下平台：
-FreeBSD Linux OpenWRT Raspberrypi OpenBSD macOS
+GNB 项目相关所有代码以开源方式发布,当前发布的源码支持以下平台：FreeBSD Linux OpenWRT Raspberrypi OpenBSD macOS
 
 ![GNB vs traditional VPN](images/gnb1.png)
+
+
 
 ## GNB 特点
 
@@ -22,7 +22,9 @@ FreeBSD Linux OpenWRT Raspberrypi OpenBSD macOS
     -  GNB 用 C 语言开发，编译时不需要引用第三方库文件，可以方便移植到当前流行的操作系统上,目前支持的操作系统及平台有 Linux_x86_64，Windows10_x86_64， macOS，FreeBSD_AMD64，OpenBSD_AMD64，树莓派，OpenWRT；大至服务器环境，桌面系统，小至仅有 32M 内存的OpenWRT路由器都能很好的运行 GNB 网络。
 
 
+
 ## GNB 快速上手
+
 * Linux 平台
 
 ### 步骤1: 下载编译 GNB 源码工程
@@ -123,18 +125,21 @@ i|0|103.27.187.204|9001
 ```
 
 
-## GNB的限制
+
+## GNB 的限制
 
 1. GNB 不支持 *无类别域间路由（Classless Inter-Domain Routing、CIDR）*,  仅支持 A,B,C 类网络;
 2. GNB 不转发默认路由（Default route）的 IP 帧，在`host to net`和`net to net` 模式下 GNB 可以为特定的子网的数据做转发，但不支持全流量转发;
 3. 在 Windows 平台下 GNB 的 IPV6 目前无法正常工作;
 4. GNB 的使用虚拟网卡的工作在 TUN 模式下实现三层交换,不支持 TAP 模式即不支持二层交换;
 
-### GNB 知识点
-* [GNB 配置及命令行参数](docs/gnb_config_manual_cn.md)
-* [GNB 配置图图解](docs/gnb_setup.md)
-* [GNB 的诊断功能](docs/gnb_diagnose.md)
-* [使用 gnb_udp_over_tcp给 GNB 增加重传包能力](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp")
+
+
+### GNB 相关文档
+
+* [GNB 用户手册](docs/gnb_config_manual_cn.md)
+* [GNB 的调试诊断](docs/gnb_diagnose_cn.md)
+
 
 
 ## GNB在OpenWRT上
@@ -142,7 +147,9 @@ i|0|103.27.187.204|9001
 GNB 支持 OpenWRT 平台,需要用户自行编译。
 
 
+
 ## GNB在Linux发行版上
+
 由[《铜豌豆 Linux》](https://www.atzlinux.com)项目为 GNB 项目制做了 Linux 下的 deb 格式软件包，详情请访问[铜豌豆软件源](https://www.atzlinux.com/allpackages.htm)。
 
 由 [金步国](https://github.com/jinbuguo) 为 GNB 项目制作了 systemd 的脚本
@@ -160,8 +167,9 @@ yay -Sy  opengnb-git
 
 [gnb 在各平台的编译发行版下载](https://github.com/gnbdev/gnb_build "gnb_build")
 
+
+
 [gnb_udp_over_tcp](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp") 是一个为 GNB 开发的通过 tcp 链路中转 UDP 分组转发的服务，也可以为其他基于 UDP 协议的服务中转数据。
 
 ---
-[免责声明](docs/disclaimer.md)
-
+[免责声明](docs/disclaimer_cn.md)

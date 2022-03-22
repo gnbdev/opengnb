@@ -73,7 +73,7 @@ static void if_up_script(gnb_core_t *gnb_core){
 
     char cmd[1024];
 
-    snprintf(cmd,1024,"\"%s/script/%s\" > /dev/null 2>&1",gnb_core->conf->conf_dir,"if_up_freebsd.sh");
+    snprintf(cmd,1024,"\"%s/scripts/%s\" > /dev/null 2>&1",gnb_core->conf->conf_dir,"if_up_freebsd.sh");
 
     ret = system(cmd);
 
@@ -91,7 +91,7 @@ static void if_down_script(gnb_core_t *gnb_core){
 
     char cmd[1024];
 
-    snprintf(cmd,1024,"\"%s/script/%s\" > /dev/null 2>&1",gnb_core->conf->conf_dir,"if_down_freebsd.sh");
+    snprintf(cmd,1024,"\"%s/scripts/%s\" > /dev/null 2>&1",gnb_core->conf->conf_dir,"if_down_freebsd.sh");
 
     ret = system(cmd);
 
@@ -102,8 +102,6 @@ static void if_down_script(gnb_core_t *gnb_core){
     return;
 
 }
-
-
 
 /*
  set_route4的作用是 创建一条路由，以 tun ip 为 10.1.0.15 的local node为例：
@@ -407,4 +405,3 @@ gnb_tun_drv_t gnb_tun_drv_freebsd = {
     release_tun_freebsd
 
 };
-

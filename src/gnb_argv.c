@@ -981,10 +981,10 @@ static void show_useage(int argc,char *argv[]){
     printf("  %s -P\n",argv[0]);
     printf("  %s -P --console-log-level=3 --index-service-log-level=3\n",argv[0]);
 
-    printf("  %s -n 1001 -I '$public_index_ip/$port' --multi-socket=on -p $passcode\n",argv[0]);
-    printf("  %s -n 1002 -I '$public_index_ip/$port' --multi-socket=on -p $passcode\n",argv[0]);
+    printf("  %s -n 1001 -I \"$public_index_ip/$port\" --multi-socket=on -p $passcode\n",argv[0]);
+    printf("  %s -n 1002 -I \"$public_index_ip/$port\" --multi-socket=on -p $passcode\n",argv[0]);
 
-    printf("  %s -n 1001 -a 'i/0/$public_index_ip/$port' --multi-socket=on -p $passcode\n",argv[0]);
-    printf("  %s -n 1002 -a 'i/0/$public_index_ip/$port' --multi-socket=on -p $passcode\n",argv[0]);
+    printf("  %s -n 1001 -a \"i/0/$public_index_ip/$port\" --multi-socket=on -p $passcode\n",argv[0]);
+    printf("  %s -n 1002 -a \"i/0/$public_index_ip/$port\" --multi-socket=on -p $passcode\n",argv[0]);
 
 }

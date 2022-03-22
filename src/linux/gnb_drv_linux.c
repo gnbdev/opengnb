@@ -78,7 +78,7 @@ static void if_up_script(gnb_core_t *gnb_core){
 
     char cmd[PATH_MAX+NAME_MAX];
 
-    snprintf(cmd,PATH_MAX+NAME_MAX,"\"%s/script/%s\" > /dev/null 2>&1",gnb_core->conf->conf_dir,"if_up_linux.sh");
+    snprintf(cmd,PATH_MAX+NAME_MAX,"\"%s/scripts/%s\" > /dev/null 2>&1",gnb_core->conf->conf_dir,"if_up_linux.sh");
 
     ret = system(cmd);
 
@@ -97,7 +97,7 @@ static void if_down_script(gnb_core_t *gnb_core){
 
     char cmd[PATH_MAX+NAME_MAX];
 
-    snprintf(cmd,PATH_MAX+NAME_MAX,"\"%s/script/%s\" > /dev/null 2>&1",gnb_core->conf->conf_dir,"if_down_linux.sh");
+    snprintf(cmd,PATH_MAX+NAME_MAX,"\"%s/scripts/%s\" > /dev/null 2>&1",gnb_core->conf->conf_dir,"if_down_linux.sh");
 
     ret = system(cmd);
 
@@ -108,6 +108,7 @@ static void if_down_script(gnb_core_t *gnb_core){
     return;
 
 }
+
 
 static void setifmtu(char *if_name,int mtu) {
 

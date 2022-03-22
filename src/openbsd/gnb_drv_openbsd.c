@@ -37,20 +37,15 @@
 #include <netinet6/nd6.h>
 
 #include <netdb.h>
-
 #include <net/if.h>
 #include <net/if_tun.h>
 
 #include <net/route.h>
-
 #include <arpa/inet.h>
-
 #include <sys/ioctl.h>
 
 #include "gnb.h"
-
 #include "gnb_tun_drv.h"
-
 #include "gnb_payload16.h"
 
 
@@ -79,7 +74,7 @@ static void if_up_script(gnb_core_t *gnb_core){
 
     char cmd[1024];
 
-    snprintf(cmd,1024,"\"%s/script/%s\" > /dev/null 2>&1",gnb_core->conf->conf_dir,"if_up_openbsd.sh");
+    snprintf(cmd,1024,"\"%s/scripts/%s\" > /dev/null 2>&1",gnb_core->conf->conf_dir,"if_up_openbsd.sh");
 
     ret = system(cmd);
 
@@ -91,13 +86,14 @@ static void if_up_script(gnb_core_t *gnb_core){
 
 }
 
+
 static void if_down_script(gnb_core_t *gnb_core){
 
     int ret;
 
     char cmd[1024];
 
-    snprintf(cmd,1024,"\"%s/script/%s\" > /dev/null 2>&1",gnb_core->conf->conf_dir,"if_down_openbsd.sh");
+    snprintf(cmd,1024,"\"%s/scripts/%s\" > /dev/null 2>&1",gnb_core->conf->conf_dir,"if_down_openbsd.sh");
 
     ret = system(cmd);
 
@@ -121,37 +117,36 @@ static void set_route4(gnb_core_t *gnb_core){
         struct  sockaddr_in gateway;
         struct  sockaddr_in mask;
     }rtmsg;
-    
+
     uint32_t network_u32;
-    
+
     int     s;
-    
+
     ssize_t wlen;
-    
+
     //算出 节点的 ipv4 network
     network_u32 = gnb_core->local_node->tun_netmask_addr4.s_addr & gnb_core->local_node->tun_addr4.s_addr;
-    
+
     s = socket(PF_ROUTE, SOCK_RAW, 0);
-    
+
     if (s < 0) {
         perror("socket\n");
         return;
     }
-    
+
     shutdown(s, SHUT_RD);
-    
+
     bzero(&rtmsg, sizeof(rtmsg));
-    
+
     rtmsg.hdr.rtm_type = RTM_ADD;
     rtmsg.hdr.rtm_version = RTM_VERSION;
-    
+
     rtmsg.hdr.rtm_addrs = 0;
-    
+
     rtmsg.hdr.rtm_addrs |= RTA_DST;
     rtmsg.hdr.rtm_addrs |= RTA_GATEWAY;
     rtmsg.hdr.rtm_addrs |= RTA_NETMASK;
-    
-    
+
     rtmsg.hdr.rtm_flags = RTF_STATIC;
     rtmsg.hdr.rtm_flags |= RTF_GATEWAY;
     rtmsg.hdr.rtm_flags |= RTF_GATEWAY;
@@ -159,28 +154,28 @@ static void set_route4(gnb_core_t *gnb_core){
     rtmsg.dst.sin_len = sizeof(rtmsg.dst);
     rtmsg.dst.sin_family = AF_INET;
     rtmsg.dst.sin_addr.s_addr = network_u32;
-    
+
     rtmsg.mask.sin_len = sizeof(rtmsg.mask);
     rtmsg.mask.sin_family = AF_INET;
     rtmsg.mask.sin_addr.s_addr = gnb_core->local_node->tun_netmask_addr4.s_addr;
     
-    
     rtmsg.gateway.sin_len = sizeof(rtmsg.gateway);
     rtmsg.gateway.sin_family = AF_INET;
     rtmsg.gateway.sin_addr.s_addr = gnb_core->local_node->tun_addr4.s_addr;
-    
+
     rtmsg.hdr.rtm_msglen = sizeof(rtmsg);
-    
+
     wlen = write(s, &rtmsg, sizeof(rtmsg));
 
     if ( -1==wlen ) {
         perror("#set_route4 write");
         return;
     }
-    
+
     return;
-    
+
 }
+
 
 static void setifmtu(char *if_name,int mtu) {
 
@@ -207,6 +202,7 @@ static void setifmtu(char *if_name,int mtu) {
 
     close(socket_fd);
 }
+
 
 static int set_addr4(char *if_name, char *ip, char *netmask) {
     
@@ -245,6 +241,7 @@ static int set_addr4(char *if_name, char *ip, char *netmask) {
     
     return 0;
 }
+
 
 static int set_addr6(char *if_name, char *ip, char *netmask) {
 
@@ -293,6 +290,7 @@ static int set_addr6(char *if_name, char *ip, char *netmask) {
     return ret;
 }
 
+
 int init_tun_openbsd(gnb_core_t *gnb_core){
 
     gnb_core->tun_fd = -1;
@@ -335,6 +333,7 @@ static int open_tun_openbsd(gnb_core_t *gnb_core){
     return 0;
 
 }
+
 
 static int read_tun_openbsd(gnb_core_t *gnb_core, void *buf, size_t buf_size){
 
@@ -407,6 +406,7 @@ static int close_tun_openbsd(gnb_core_t *gnb_core){
 
 }
 
+
 static int release_tun_openbsd(gnb_core_t *gnb_core){
 
     return 0;
@@ -428,5 +428,3 @@ gnb_tun_drv_t gnb_tun_drv_openbsd = {
     release_tun_openbsd
 
 };
-
-

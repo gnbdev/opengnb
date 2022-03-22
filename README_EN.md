@@ -1,11 +1,18 @@
 # OpenGNB
-[Chinese](/README.md) English
+[Chinese](/README.md) [English](/README_en.md)
 
 GNB is open source de-centralized VPN to achieve layer3 network via p2p with the ultimate capability of NAT Traversal.
 > Allows you to form a company-home network into a direct-access local area network.
 
+All code related to the GNB project is released as open source, and the currently released source code supports the following platforms: FreeBSD Linux OpenWRT Raspberrypi OpenBSD macOS
+
+![GNB vs traditional VPN](images/gnb1.png)
+
 # Note：
+
 Most of this document is translated by Google Translated from Chinese document, its accuracy is subject to Chinese
+
+
 
 ## GNB Features
 
@@ -118,16 +125,51 @@ i|0|101.32.178.3|9001
 i|0|103.27.187.204|9001
 ```
 
+
+
 ## GNB limitations
+
 1. GNB does not support *Classless Inter-Domain Routing (CIDR)*, only supports Class A, B, C networks;
 2. GNB does not forward IP frames of the default route (Default route). In `host to net` and `net to net` modes, GNB can forward data for a specific subnet, but does not support full traffic forwarding;
 3. IPV6 of GNB does not work properly under Windows platform;
 4. The work of GNB using virtual network card implements Layer 3 switching in TUN mode, and does not support Layer 2 switching if it does not support TAP mode;
 
 
-### GNB Knowledge Points
-This part of the document has not been translated into English
 
+## GNB related documentation
+
+
+
+
+
+## GNB on OpenWRT
+
+GNB supports the OpenWRT platform and needs to be compiled by the user.
+
+
+
+## GNB on Linux distributions
+
+The ["Bronze Pea Linux"](https://www.atzlinux.com) project made a deb format software package under Linux for the GNB project. For details, please visit [Bronze Pea Software Source](https://www. atzlinux.com/allpackages.htm).
+
+The systemd script was made by [金步国](https://github.com/jinbuguo) for the GNB project
+
+The AUR package of Arch Linux was made by [taotieren](https://github.com/taotieren) for the GNB project. The installation method is as follows
+```bash
+# Install the distribution
+yay -Sy opengnb 
+# Install the development version
+yay -Sy  opengnb-git
+```
+
+For details, please visit [https://aur.archlinux.org/packages/opengnb/](https://aur.archlinux.org/packages/opengnb/)
+
+[https://aur.archlinux.org/packages/opengnb-git/](https://aur.archlinux.org/packages/opengnb-git/)
+
+[Download the compiled and released version of gnb on each platform](https://github.com/gnbdev/gnb_build "gnb_build")
+
+[gnb_udp_over_tcp](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp") is a service developed for GNB that forwards UDP packets through tcp link, and can also forward data for other services based on UDP protocol.
 
 ---
-[disclaimer](docs/disclaimer.md)
+[Disclaimer](docs/disclaimer_cn.md)
+
