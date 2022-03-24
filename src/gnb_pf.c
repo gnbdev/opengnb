@@ -129,8 +129,11 @@ finish:
 #define GNB_PF_INET_FORWARD_DROP    27
 #define GNB_PF_INET_FORWARD_NEXT    28
 
-#define GNB_PF_INET_FORWARD_TO_TUN  29
-#define GNB_PF_INET_FORWARD_TO_INET 30
+
+#define GNB_PF_INET_FORWARD_FINISH  29
+
+#define GNB_PF_INET_FORWARD_TO_TUN  30
+#define GNB_PF_INET_FORWARD_TO_INET 31
 
 
 static char* gnb_pf_status_strings[31];
@@ -330,8 +333,6 @@ void gnb_pf_tun(gnb_core_t *gnb_core, gnb_payload16_t *payload){
 
     }
 
-    pf_tun_frame_status = GNB_PF_TUN_FRAME_FINISH;
-
     pf_ctx_st.pf_status = GNB_PF_TUN_ROUTE_INIT;
 
     for ( i=0; i<gnb_core->pf_array->num; i++ ) {
@@ -379,8 +380,6 @@ void gnb_pf_tun(gnb_core_t *gnb_core, gnb_payload16_t *payload){
         goto pf_tun_log;
     }
 
-
-    pf_tun_route_status = GNB_PF_TUN_ROUTE_FINISH;
     pf_ctx_st.pf_status = GNB_PF_TUN_FORWARD_INIT;
 
     for ( i=gnb_core->pf_array->num-1; i>=0; i-- ) {
@@ -487,12 +486,12 @@ void gnb_pf_inet(gnb_core_t *gnb_core, gnb_payload16_t *payload, gnb_sockaddress
         }
 
         if ( GNB_PF_FINISH == pf_ctx_st.pf_status ) {
+        	pf_inet_frame_status = GNB_PF_INET_FRAME_FINISH;
             break;
         }
 
     }
 
-    pf_inet_frame_status = GNB_PF_INET_FRAME_FINISH;
 
     for ( i=0; i<gnb_core->pf_array->num; i++ ) {
 
@@ -518,12 +517,12 @@ void gnb_pf_inet(gnb_core_t *gnb_core, gnb_payload16_t *payload, gnb_sockaddress
 
 
         if ( GNB_PF_FINISH == pf_ctx_st.pf_status ) {
+        	pf_inet_route_status = GNB_PF_INET_ROUTE_FINISH;
             break;
         }
 
     }
 
-    pf_inet_route_status = GNB_PF_INET_ROUTE_FINISH;
 
     for ( i=0; i<gnb_core->pf_array->num; i++ ) {
 
@@ -548,6 +547,7 @@ void gnb_pf_inet(gnb_core_t *gnb_core, gnb_payload16_t *payload, gnb_sockaddress
         }
 
         if ( GNB_PF_FINISH == pf_ctx_st.pf_status ) {
+        	pf_inet_forwad_status = GNB_PF_INET_FORWARD_FINISH;
             break;
         }
 
