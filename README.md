@@ -1,7 +1,7 @@
 # OpenGNB 
-[Chinese](/README.md) [English](/README_en.md)
+[Chinese](/README.md)  [English](/README_EN.md)  [Russian](/README_RU.md) 
 
-[OpenGNB](https://github.com/gnbdev/opengnb "OpenGNB") 是一个开源的去中心化的具有极致内网穿透能力的通过 P2P 进行三层网络交换的虚拟组网系统。
+[OpenGNB](https://github.com/gnbdev/opengnb "OpenGNB") 是一个开源的 P2P 去中心化的具有极致的内网穿透能力的 VPN 。
 > 可以让你把公司-家庭网络组成直接访问的局域网。
 
 GNB 项目相关所有代码以开源方式发布,当前发布的源码支持以下平台：FreeBSD Linux OpenWRT Raspberrypi OpenBSD macOS
@@ -28,6 +28,7 @@ GNB 项目相关所有代码以开源方式发布,当前发布的源码支持以
 * Linux 平台
 
 ### 步骤1: 下载编译 GNB 源码工程
+
 ```
 git clone https://github.com/gnbdev/opengnb.git
 cd opengnb
@@ -44,10 +45,13 @@ make -f Makefile.linux install
 
 ### 步骤3: 启动第一个节点
 主机 A 上用 **root** 执行
+
 ```
-gnb -n 1001 -I '39.108.10.191/9001' --multi-socket=on -p 12345678
+gnb -n 1001 -I "39.108.10.191/9001" --multi-socket=on -p 12345678
 ```
+
 启动成功后，主机 A 上执行 ip addr 可见 GNB 节点 IP
+
 ```
 3: gnb_tun: <POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP> mtu 1280 qdisc fq_codel state UNKNOWN group default qlen 500
     link/none 
@@ -61,8 +65,9 @@ gnb -n 1001 -I '39.108.10.191/9001' --multi-socket=on -p 12345678
 
 ### 步骤4: 启动第二个节点
 主机 B 上用 **root** 执行
+
 ```
-gnb -n 1002 -I '39.108.10.191/9001' --multi-socket=on -p 12345678
+gnb -n 1002 -I "39.108.10.191/9001" --multi-socket=on -p 12345678
 ```
 启动成功后，主机 B 上执行 ip addr 可见 GNB 节点 IP
 
@@ -81,6 +86,7 @@ gnb -n 1002 -I '39.108.10.191/9001' --multi-socket=on -p 12345678
 此时，如果主机 A 和主机 B nat 穿透成功并确保主机上没有防火墙的干预的情况下，可以互相 ping 到对方的虚拟 ip。
 
 主机 A 上执行
+
 ```
 root@hostA:~# ping 10.1.0.2
 PING 10.1.0.2 (10.1.0.2) 56(84) bytes of data.
@@ -92,6 +98,7 @@ PING 10.1.0.2 (10.1.0.2) 56(84) bytes of data.
 ```
 
 主机 B 上执行
+
 ```
 root@hostA:~# ping 10.1.0.1
 PING 10.1.0.1 (10.1.0.1) 56(84) bytes of data.

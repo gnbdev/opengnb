@@ -418,8 +418,8 @@ GNB 让 ** net to net ** 的部署变得非常轻而易举，借助 GNB 强大�
 这样，就总共有3个 GNB 节点需要部署：
 
 **nodeid**=1001  位于 WAN，作为 index 和 forward 节点，IP= x.x.x.x  port = 9001
-**nodeid**=1002  位于 **LAN A** 的 OpenWRT Router 上，NerWork=192.168.0.0/24
-**nodeid**=1003  位于 **LAN B** 的 OpenWRT Router 上，NerWork=192.168.1.0/24
+**nodeid**=1002  位于 **LAN A** 的 OpenWRT Router 上，NetWork=192.168.0.0/24
+**nodeid**=1003  位于 **LAN B** 的 OpenWRT Router 上，NetWork=192.168.1.0/24
 
 
 
@@ -524,9 +524,13 @@ ip route add 192.168.0.0/24 via 10.1.0.2
 
 通常，对于一些在 LAN 里通过 NAT 访问互联网的主机，在 NAT (Network Address Translation) 的过程中会涉及到包括但不限于诸如 LAN 中的路由设备， 网络结构，运营商所使用的网络设备，网络架构，NAT策略等许多几乎是“黑盒"般的网络环境，一个分组的IP地址可能经过多次转换，可能有多个出口网关，这些都是 NAT 穿透过程中的不确定因素。
 
+
 **Don't talk about the white paper, who known? who care?**
+
 **Don't talk about the type of NAT,  I don‘t  f*cking care**
+
 **What GNB has to do, just try it's best to traverse the NAT**
+
 
 毫无疑问，GNB 从 **Bit Torrent**  这些 P2P 软件获得灵感，既然两个位于不同的 LAN 中的主机通过 NAT 访问互联网能够建立起 P2P 通信用于传输文件的数据块，那么就意味这样的方式也能用于传输虚拟网卡的 IP 分组。
 
