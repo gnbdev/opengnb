@@ -672,7 +672,7 @@ make -f Makefile.Darwin
 make -f Makefile.mingw_x86_64
 ```
 
-`Makefile.mingw_x86_64` 是专门为在 Linux 下用  mingw 编译工具链编译的 Makefile，并不能用在 Windows  上，实际上 GNB 的源码是可以在 Windows 上用mingw 编译工具链编译，但缺少对应 Makefile 。
+`Makefile.mingw_x86_64` 是专门为在 Linux 下用  mingw 编译工具链编译的 Makefile，在 Windows 上也可以使用 。
 
 在 Windows 上，运行 GNB 需要安装虚拟网卡，可以在这里下载： [tap-windows](https://github.com/gnbdev/gnb_build/tree/main/if_drv/tap-windows ""downloads"")。
 

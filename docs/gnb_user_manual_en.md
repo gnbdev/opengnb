@@ -672,7 +672,7 @@ Compiling and building GNB on macOS requires Xcode to be installed.
 make -f Makefile.mingw_x86_64
 ```
 
-`Makefile.mingw_x86_64` is a Makefile specially compiled with mingw compiling toolchain under Linux, and cannot be used on Windows. In fact, the source code of GNB can be compiled with mingw compiling toolchain on Windows, but the corresponding Makefile is missing.
+`Makefile.mingw_x86_64` is a Makefile specially compiled with mingw compiling toolchain under Linux, Also available on Windows. 
 
 On Windows, running GNB requires installing a virtual network card, which can be downloaded here: [tap-windows](https://github.com/gnbdev/gnb_build/tree/main/if_drv/tap-windows ""downloads"").
 

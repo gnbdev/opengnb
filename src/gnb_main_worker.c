@@ -154,7 +154,7 @@ static void handle_fwdu0_frame(gnb_core_t *gnb_core, gnb_payload16_t *payload){
 
     gnb_fwdu0_frame_head_t *fwdu0_frame_head = (gnb_fwdu0_frame_head_t *)payload->data;
 
-    if ( 0 != memcmp(fwdu0_frame_head->passcode, gnb_core->conf->ufwd_passcode, 4) ){
+    if ( 0 != memcmp(fwdu0_frame_head->passcode, gnb_core->conf->ufwd_passcode, 4) ) {
         return;
     }
 
@@ -234,7 +234,7 @@ static gnb_worker_queue_data_t* make_worker_receive_queue_data(gnb_worker_t *wor
 
     gnb_ring_node_t *ring_node = gnb_ring_buffer_push(worker->ring_buffer);
 
-    if (NULL==ring_node) {
+    if ( NULL == ring_node ) {
         return NULL;
     }
 
@@ -316,13 +316,13 @@ static void handle_udp(gnb_core_t *gnb_core, uint8_t socket_idx, int af){
         case PAYLOAD_SUB_TYPE_POST_ADDR    :
         case PAYLOAD_SUB_TYPE_REQUEST_ADDR :
 
-                if ( 0 == gnb_core->conf->activate_index_service_worker) {
+                if ( 0 == gnb_core->conf->activate_index_service_worker ) {
                     goto finish;
                 }
 
                 receive_queue_data = make_worker_receive_queue_data(gnb_core->index_service_worker, &node_addr_st, socket_idx, gnb_core->inet_payload);
 
-                if (NULL==receive_queue_data) {
+                if ( NULL == receive_queue_data ) {
                     goto finish;
                 }
 
@@ -336,13 +336,13 @@ static void handle_udp(gnb_core_t *gnb_core, uint8_t socket_idx, int af){
         case PAYLOAD_SUB_TYPE_PUSH_ADDR    :
         case PAYLOAD_SUB_TYPE_DETECT_ADDR  :
 
-                if ( 0 == gnb_core->conf->activate_index_worker) {
+                if ( 0 == gnb_core->conf->activate_index_worker ) {
                     goto finish;
                 }
 
                 receive_queue_data = make_worker_receive_queue_data(gnb_core->index_worker, &node_addr_st, socket_idx, gnb_core->inet_payload);
 
-                if (NULL==receive_queue_data) {
+                if ( NULL == receive_queue_data ) {
                     goto finish;
                 }
 
@@ -365,9 +365,13 @@ static void handle_udp(gnb_core_t *gnb_core, uint8_t socket_idx, int af){
     //收到 node 类型的paload 就放到 node_worker queue 中
     if ( GNB_PAYLOAD_TYPE_NODE == gnb_core->inet_payload->type ) {
 
+        if ( 0 == gnb_core->conf->activate_node_worker ) {
+            goto finish;
+        }
+
         receive_queue_data = make_worker_receive_queue_data(gnb_core->node_worker, &node_addr_st, socket_idx, gnb_core->inet_payload);
 
-        if (NULL==receive_queue_data) {
+        if ( NULL == receive_queue_data ) {
             //queue is FULL
             goto finish;
         }
@@ -523,7 +527,7 @@ static void* udp_loop_thread_func( void *data ) {
 
         n_ready = select( maxfd + 1, &readfds, NULL, NULL, &timeout );
 
-        if (-1 == n_ready) {
+        if ( -1 == n_ready ) {
             if ( EINTR == errno ) {
                 //udp_loop_thread_func 被信号打断，可能队列里面被投放了数据
                 continue;
@@ -534,7 +538,7 @@ static void* udp_loop_thread_func( void *data ) {
 
         if ( gnb_core->conf->udp_socket_type & GNB_ADDR_TYPE_IPV6 ) {
 
-            for ( i=0; i < gnb_core->conf->udp6_socket_num; i++ ) {
+            for ( i=0; i<gnb_core->conf->udp6_socket_num; i++ ) {
 
                 if ( FD_ISSET( gnb_core->udp_ipv6_sockets[i], &readfds ) ) {
                     handle_udp(gnb_core, i, AF_INET6);
@@ -546,7 +550,7 @@ static void* udp_loop_thread_func( void *data ) {
 
         if ( gnb_core->conf->udp_socket_type & GNB_ADDR_TYPE_IPV4 ) {
 
-            for ( i=0; i < gnb_core->conf->udp4_socket_num; i++ ) {
+            for ( i=0; i<gnb_core->conf->udp4_socket_num; i++ ) {
 
                 if ( FD_ISSET( gnb_core->udp_ipv4_sockets[i], &readfds ) ) {
                     handle_udp(gnb_core, i, AF_INET);
@@ -560,7 +564,7 @@ static void* udp_loop_thread_func( void *data ) {
 
     if ( (gnb_core->conf->udp_socket_type & GNB_ADDR_TYPE_IPV6) ) {
 
-        for (i=0; i<gnb_core->conf->udp6_socket_num; i++) {
+        for ( i=0; i<gnb_core->conf->udp6_socket_num; i++ ) {
             FD_CLR(gnb_core->udp_ipv6_sockets[i], &allset);
         }
 
@@ -568,7 +572,7 @@ static void* udp_loop_thread_func( void *data ) {
 
     if ( (gnb_core->conf->udp_socket_type & GNB_ADDR_TYPE_IPV4) ) {
 
-        for (i=0; i<gnb_core->conf->udp4_socket_num; i++) {
+        for ( i=0; i<gnb_core->conf->udp4_socket_num; i++ ) {
             FD_CLR(gnb_core->udp_ipv4_sockets[i], &allset);
         }
 
@@ -614,7 +618,7 @@ static void* tun_udp_loop_thread_func(void *data){
 
     if ( gnb_core->conf->udp_socket_type & GNB_ADDR_TYPE_IPV6 ) {
 
-        for ( i=0; i < gnb_core->conf->udp6_socket_num; i++ ) {
+        for ( i=0; i<gnb_core->conf->udp6_socket_num; i++ ) {
 
             FD_SET(gnb_core->udp_ipv6_sockets[i], &allset);
 
@@ -628,7 +632,7 @@ static void* tun_udp_loop_thread_func(void *data){
 
     if ( gnb_core->conf->udp_socket_type & GNB_ADDR_TYPE_IPV4 ) {
 
-        for ( i=0; i < gnb_core->conf->udp4_socket_num; i++ ) {
+        for ( i=0; i<gnb_core->conf->udp4_socket_num; i++ ) {
 
             FD_SET(gnb_core->udp_ipv4_sockets[i], &allset);
 
@@ -651,7 +655,7 @@ static void* tun_udp_loop_thread_func(void *data){
 
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_MAIN_WORKER, "start %s success!\n", gnb_worker->name);
 
-    while(gnb_core->loop_flag){
+    while ( gnb_core->loop_flag ) {
 
         readfds = allset;
 
@@ -666,7 +670,7 @@ static void* tun_udp_loop_thread_func(void *data){
                 //检查一下有没到这里
                 //被信号打断，可能队列里面被投放了数据
                 continue;
-            }else{
+            } else {
                 break;
             }
         }
