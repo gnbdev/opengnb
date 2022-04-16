@@ -258,9 +258,7 @@ void gnb_build_passcode(void *passcode_bin, char *string_in) {
         memcpy(passcode_string, passcode_string_offset, passcode_string_len);
     }
 
-    passcode_bin = gnb_hex2bin(passcode_string, passcode_bin, 4);
-
-    if ( NULL != passcode_bin ) {
+    if ( NULL == gnb_hex2bin(passcode_string, passcode_bin, 4) ) {
         memcpy(passcode_bin, passcode_string, 4);
     }
 
