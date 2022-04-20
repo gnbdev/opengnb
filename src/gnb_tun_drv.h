@@ -72,6 +72,7 @@ extern gnb_tun_drv_t gnb_tun_drv_linux;
 
 #if defined(_WIN32)
 extern gnb_tun_drv_t gnb_tun_drv_win32;
+extern gnb_tun_drv_t gnb_tun_drv_wintun;
 #endif
 
 #endif

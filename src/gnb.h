@@ -120,6 +120,9 @@ typedef struct _gnb_core_t{
 	gnb_pf_array_t     *pf_array;
 	gnb_pf_ctx_array_t *pf_ctx_array;
 
+	gnb_payload16_t     *inet_payload0;
+	gnb_payload16_t     *tun_payload0;
+
 	gnb_payload16_t     *inet_payload;
 	gnb_payload16_t     *tun_payload;
 
@@ -143,6 +146,8 @@ typedef struct _gnb_core_t{
 #endif
 
 	struct timeval now_timeval;
+	uint64_t now_time_sec;
+	uint64_t now_time_usec;
 
 	//把 tun 数据读入 payload 时给pf过程构建的frame首部预留的空间
 	//这样构建的 payload 可以直接发送出去，尽量避免了pf过程发生内存拷贝
@@ -170,7 +175,7 @@ typedef struct _gnb_core_t{
 #define GNB_LOG_ID_INDEX_SERVICE_WORKER  5
 #define GNB_LOG_ID_DETECT_WORKER         6
 
-#define GNB_VERSION_STRING    "GNB  version 1.2.8.6  protocol version 1.1.3"
+#define GNB_VERSION_STRING    "GNB  version 1.2.8.7  protocol version 1.1.3"
 #define GNB_COPYRIGHT_STRING  "Copyright (C) 2019 gnbdev<gnbdev@qq.com>"
 #define GNB_URL_STRING        "https://github.com/gnbdev/opengnb"
 #endif

@@ -56,7 +56,7 @@ void log_out_description(gnb_log_ctx_t *log);
 
 extern  gnb_arg_list_t *gnb_es_arg_list;
 extern int is_verbose;
-
+extern int is_trace;
 
 static void gnb_setup_env(gnb_core_t *gnb_core){
 
@@ -94,7 +94,7 @@ static void init_ctl_block(gnb_core_t *gnb_core, gnb_conf_t *conf){
     mmap_block = gnb_mmap_create(conf->map_file, block_size, GNB_MMAP_TYPE_READWRITE|GNB_MMAP_TYPE_CREATE);
 
     if (NULL==mmap_block) {
-        printf("init_ctl_block error[%p]\n",mmap_block);
+        printf("init_ctl_block error[%p] map_file=%s\n",mmap_block, conf->map_file);
         exit(1);
     }
 
@@ -486,16 +486,29 @@ gnb_core_t* gnb_core_create(gnb_conf_t *conf){
         gnb_config_lite(gnb_core);
     }
 
-    if ( 0==conf->daemon && 1==is_verbose ) {
+    if ( 0==gnb_core->conf->daemon ) {
 
-        gnb_core->conf->console_log_level        = 2;
-        gnb_core->conf->core_log_level           = 2;
-        gnb_core->conf->pf_log_level             = 2;
-        gnb_core->conf->main_log_level           = 2;
-        gnb_core->conf->node_log_level           = 2;
-        gnb_core->conf->index_log_level          = 2;
-        gnb_core->conf->index_service_log_level  = 2;
-        gnb_core->conf->detect_log_level         = 2;
+    	if ( 1==is_verbose ) {
+            gnb_core->conf->console_log_level        = 2;
+            gnb_core->conf->core_log_level           = 2;
+            gnb_core->conf->pf_log_level             = 2;
+            gnb_core->conf->main_log_level           = 2;
+            gnb_core->conf->node_log_level           = 2;
+            gnb_core->conf->index_log_level          = 2;
+            gnb_core->conf->index_service_log_level  = 2;
+            gnb_core->conf->detect_log_level         = 2;
+    	}
+
+    	if ( 1==is_trace ) {
+            gnb_core->conf->console_log_level        = 3;
+            gnb_core->conf->core_log_level           = 3;
+            gnb_core->conf->pf_log_level             = 3;
+            gnb_core->conf->main_log_level           = 3;
+            gnb_core->conf->node_log_level           = 3;
+            gnb_core->conf->index_log_level          = 3;
+            gnb_core->conf->index_service_log_level  = 3;
+            gnb_core->conf->detect_log_level         = 3;
+    	}
 
         if ( 1==gnb_core->conf->if_dump ) {
             gnb_core->conf->console_log_level        = 3;
@@ -528,7 +541,7 @@ gnb_core_t* gnb_core_create(gnb_conf_t *conf){
     pf = gnb_find_pf_mod_by_name(gnb_core->conf->pf_route);
 
     if ( NULL== pf ) {
-        GNB_ERROR1(gnb_core->log,GNB_LOG_ID_CORE,"pf_route '%s' not exist\n", gnb_core->conf->pf_route);
+        GNB_ERROR1(gnb_core->log, GNB_LOG_ID_CORE, "pf_route '%s' not exist\n", gnb_core->conf->pf_route);
         return NULL;
     }
 
@@ -556,13 +569,15 @@ skip_crypto:
     gnb_pf_conf(gnb_core);
 
     if ( NULL==gnb_core->local_node ) {
-        GNB_ERROR1(gnb_core->log,GNB_LOG_ID_CORE,"local node is miss\n");
+        GNB_ERROR1(gnb_core->log, GNB_LOG_ID_CORE, "local node is miss\n");
         return NULL;
     }
 
-    gnb_core->tun_payload  = (gnb_payload16_t *)gnb_core->ctl_block->core_zone->tun_payload_block;
-    gnb_core->inet_payload = (gnb_payload16_t *)gnb_core->ctl_block->core_zone->inet_payload_block;
+    gnb_core->tun_payload0  = (gnb_payload16_t *)gnb_core->ctl_block->core_zone->tun_payload_block;
+    gnb_core->inet_payload0 = (gnb_payload16_t *)gnb_core->ctl_block->core_zone->inet_payload_block;
 
+    gnb_core->tun_payload  = gnb_core->tun_payload0  + GNB_PAYLOAD_BUFFER_PADDING_SIZE;
+    gnb_core->inet_payload = gnb_core->inet_payload0 + GNB_PAYLOAD_BUFFER_PADDING_SIZE;
 
 #if defined(__FreeBSD__)
     gnb_core->drv = &gnb_tun_drv_freebsd;
@@ -584,7 +599,15 @@ skip_crypto:
 
 
 #if defined(_WIN32)
-    gnb_core->drv = &gnb_tun_drv_win32;
+
+    if ( GNB_IF_DRV_TYPE_TAP_WINDOWS == conf->if_drv ) {
+    	gnb_core->drv = &gnb_tun_drv_win32;
+    } else if ( GNB_IF_DRV_TYPE_TAP_WINTUN == conf->if_drv ) {
+    	gnb_core->drv = &gnb_tun_drv_wintun;
+    } else {
+    	gnb_core->drv = &gnb_tun_drv_win32;
+    }
+
 #endif
 
     if ( gnb_core->conf->activate_tun ) {
@@ -644,16 +667,29 @@ gnb_core_t* gnb_core_index_service_create(gnb_conf_t *conf){
     gnb_core->ifname = (char *)gnb_core->ctl_block->core_zone->ifname;
     gnb_core->if_device_string = (char *)gnb_core->ctl_block->core_zone->if_device_string;
 
-    if ( 0==conf->daemon && 1==is_verbose ) {
+    if ( 0==conf->daemon ) {
 
-        gnb_core->conf->console_log_level        = 2;
-        gnb_core->conf->core_log_level           = 2;
-        gnb_core->conf->pf_log_level             = 2;
-        gnb_core->conf->main_log_level           = 2;
-        gnb_core->conf->node_log_level           = 2;
-        gnb_core->conf->index_log_level          = 2;
-        gnb_core->conf->index_service_log_level  = 2;
-        gnb_core->conf->detect_log_level         = 2;
+    	if ( 1==is_verbose ) {
+            gnb_core->conf->console_log_level        = 2;
+            gnb_core->conf->core_log_level           = 2;
+            gnb_core->conf->pf_log_level             = 2;
+            gnb_core->conf->main_log_level           = 2;
+            gnb_core->conf->node_log_level           = 2;
+            gnb_core->conf->index_log_level          = 2;
+            gnb_core->conf->index_service_log_level  = 2;
+            gnb_core->conf->detect_log_level         = 2;
+    	}
+
+    	if ( 1==is_trace ) {
+            gnb_core->conf->console_log_level        = 3;
+            gnb_core->conf->core_log_level           = 3;
+            gnb_core->conf->pf_log_level             = 3;
+            gnb_core->conf->main_log_level           = 3;
+            gnb_core->conf->node_log_level           = 3;
+            gnb_core->conf->index_log_level          = 3;
+            gnb_core->conf->index_service_log_level  = 3;
+            gnb_core->conf->detect_log_level         = 3;
+    	}
 
         if ( 1==gnb_core->conf->if_dump ) {
             gnb_core->conf->console_log_level        = 3;
@@ -672,8 +708,11 @@ gnb_core_t* gnb_core_index_service_create(gnb_conf_t *conf){
 
     snprintf(gnb_core->ifname,256,"%s", gnb_core->conf->ifname);
 
-    gnb_core->tun_payload  = (gnb_payload16_t *)gnb_core->ctl_block->core_zone->tun_payload_block;
-    gnb_core->inet_payload = (gnb_payload16_t *)gnb_core->ctl_block->core_zone->inet_payload_block;
+    gnb_core->tun_payload0  = (gnb_payload16_t *)gnb_core->ctl_block->core_zone->tun_payload_block;
+    gnb_core->inet_payload0 = (gnb_payload16_t *)gnb_core->ctl_block->core_zone->inet_payload_block;
+
+    gnb_core->tun_payload  = gnb_core->tun_payload0  + GNB_PAYLOAD_BUFFER_PADDING_SIZE;
+    gnb_core->inet_payload = gnb_core->inet_payload0 + GNB_PAYLOAD_BUFFER_PADDING_SIZE;
 
     gnb_core->index_service_worker  = gnb_worker_init("gnb_index_service_worker",  gnb_core);
     gnb_core->main_worker           = gnb_worker_init("gnb_main_worker", gnb_core);

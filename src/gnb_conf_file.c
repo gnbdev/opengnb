@@ -374,6 +374,28 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         }
 
+
+
+        if ( !strncmp(line_buffer, "if-drv", sizeof("if-drv")-1) ) {
+
+            num = sscanf(line_buffer, "%32[^ ] %2s", field, value);
+
+            if ( 2 != num ) {
+                printf("config if-drv error in [%s]\n", node_conf_file);
+                exit(1);
+            }
+
+            if ( !strncmp(value, "wintun", sizeof("wintun")-1) ) {
+            	gnb_core->conf->if_drv = GNB_IF_DRV_TYPE_TAP_WINTUN;
+            } else if ( !strncmp(value, "tap-windows", sizeof("tap-windows")-1) ) {
+            	gnb_core->conf->if_drv = GNB_IF_DRV_TYPE_TAP_WINDOWS;
+            } else {
+            	gnb_core->conf->if_drv = GNB_IF_DRV_TYPE_DEFAULT;
+            }
+
+        }
+
+
         if ( !strncmp(line_buffer, "nodeid", sizeof("nodeid")-1) ) {
 
             num = sscanf(line_buffer, "%32[^ ] %u", field, &gnb_core->conf->local_uuid);
@@ -528,6 +550,28 @@ static void local_node_file_config(gnb_core_t *gnb_core){
                 gnb_core->conf->direct_forwarding = 0;
             } else {
                 gnb_core->conf->direct_forwarding = 1;
+            }
+
+        }
+
+
+        if (!strncmp(line_buffer, "unified-forwarding", sizeof("unified-forwarding")-1) ) {
+
+            num = sscanf(line_buffer,"%32[^ ] %2s", field, value);
+
+            if ( 2 != num ) {
+                printf("config %s error in [%s]\n", "direct-forwarding", node_conf_file);
+                exit(1);
+            }
+
+        	if ( !strncmp(value, "auto", sizeof("auto")-1) ) {
+        		gnb_core->conf->unified_forwarding = GNB_UNIFIED_FORWARDING_AUTO;
+        	} else if ( !strncmp(value, "force", 3) ) {
+        		gnb_core->conf->unified_forwarding = GNB_UNIFIED_FORWARDING_FORCE;
+            } else if ( !strncmp(value, "off", 3) ) {
+            	gnb_core->conf->unified_forwarding = GNB_UNIFIED_FORWARDING_OFF;
+            } else {
+            	gnb_core->conf->unified_forwarding = GNB_UNIFIED_FORWARDING_AUTO;
             }
 
         }

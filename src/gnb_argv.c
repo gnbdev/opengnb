@@ -107,10 +107,13 @@ void gnb_setup_es_argv(char *es_argv_string);
 
 #define SET_SYSTEMD_DAEMON             (GNB_OPT_INIT + 45)
 
+#define SET_IF_DRV                     (GNB_OPT_INIT + 46)
 
 gnb_arg_list_t *gnb_es_arg_list;
+
 int is_self_test = 0;
 int is_verbose   = 0;
+int is_trace     = 0;
 
 gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
@@ -144,7 +147,9 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
     conf->activate_index_service_worker = 1;
     conf->activate_detect_worker        = 1;
 
-    conf->direct_forwarding = 1;
+    conf->direct_forwarding  = 1;
+
+    conf->unified_forwarding = 1;
 
     conf->fwdu0          = 1;
 
@@ -200,6 +205,8 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
     conf->daemon = 0;
     conf->systemd_daemon = 0;
 
+    conf->if_drv = GNB_IF_DRV_TYPE_DEFAULT;
+
     #if defined(__FreeBSD__)
     snprintf(conf->ifname,NAME_MAX,"%s","tun0");
     #endif
@@ -219,6 +226,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
     #if defined(_WIN32)
     snprintf(conf->ifname,NAME_MAX,"%s","gnb_tun");
+    conf->if_drv = GNB_IF_DRV_TYPE_TAP_WINDOWS;
     #endif
 
     char *binary_dir;
@@ -261,6 +269,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
       { "node-route",     required_argument, 0, 'r' },
 
       { "ifname",   required_argument, 0, 'i' },
+	  { "if-drv",   required_argument, 0, SET_IF_DRV},
       { "mtu",      required_argument, 0, SET_MTU },
       { "crypto",   required_argument, 0, SET_CRYPTO_TPYE },
       { "passcode", required_argument,  0, 'p' },
@@ -282,6 +291,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
       { "quiet",     no_argument,   0, 'q' },
       { "selftest",  no_argument,   0, 't' },
       { "verbose",   no_argument,   0, 'V' },
+	  { "trace",     no_argument,   0, 'T' },
 
 	  { "systemd",   no_argument,   0, SET_SYSTEMD_DAEMON },
 
@@ -304,6 +314,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
       { "set-fwdu0",                 required_argument,  0, SET_FWDU0 },
 
       { "pf-route",                  required_argument,  0, SET_PF_ROUTE},
+	  { "unified-forwarding",        required_argument,  0, 'U' },
       { "direct-forwarding",         required_argument,  0, SET_DIRECT_FORWARDING },
       { "pid-file",                  required_argument,  0, SET_PID_FILE },
       { "node-cache-file",           required_argument,  0, SET_NODE_CACHE_FILE },
@@ -338,7 +349,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
     while (1) {
 
-        opt = getopt_long(argc, argv, "c:n:a:r:PI:b:l:i:46dp:e:tqVh",long_options, &option_index);
+        opt = getopt_long(argc, argv, "c:n:a:r:PI:b:l:i:46dp:e:tqVTh",long_options, &option_index);
 
         if ( -1 == opt ) {
             break;
@@ -379,6 +390,18 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
             #endif
 
             break;
+
+        case SET_IF_DRV:
+
+            if ( !strncmp(optarg, "wintun", sizeof("wintun")-1) ) {
+                conf->if_drv = GNB_IF_DRV_TYPE_TAP_WINTUN;
+            } else if ( !strncmp(optarg, "tap-windows", sizeof("tap-windows")-1) ) {
+            	conf->if_drv = GNB_IF_DRV_TYPE_TAP_WINDOWS;
+            } else {
+            	conf->if_drv = GNB_IF_DRV_TYPE_DEFAULT;
+            }
+
+        	break;
 
         case 'l':
 
@@ -425,6 +448,10 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
             break;
         case 'V':
             is_verbose = 1;
+            break;
+
+        case 'T':
+        	is_trace = 1;
             break;
 
         case SET_SYSTEMD_DAEMON:
@@ -646,6 +673,20 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
             }
 
             break;
+
+        case 'U':
+
+        	if ( !strncmp(optarg, "auto", sizeof("auto")-1) ) {
+                conf->unified_forwarding = GNB_UNIFIED_FORWARDING_AUTO;
+        	} else if ( !strncmp(optarg, "force", 3) ) {
+        		conf->unified_forwarding = GNB_UNIFIED_FORWARDING_FORCE;
+            } else if ( !strncmp(optarg, "off", 3) ) {
+                conf->unified_forwarding = GNB_UNIFIED_FORWARDING_OFF;
+            } else {
+            	conf->unified_forwarding = GNB_UNIFIED_FORWARDING_AUTO;
+            }
+
+        	break;
 
         case SET_DIRECT_FORWARDING:
 
@@ -913,9 +954,10 @@ static void show_useage(int argc,char *argv[]){
     printf("  -P, --public-index-service       run as public index service\n");
 
     printf("  -I, --index-address              setup index address\n");
-    printf("  -a, --node-address               setup node address\n");
+    printf("  -a, --node-address               setup node ip address\n");
     printf("  -r, --node-route                 setup node route\n");
     printf("  -i, --ifname                     TUN Device Name\n");
+
     printf("  -4, --ipv4-only                  Use IPv4 Only\n");
     printf("  -6, --ipv6-only                  Use IPv6 Only\n");
     printf("  -d, --daemon                     daemon\n");
@@ -923,10 +965,11 @@ static void show_useage(int argc,char *argv[]){
     printf("  -t, --selftest                   self test\n");
     printf("  -p, --passcode                   a hexadecimal string of 32-bit unsigned integer, use to strengthen safety default is 0x9d078107\n");
 
-    printf("  -l, --listen                     listen address default is '0.0.0.0:9001'\n");
+    printf("  -l, --listen                     listen address default is \"0.0.0.0:9001\"\n");
     printf("  -b, --ctl-block                  ctl block mapper file\n");
     printf("  -e, --es-argv                    pass-through gnb_es argv\n");
     printf("  -V, --verbose                    verbose mode\n");
+    printf("  -T, --trace                      trace mode\n");
 
     printf("      --systemd                    systemd daemon\n");
 
@@ -939,30 +982,35 @@ static void show_useage(int argc,char *argv[]){
     printf("      --port-detect-range          port detect range\n");
 
     printf("      --mtu                        TUN Device MTU ipv4：532～1500, ipv6: 1280～1500\n");
-    printf("      --crypto                     ip frame crypto 'xor' or 'arc4' or 'none' default is 'xor'\n");
-    printf("      --crypto-key-update-interval crypto key update interval, 'hour' or 'minute' or none default is 'none'\n");
-    printf("      --multi-index-type           'simple-fault-tolerant' or 'simple-load-balance' or 'full' default is 'simple-load-balance'\n");
-    printf("      --multi-forward-type         'simple-fault-tolerant' or 'simple-load-balance' default is 'simple-fault-tolerant'\n");
+    printf("      --crypto                     ip frame crypto \"xor\" or \"arc4\" or \"none\" default is \"xor\"\n");
+    printf("      --crypto-key-update-interval crypto key update interval, \"hour\" or \"minute\" or none default is \"none\"\n");
+    printf("      --multi-index-type           \"simple-fault-tolerant\" or \"simple-load-balance\" or \"full\" default is \"simple-load-balance\"\n");
+    printf("      --multi-forward-type         \"simple-fault-tolerant\" or \"simple-load-balance\" default is \"simple-fault-tolerant\"\n");
 
-#ifdef __UNIX_LIKE_OS__
-    printf("      --socket-if-name             example: 'eth0', 'eno1', only for unix-like os\n");
-#endif
+    #ifdef _WIN32
+    printf("      --if-drv                     interface driver \"tap-windows\" or \"tap-wintun\" default is \"tap-windows\"\n");
+    #endif
 
-    printf("      --address-secure             hide part of ip address in logs 'on' or 'off' default is 'on'\n");
-    printf("      --if-dump                    dump the interface data frame 'on' or 'off' default is 'off'\n");
+    #ifdef __UNIX_LIKE_OS__
+    printf("      --socket-if-name             example: \"eth0\", \"eno1\", only for unix-like os\n");
+    #endif
+
+    printf("      --address-secure             hide part of ip address in logs \"on\" or \"off\" default is \"on\"\n");
+    printf("      --if-dump                    dump the interface data frame \"on\" or \"off\" default is \"off\"\n");
     printf("      --pf-route                   packet filter route\n");
-    printf("      --multi-socket               'on' or 'off' default is 'off'\n");
-    printf("      --direct-forwarding          'on' or 'off' default is 'on'\n");
-    printf("      --set-tun                    'on' or 'off' default is 'on'\n");
-    printf("      --index-worker               'on' or 'off' default is 'on'\n");
-    printf("      --index-service-worker       'on' or 'off' default is 'on'\n");
-    printf("      --node-detect-worker         'on' or 'off' default is 'on'\n");
-    printf("      --set-fwdu0                  'on' or 'off' default is 'on'\n");
+    printf("      --unified-forwarding         \"auto\" or \"force\" or \"off\" default is \"auto\"\n");
+    printf("      --multi-socket               \"on\" or \"off\" default is \"off\"\n");
+    printf("      --direct-forwarding          \"on\" or \"off\" default is \"on\"\n");
+    printf("      --set-tun                    \"on\" or \"off\" default is \"on\"\n");
+    printf("      --index-worker               \"on\" or \"off\" default is \"on\"\n");
+    printf("      --index-service-worker       \"on\" or \"off\" default is \"on\"\n");
+    printf("      --node-detect-worker         \"on\" or \"off\" default is \"on\"\n");
+    printf("      --set-fwdu0                  \"on\" or \"off\" default is \"on\"\n");
     printf("      --pid-file                   pid file\n");
     printf("      --node-cache-file            node address cache file\n");
     printf("      --log-file-path              log file path\n");
-    printf("      --log-udp4                   send log to the address ipv4 default is '127.0.0.1:8666'\n");
-    printf("      --log-udp-type               log udp type 'binary' or 'text' default is 'binary'\n");
+    printf("      --log-udp4                   send log to the address ipv4 default is \"127.0.0.1:8666\"\n");
+    printf("      --log-udp-type               log udp type \"binary\" or \"text\" default is \"binary\"\n");
     printf("      --console-log-level          log console level 0-3\n");
     printf("      --file-log-level             log file level    0-3\n" );
     printf("      --udp-log-level              log udp level     0-3\n");

@@ -1,4 +1,4 @@
-CFLAGS=-O2 -I./src/ -I/usr/x86_64-w64-mingw32/include/ -I./libs/  -I./libs/miniupnpc/ -DMINIUPNP_STATICLIB
+CFLAGS=-O2 -I./src/ -I/usr/x86_64-w64-mingw32/include/ -I./libs/ -I./libs/wintun -I./libs/miniupnpc/ -DMINIUPNP_STATICLIB
 CLI_LDFLAGS=-s -static -L/usr/x86_64-w64-mingw32/lib/ -lwsock32 -lws2_32 -liphlpapi -lpthread -lmingwex
 GNB_ES_LDFLAGS=-s -static -L/usr/x86_64-w64-mingw32/lib/ -lwsock32 -lws2_32 -liphlpapi -lpthread -lmingwex
 
@@ -17,8 +17,8 @@ GNB_CLI_OBJS =                             \
        ./src/gnb_argv.o                    \
        ./src/gnb_res.o                     \
        ./src/mingw/windows_platform.o      \
-       ./src/mingw/gnb_drv_win32.o
-
+       ./src/mingw/gnb_drv_win32.o         \
+       ./src/mingw/gnb_drv_wintun.o
 
 all:${GNB_CLI} ${GNB_CRYPTO} ${GNB_ES} ${GNB_CTL}
 
