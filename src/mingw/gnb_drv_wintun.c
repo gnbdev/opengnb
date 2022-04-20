@@ -304,6 +304,7 @@ static int set_addr4(gnb_core_t *gnb_core) {
 
     status = DeleteUnicastIpAddressEntry(&ipRow);
 
+#if 0
     //remove old same address on any interface.
     MIB_UNICASTIPADDRESS_TABLE *table = NULL;
     status = GetUnicastIpAddressTable(AF_INET, &table);
@@ -317,6 +318,7 @@ static int set_addr4(gnb_core_t *gnb_core) {
         FreeMibTable(table);
     }
 
+#endif
 
     status = CreateUnicastIpAddressEntry(&ipRow);
     if (status != NO_ERROR) {
@@ -369,6 +371,7 @@ static int set_addr6(gnb_core_t *gnb_core) {
 
     status = DeleteUnicastIpAddressEntry(&ipRow);
 
+#if 0
     //remove old same address on any interface.
     MIB_UNICASTIPADDRESS_TABLE *table = NULL;
     status = GetUnicastIpAddressTable(AF_INET6, &table);
@@ -381,6 +384,7 @@ static int set_addr6(gnb_core_t *gnb_core) {
         }
         FreeMibTable(table);
     }
+#endif
 
 
     status = CreateUnicastIpAddressEntry(&ipRow);
