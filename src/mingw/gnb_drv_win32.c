@@ -446,6 +446,41 @@ static int set_addr6(gnb_core_t *gnb_core){
 
 }
 
+static int clear_addr4(gnb_core_t *gnb_core) {
+    gnb_core_win_ctx_t *tun_win_ctx = gnb_core->platform_ctx;
+    unsigned long status = 0;
+    MIB_UNICASTIPADDRESS_TABLE *table = NULL;
+    status = GetUnicastIpAddressTable(AF_INET, &table);
+    if (status == NO_ERROR) {
+        for (ULONG i = 0; i < (table->NumEntries); ++i) {
+            if (table->Table[i].InterfaceIndex == tun_win_ctx->tun_if_id) {
+                //只清除当前接口的IPv4地址设置
+                GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "[clear_addr4] Clear IPv4 Address: %s\n", GNB_ADDR4STR_PLAINTEXT1(&(table->Table[i].Address.Ipv4.sin_addr)));
+                DeleteUnicastIpAddressEntry(&table->Table[i]);
+            }
+        }
+        FreeMibTable(table);
+    }
+    return 0;
+}
+
+static int clear_addr6(gnb_core_t *gnb_core) {
+    gnb_core_win_ctx_t *tun_win_ctx = gnb_core->platform_ctx;
+    unsigned long status = 0;
+    MIB_UNICASTIPADDRESS_TABLE *table = NULL;
+    status = GetUnicastIpAddressTable(AF_INET6, &table);
+    if (status == NO_ERROR) {
+        for (ULONG i = 0; i < (table->NumEntries); ++i) {
+            if (table->Table[i].InterfaceIndex == tun_win_ctx->tun_if_id) {
+                //只清除当前接口的IPv6地址设置
+                GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "[clear_addr6] Clear IPv6 Address: %s\n", GNB_ADDR6STR_PLAINTEXT1(&(table->Table[i].Address.Ipv6.sin6_addr)));
+                DeleteUnicastIpAddressEntry(&table->Table[i]);
+            }
+        }
+        FreeMibTable(table);
+    }
+    return 0;
+}
 
 static int open_tun_win32(gnb_core_t *gnb_core){
 
@@ -606,6 +641,10 @@ static int close_tun_win32(gnb_core_t *gnb_core){
     unsigned long status = 0l;
 
     DWORD len;
+
+    //虚拟网卡关闭时,清除启动时设置的IP地址,以免该网卡后续使用不同IP时,旧IP还在.
+    clear_addr4(gnb_core);
+    clear_addr6(gnb_core);
 
     ret = DeviceIoControl(tun_win_ctx->device_handle, TAP_WIN_IOCTL_SET_MEDIA_STATUS, &status, sizeof(status), &status, sizeof(status), &len, NULL);
 
