@@ -981,7 +981,7 @@ static void show_useage(int argc,char *argv[]){
     printf("      --port-detect-end            port detect end\n");
     printf("      --port-detect-range          port detect range\n");
 
-    printf("      --mtu                        TUN Device MTU ipv4：532～1500, ipv6: 1280～1500\n");
+    printf("      --mtu                        TUN Device MTU ipv4:532~1500, ipv6:1280~1500\n");
     printf("      --crypto                     ip frame crypto \"xor\" or \"arc4\" or \"none\" default is \"xor\"\n");
     printf("      --crypto-key-update-interval crypto key update interval, \"hour\" or \"minute\" or none default is \"none\"\n");
     printf("      --multi-index-type           \"simple-fault-tolerant\" or \"simple-load-balance\" or \"full\" default is \"simple-load-balance\"\n");
