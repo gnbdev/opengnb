@@ -43,6 +43,7 @@
 
 
 #define MAX_TRIES 3
+#define WINTUN_VERSION (14U)
 #define WINTUN_POOL_NAME L"GNB"
 #define WINTUN_RING_CAPACITY 0x400000 /* 4 MiB */
 
@@ -70,7 +71,9 @@ InitializeWintun(gnb_core_t *gnb_core) {
     GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "[InitializeWintun] LoadLibrary wintun.dll Start...\n");
     HMODULE Wintun = LoadLibraryExW(L"wintun.dll", NULL, LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_SYSTEM32);
     if (!Wintun) {
-        GNB_ERROR3(gnb_core->log, GNB_LOG_ID_CORE, "[InitializeWintun] LoadLibrary wintun.dll Failed ...\n");
+        GNB_ERROR1(gnb_core->log, GNB_LOG_ID_CORE, "[InitializeWintun] LoadLibrary wintun.dll Failed ...\n");
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "[InitializeWintun] Please check the wintun.dll Exists in the application directory.\n");
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "[InitializeWintun] Wintun driver download link: https://www.wintun.net/builds/wintun-0.14.1.zip\n");
         return NULL;
     }
 
@@ -85,7 +88,10 @@ InitializeWintun(gnb_core_t *gnb_core) {
         DWORD LastError = GetLastError();
         FreeLibrary(Wintun);
         SetLastError(LastError);
-        GNB_ERROR3(gnb_core->log, GNB_LOG_ID_CORE, "[InitializeWintun] GetProcAddress wintun.dll  Failed...\n");
+        GNB_ERROR1(gnb_core->log, GNB_LOG_ID_CORE, "[InitializeWintun] GetProcAddress wintun.dll  Failed...\n");
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "[InitializeWintun] Please check the wintun.dll Exists with the right version v0.14\n");
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "[InitializeWintun] Wintun driver download link: https://www.wintun.net/builds/wintun-0.14.1.zip\n");
+
         return NULL;
     }
     return Wintun;
@@ -102,9 +108,53 @@ typedef struct _gnb_core_wintun_ctx_t{
     HANDLE hQuitEvent;
     HANDLE hReadEvent;
 
+    HANDLE hInterfaceUpEvent;
+    HANDLE hInterfaceNotify;
+
+    BOOL  ifDisabled;
+
     int skip_if_script;
 
 }gnb_core_wintun_ctx_t;
+
+
+//Static Callback function for NotifyIpInterfaceChange API.
+static void WINAPI OnInterfaceChange(PVOID callerContext,
+                                     PMIB_IPINTERFACE_ROW row,
+                                     MIB_NOTIFICATION_TYPE notificationType)
+{
+    NET_LUID wintun_luid;
+    ULONG wintun_if_index;
+    gnb_core_t *gnb_core = (gnb_core_t*)callerContext;
+    gnb_core_wintun_ctx_t *tun_wintun_ctx = gnb_core->platform_ctx;
+    WintunGetAdapterLUID(tun_wintun_ctx->adapter_handle, &wintun_luid);
+    ConvertInterfaceLuidToIndex(&wintun_luid, &wintun_if_index);
+    if(wintun_if_index == row->InterfaceIndex)
+    {
+        //网卡发生变化
+        char *status = "";
+        switch (notificationType)
+        {
+        case MibAddInstance:
+            //网卡被启用
+            status = "Enabled";
+            tun_wintun_ctx->ifDisabled = FALSE;
+            SetEvent(tun_wintun_ctx->hInterfaceUpEvent);
+            break;
+        case MibDeleteInstance:
+            //网卡被禁用
+            status = "Disabled";
+            tun_wintun_ctx->ifDisabled = TRUE;
+            break;
+        case MibParameterNotification:
+        case MibInitialNotification:
+        default:
+            return;
+        }
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "[OnInterfaceChange] Interface index:%lu status:%s\n", wintun_if_index, status);
+    }
+
+}
 
 
 static int close_tun_wintun(gnb_core_t *gnb_core);
@@ -115,32 +165,30 @@ static int release_tun_wintun(gnb_core_t *gnb_core);
 
 
 int init_tun_wintun(gnb_core_t *gnb_core) {
-    gnb_core_wintun_ctx_t *tun_wintun_ctx = (gnb_core_wintun_ctx_t *)malloc(sizeof(gnb_core_wintun_ctx_t));
-    memset(tun_wintun_ctx, 0, sizeof(gnb_core_wintun_ctx_t));
-
-    tun_wintun_ctx->skip_if_script = 0;
-
     GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "Notes: gnb_tun_drv_wintun is a Third party module; technical support:  https://www.github.com/wuqiong\n");
 
     HMODULE module = InitializeWintun(gnb_core);
 
     if(NULL == module) {
-        GNB_ERROR3(gnb_core->log, GNB_LOG_ID_CORE, "[init_tun_wintun] InitializeWintun  Failed.\n");
+        GNB_ERROR1(gnb_core->log, GNB_LOG_ID_CORE, "[init_tun_wintun] InitializeWintun  Failed.\n");
         return -1;
     }
     GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "[init_tun_wintun] InitializeWintun  Successful...\n");
 
     HANDLE quit_event = CreateEventW(NULL, TRUE, FALSE, NULL);
     if (!quit_event) {
-        GNB_ERROR3(gnb_core->log, GNB_LOG_ID_CORE, "[init_tun_wintun] Failed to Create QuitEvent.\n");
+        GNB_ERROR1(gnb_core->log, GNB_LOG_ID_CORE, "[init_tun_wintun] Failed to Create QuitEvent.\n");
         WintunDeleteDriver();
         FreeLibrary(module);
         return -2;
     }
+    gnb_core_wintun_ctx_t *tun_wintun_ctx = (gnb_core_wintun_ctx_t *)malloc(sizeof(gnb_core_wintun_ctx_t));
+    memset(tun_wintun_ctx, 0, sizeof(gnb_core_wintun_ctx_t));
+    gnb_core->platform_ctx = tun_wintun_ctx;
+    tun_wintun_ctx->skip_if_script = 0;
     tun_wintun_ctx->hQuitEvent = quit_event;
     tun_wintun_ctx->drv_module = module;
 
-    gnb_core->platform_ctx = tun_wintun_ctx;
 
     snprintf(tun_wintun_ctx->if_name, PATH_MAX, "%s", "P2PNet");
 
@@ -159,6 +207,7 @@ int init_tun_wintun(gnb_core_t *gnb_core) {
 
 
 
+
 static void if_up(gnb_core_t *gnb_core) {
 
     char bin_path[PATH_MAX+NAME_MAX];
@@ -166,6 +215,7 @@ static void if_up(gnb_core_t *gnb_core) {
     char map_path_q[PATH_MAX+NAME_MAX];
 
     gnb_core_wintun_ctx_t *tun_wintun_ctx = gnb_core->platform_ctx;
+    if(NULL == tun_wintun_ctx) return;
 
     strncpy(gnb_core->ctl_block->conf_zone->conf_st.ifname, tun_wintun_ctx->if_name, NAME_MAX);
 
@@ -193,6 +243,7 @@ static void if_up(gnb_core_t *gnb_core) {
 static void if_down(gnb_core_t *gnb_core) {
 
     gnb_core_wintun_ctx_t *tun_wintun_ctx = gnb_core->platform_ctx;
+    if(NULL == tun_wintun_ctx) return;
 
     char bin_path[PATH_MAX+NAME_MAX];
     char bin_path_q[PATH_MAX+NAME_MAX];
@@ -235,13 +286,10 @@ static int ntod(uint32_t mask) {
 static int set_addr4(gnb_core_t *gnb_core) {
 
     gnb_core_wintun_ctx_t *tun_wintun_ctx = gnb_core->platform_ctx;
+    if(NULL == tun_wintun_ctx) return -1;
 
-    DWORD dwRetVal = 0;
-
-    DWORD dwSize = 0;
     unsigned long status = 0;
 
-    DWORD lastError = 0;
     SOCKADDR_IN localAddress;
 
     MIB_UNICASTIPADDRESS_ROW ipRow;
@@ -256,12 +304,46 @@ static int set_addr4(gnb_core_t *gnb_core) {
 
     status = DeleteUnicastIpAddressEntry(&ipRow);
 
-    status = CreateUnicastIpAddressEntry(&ipRow);
-    if (status != ERROR_SUCCESS && status != ERROR_OBJECT_ALREADY_EXISTS) {
-        GNB_ERROR3(gnb_core->log, GNB_LOG_ID_CORE, "[set_addr4] Failed to set IPv4 address: %s\n", GNB_ADDR4STR_PLAINTEXT1(&gnb_core->local_node->tun_addr4));
-        return -3;
+    //remove old same address on any interface.
+    MIB_UNICASTIPADDRESS_TABLE *table = NULL;
+    status = GetUnicastIpAddressTable(AF_INET, &table);
+    if (status == NO_ERROR) {
+        for (ULONG i = 0; i < (table->NumEntries); ++i) {
+            if (0 == memcmp(&table->Table[i].Address.Ipv4.sin_addr, &ipRow.Address.Ipv4.sin_addr, sizeof(IN_ADDR)) ) {
+                GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "[set_addr4] Remove Old IPv4 address: %s\n", GNB_ADDR4STR_PLAINTEXT1(&(table->Table[i].Address.Ipv4.sin_addr)));
+                DeleteUnicastIpAddressEntry(&table->Table[i]);
+            }
+        }
+        FreeMibTable(table);
     }
-    GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "[set_addr4] Finished to set IPv4 address: %s\n", GNB_ADDR4STR_PLAINTEXT1(&gnb_core->local_node->tun_addr4));
+
+
+    status = CreateUnicastIpAddressEntry(&ipRow);
+    if (status != NO_ERROR) {
+        char *errorMsg = NULL;
+        switch(status)
+        {
+            case ERROR_INVALID_PARAMETER:
+                errorMsg = "ERROR_INVALID_PARAMETER";
+                break;
+            case ERROR_NOT_FOUND:
+                errorMsg = "ERROR_NOT_FOUND";
+                break;
+            case ERROR_NOT_SUPPORTED:
+                errorMsg = "ERROR_NOT_SUPPORTED";
+                break;
+            case ERROR_OBJECT_ALREADY_EXISTS:
+                errorMsg = "ERROR_OBJECT_ALREADY_EXISTS";
+                break;
+            default:
+                errorMsg = "ERROR_Other";
+                break;
+        }
+        GNB_ERROR3(gnb_core->log, GNB_LOG_ID_CORE, "[set_addr4] Failed to set IPv4 address: %s  error:%s\n", GNB_ADDR4STR_PLAINTEXT1(&gnb_core->local_node->tun_addr4), errorMsg);
+        return -3;
+    }else {
+         GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "[set_addr4] Finished to set IPv4 address: %s\n", GNB_ADDR4STR_PLAINTEXT1(&gnb_core->local_node->tun_addr4));
+    }
     return 0;
 
 }
@@ -270,13 +352,10 @@ static int set_addr4(gnb_core_t *gnb_core) {
 static int set_addr6(gnb_core_t *gnb_core) {
 
     gnb_core_wintun_ctx_t *tun_wintun_ctx = gnb_core->platform_ctx;
+    if(NULL == tun_wintun_ctx) return -1;
 
-    DWORD dwRetVal = 0;
-
-    DWORD dwSize = 0;
     unsigned long status = 0;
 
-    DWORD lastError = 0;
     SOCKADDR_IN localAddress;
 
     MIB_UNICASTIPADDRESS_ROW ipRow;
@@ -290,12 +369,46 @@ static int set_addr6(gnb_core_t *gnb_core) {
 
     status = DeleteUnicastIpAddressEntry(&ipRow);
 
-    status = CreateUnicastIpAddressEntry(&ipRow);
-    if (status != ERROR_SUCCESS && status != ERROR_OBJECT_ALREADY_EXISTS) {
-        GNB_ERROR3(gnb_core->log, GNB_LOG_ID_CORE, "[set_addr6] Failed to set IPv6 address: %s\n", GNB_ADDR6STR_PLAINTEXT1(&gnb_core->local_node->tun_ipv6_addr));
-        return -3;
+    //remove old same address on any interface.
+    MIB_UNICASTIPADDRESS_TABLE *table = NULL;
+    status = GetUnicastIpAddressTable(AF_INET6, &table);
+    if (status == NO_ERROR) {
+        for (ULONG i = 0; i < (table->NumEntries); ++i) {
+            if (0 == memcmp(&table->Table[i].Address.Ipv6.sin6_addr, &ipRow.Address.Ipv6.sin6_addr, sizeof(IN6_ADDR)) ) {
+                GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "[set_addr6] Remove Old IPv6 address: %s\n", GNB_ADDR6STR_PLAINTEXT1(&(table->Table[i].Address.Ipv6.sin6_addr)));
+                DeleteUnicastIpAddressEntry(&table->Table[i]);
+            }
+        }
+        FreeMibTable(table);
     }
-    GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "[set_addr6] Finished to set IPv6 address: %s\n", GNB_ADDR6STR_PLAINTEXT1(&gnb_core->local_node->tun_ipv6_addr));
+
+
+    status = CreateUnicastIpAddressEntry(&ipRow);
+    if (status != NO_ERROR) {
+        char *errorMsg = NULL;
+        switch(status)
+        {
+            case ERROR_INVALID_PARAMETER:
+                errorMsg = "ERROR_INVALID_PARAMETER";
+                break;
+            case ERROR_NOT_FOUND:
+                errorMsg = "ERROR_NOT_FOUND";
+                break;
+            case ERROR_NOT_SUPPORTED:
+                errorMsg = "ERROR_NOT_SUPPORTED";
+                break;
+            case ERROR_OBJECT_ALREADY_EXISTS:
+                errorMsg = "ERROR_OBJECT_ALREADY_EXISTS";
+                break;
+            default:
+                errorMsg = "ERROR_Other";
+                break;
+        }
+        GNB_ERROR3(gnb_core->log, GNB_LOG_ID_CORE, "[set_addr6] Failed to set IPv6 address: %s error:%s\n", GNB_ADDR6STR_PLAINTEXT1(&gnb_core->local_node->tun_ipv6_addr), errorMsg);
+        return -3;
+    }else {
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "[set_addr6] Finished to set IPv6 address: %s\n", GNB_ADDR6STR_PLAINTEXT1(&gnb_core->local_node->tun_ipv6_addr));
+    }
     return 0;
 
 }
@@ -303,8 +416,8 @@ static int set_addr6(gnb_core_t *gnb_core) {
 
 static int open_tun_wintun(gnb_core_t *gnb_core) {
     gnb_core_wintun_ctx_t *tun_wintun_ctx = gnb_core->platform_ctx;
+    if(NULL == tun_wintun_ctx) return -2;
 
-    int ret;
     DWORD LastError;
     if ( NULL != tun_wintun_ctx->adapter_handle ) {
         GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "[open_tun_wintun] Wintun Adapter Handle Exist.\n");
@@ -338,6 +451,13 @@ static int open_tun_wintun(gnb_core_t *gnb_core) {
             return -2;
         }
     }
+    DWORD version = WintunGetRunningDriverVersion();
+    GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "[open_tun_wintun] Wintun Driver Version Loaded: v%u.%u\n", (version >> 16) & 0xff, (version >> 0) & 0xff);
+    if(version != WINTUN_VERSION) {
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "[open_tun_wintun] Wintun Driver Version Mismatch, Expected: v%u.%u\n", (WINTUN_VERSION >> 16) & 0xff, (WINTUN_VERSION >> 0) & 0xff);
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "[open_tun_wintun] Wintun Driver Download Link: https://www.wintun.net/builds/wintun-0.14.1.zip\n");
+    }
+
     GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "[open_tun_wintun] WintunCreateAdapter Successful...\n");
     tun_wintun_ctx->adapter_handle = Adapter;
 
@@ -370,13 +490,52 @@ static int open_tun_wintun(gnb_core_t *gnb_core) {
         if_up(gnb_core);
     }
 
+    //注册网卡状态变化通知,监控网卡被禁用启动事件
+    HANDLE hInterfaceNotify = NULL;
+    DWORD ret = NotifyIpInterfaceChange(
+                AF_INET, // IPv4 and IPv6
+                (PIPINTERFACE_CHANGE_CALLBACK)OnInterfaceChange,
+                gnb_core,  // pass to callback
+                FALSE, // no initial notification
+                &hInterfaceNotify);
+    if(NO_ERROR == ret) {
+        tun_wintun_ctx->hInterfaceNotify = hInterfaceNotify;
+        tun_wintun_ctx->hInterfaceUpEvent = CreateEventW(NULL, FALSE, FALSE, NULL);
+    }
     return 0;
 }
 
 
 static int read_tun_wintun(gnb_core_t *gnb_core, void *buf, size_t buf_size) {
     gnb_core_wintun_ctx_t *tun_wintun_ctx = gnb_core->platform_ctx;
+    if(NULL == tun_wintun_ctx) return -1;
+
+    if(NULL == tun_wintun_ctx->adapter_handle) return -1;
+
+    if(TRUE == tun_wintun_ctx->ifDisabled) {
+        if(WAIT_TIMEOUT == WaitForSingleObject(tun_wintun_ctx->hInterfaceUpEvent, INFINITE)) {
+            return 0;
+        }
+    }
+
     WINTUN_SESSION_HANDLE session = (WINTUN_SESSION_HANDLE)tun_wintun_ctx->session;
+    if(NULL == session)
+    {
+        //可能中途虚拟网卡或虚拟设备被禁用,Session被关闭,
+        //网卡状态恢复启动时, 需要重新打开Session.
+        session = WintunStartSession(tun_wintun_ctx->adapter_handle, WINTUN_RING_CAPACITY);
+        if (NULL == session) {
+            //GNB_ERROR3(gnb_core->log, GNB_LOG_ID_CORE, "[read_tun_wintun] WintunStartSession Failed:%ld\n", GetLastError());
+            return -1;
+        }
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "[read_tun_wintun] WintunStartSession Successful.\n");
+        tun_wintun_ctx->session = session;
+        tun_wintun_ctx->hReadEvent = WintunGetReadWaitEvent(session);
+
+        set_addr4(gnb_core);
+        set_addr6(gnb_core);
+    }
+
     HANDLE WaitHandles[] = { tun_wintun_ctx->hReadEvent, tun_wintun_ctx->hQuitEvent };
 
     DWORD packet_size;
@@ -396,9 +555,18 @@ static int read_tun_wintun(gnb_core_t *gnb_core, void *buf, size_t buf_size) {
                     return ERROR_SUCCESS;
                 }
                 break;
+            case ERROR_HANDLE_EOF:
+                //控制面板->网络链接中   禁用了该网卡
+                //设备管理器->网络适配器  禁用了该设备
+                //此两种场景需要关闭Session,后续尝试再次打开Session.
+                GNB_ERROR3(gnb_core->log, GNB_LOG_ID_CORE, "[read_tun_wintun] WintunReceivePacket ERROR_HANDLE_EOF:%ld\n", LastError);
+                WintunEndSession(session);
+                tun_wintun_ctx->session = NULL;
+                tun_wintun_ctx->hReadEvent = NULL;
+                return ERROR_SUCCESS;
             default:
-                //GNB_ERROR3(gnb_core->log, GNB_LOG_ID_CORE, "[read_tun_wintun] WintunReceivePacket Failed:%ld\n", LastError);
-                return LastError;
+                GNB_ERROR3(gnb_core->log, GNB_LOG_ID_CORE, "[read_tun_wintun] WintunReceivePacket Failed:%ld\n", LastError);
+                return ERROR_SUCCESS;
         }
     }
     return ERROR_SUCCESS;
@@ -407,7 +575,10 @@ static int read_tun_wintun(gnb_core_t *gnb_core, void *buf, size_t buf_size) {
 
 static int write_tun_wintun(gnb_core_t *gnb_core, void *buf, size_t buf_size){
     gnb_core_wintun_ctx_t *tun_wintun_ctx = gnb_core->platform_ctx;
+    if(NULL == tun_wintun_ctx) return -1;
+
     WINTUN_SESSION_HANDLE session = (WINTUN_SESSION_HANDLE)tun_wintun_ctx->session;
+    if(NULL == session) return -1;
 
     BYTE *Packet = WintunAllocateSendPacket(session, buf_size);
     memcpy(Packet, buf, buf_size);
@@ -430,6 +601,8 @@ static int write_tun_wintun(gnb_core_t *gnb_core, void *buf, size_t buf_size){
 static int close_tun_wintun(gnb_core_t *gnb_core){
     gnb_core->loop_flag = 0;
     gnb_core_wintun_ctx_t *tun_wintun_ctx = gnb_core->platform_ctx;
+    if(NULL == tun_wintun_ctx) return -1;
+
     if ( !tun_wintun_ctx->skip_if_script ) {
         if_down(gnb_core);
     }
@@ -439,8 +612,22 @@ static int close_tun_wintun(gnb_core_t *gnb_core){
         tun_wintun_ctx->hReadEvent = NULL;
     }
 
+    if(NULL != tun_wintun_ctx->hInterfaceNotify)
+    {
+        CancelMibChangeNotify2(tun_wintun_ctx->hInterfaceNotify);
+        tun_wintun_ctx->hInterfaceNotify = NULL;
+    }
+
+    if(NULL != tun_wintun_ctx->hInterfaceUpEvent)
+    {
+        SetEvent(tun_wintun_ctx->hInterfaceUpEvent);
+        CloseHandle(tun_wintun_ctx->hInterfaceUpEvent);
+        tun_wintun_ctx->hInterfaceUpEvent = NULL;
+    }
+
     if(NULL != tun_wintun_ctx->hQuitEvent) {
         SetEvent(tun_wintun_ctx->hQuitEvent);
+        CloseHandle(tun_wintun_ctx->hReadEvent);
         tun_wintun_ctx->hQuitEvent = NULL;
     }
 
@@ -461,6 +648,8 @@ static int close_tun_wintun(gnb_core_t *gnb_core){
 
 static int release_tun_wintun(gnb_core_t *gnb_core) {
     gnb_core_wintun_ctx_t *tun_wintun_ctx = gnb_core->platform_ctx;
+    if(NULL == tun_wintun_ctx) return -1;
+
     if (NULL != tun_wintun_ctx) {
         if (NULL != tun_wintun_ctx->drv_module) {
             FreeLibrary(tun_wintun_ctx->drv_module);
