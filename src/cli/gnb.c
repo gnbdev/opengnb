@@ -304,7 +304,7 @@ int main (int argc,char *argv[]){
         self_test();
     }
 
-    if ( 0 == conf->public_index_service ) {
+    if ( 0 == gnb_core->conf->public_index_service ) {
         gnb_core_start(gnb_core);
     } else {
         gnb_core_index_service_start(gnb_core);
