@@ -575,9 +575,8 @@ skip_crypto:
 
     gnb_core->tun_payload0  = (gnb_payload16_t *)gnb_core->ctl_block->core_zone->tun_payload_block;
     gnb_core->inet_payload0 = (gnb_payload16_t *)gnb_core->ctl_block->core_zone->inet_payload_block;
-
-    gnb_core->tun_payload  = gnb_core->tun_payload0  + GNB_PAYLOAD_BUFFER_PADDING_SIZE;
-    gnb_core->inet_payload = gnb_core->inet_payload0 + GNB_PAYLOAD_BUFFER_PADDING_SIZE;
+    gnb_core->tun_payload  = (void *)gnb_core->tun_payload0  + GNB_PAYLOAD_BUFFER_PADDING_SIZE;
+    gnb_core->inet_payload = (void *)gnb_core->inet_payload0 + GNB_PAYLOAD_BUFFER_PADDING_SIZE;
 
 #if defined(__FreeBSD__)
     gnb_core->drv = &gnb_tun_drv_freebsd;

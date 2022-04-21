@@ -74,8 +74,8 @@ typedef struct _gnb_ctl_core_zone_t {
 
 	unsigned char ufwd_address_block[ sizeof(gnb_address_list_t) + sizeof(gnb_address_t) * 16 ];
 
-	unsigned char  tun_payload_block[sizeof(gnb_payload16_t) + GNB_PAYLOAD_BUFFER_PADDING_SIZE + GNB_TUN_PAYLOAD_BLOCK_SIZE];
-	unsigned char inet_payload_block[sizeof(gnb_payload16_t) + GNB_PAYLOAD_BUFFER_PADDING_SIZE + GNB_INET_PAYLOAD_BLOCK_SIZE];
+	unsigned char  tun_payload_block[ GNB_PAYLOAD_BUFFER_PADDING_SIZE + sizeof(gnb_payload16_t) + GNB_TUN_PAYLOAD_BLOCK_SIZE];
+	unsigned char inet_payload_block[ GNB_PAYLOAD_BUFFER_PADDING_SIZE + sizeof(gnb_payload16_t) + GNB_INET_PAYLOAD_BLOCK_SIZE];
 
 }gnb_ctl_core_zone_t;
 

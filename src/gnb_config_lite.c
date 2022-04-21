@@ -113,7 +113,7 @@ static void setup_node_address(gnb_core_t *gnb_core, char *node_address_string) 
         ret = gnb_test_field_separator(line_buffer);
 
         if ( GNB_CONF_FIELD_SEPARATOR_TYPE_SLASH == ret ) {
-            num = sscanf(line_buffer,"%16[^/]|%u|%46[^/]|%hu\n", attrib_string, &uuid32, host_string, &port);
+            num = sscanf(line_buffer,"%16[^/]/%u/%46[^/]/%hu\n", attrib_string, &uuid32, host_string, &port);
         } else if ( GNB_CONF_FIELD_SEPARATOR_TYPE_VERTICAL == ret ) {
             num = sscanf(line_buffer,"%16[^|]|%u|%46[^|]|%hu\n", attrib_string, &uuid32, host_string, &port);
         } else {
