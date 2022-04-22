@@ -89,7 +89,7 @@ static void show_useage(int argc,char *argv[]){
     printf("      --if-down             call at interface down\n");
 
     printf("      --log-udp4            send log to the address ipv4 default is '127.0.0.1:8666'\n");
-    printf("      --log-udp-type        the log udp type 'binary' or 'text' default is 'binary'\n");
+    printf("      --log-udp-type        the log udp type 'binary' or 'text' default is 'text'\n");
 
     printf("      --help\n");
 
@@ -166,7 +166,8 @@ int main (int argc,char *argv[]){
     int service_opt = 0;
 
     gnb_ctl_block_t *ctl_block;
-    uint8_t log_udp_type;
+    uint8_t log_udp_type = GNB_LOG_UDP_TYPE_TEXT;
+
     char log_udp_sockaddress4_string[16 + 1 + sizeof("65535")];
 
     memset(log_udp_sockaddress4_string, 0, 16 + 1 + sizeof("65535"));
@@ -405,8 +406,8 @@ int main (int argc,char *argv[]){
     es_ctx->dump_address_opt      = dump_address_opt;
     es_ctx->if_up_opt   = if_up_opt;
     es_ctx->if_down_opt = if_down_opt;
-    es_ctx->daemon = daemon;
 
+    es_ctx->daemon = daemon;
     es_ctx->service_opt = service_opt;
 
 #ifdef _WIN32
@@ -415,10 +416,13 @@ int main (int argc,char *argv[]){
     err = WSAStartup(MAKEWORD(2, 2), &wsaData );
 #endif
 
+
 #ifdef __UNIX_LIKE_OS__
+
     if ( 1==es_ctx->service_opt || 1==es_ctx->daemon ) {
     	save_pid(es_ctx->pid_file);
     }
+
 #endif
 
     gnb_es_ctx_init(es_ctx);
@@ -432,3 +436,4 @@ int main (int argc,char *argv[]){
     return 0;
 
 }
+
