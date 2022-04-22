@@ -313,7 +313,7 @@ $nodeid|$relay_nodeid3,$relay_nodeid2,$relay_nodeid1
 $nodeid|$relay_mode
 ```
 
-本地节点的payload通过中继节点到达对端节点的路径是 local_node => relay_node1 => relay_node2 => relay_node3 => dst_node, 而 dst_node 到 local_node 的路径则由对端的 dst_node 的node.conf配置所决定。
+本地节点的payload通过中继节点到达对端节点的路径是 local_node => relay_node1 => relay_node2 => relay_node3 => dst_node, 而 dst_node 到 local_node 的路径则由对端的 dst_node 的route.conf配置所决定。
 
 `$relay_mode` 可以是 **auto**, **force**, **static**, **balance**
 
@@ -502,9 +502,9 @@ ip route add 192.168.0.0/24 via 10.1.0.2
 
 通常情况下， OpenWRT 默认设有一些防火墙规则，这可能会导致 GNB 转发到当前 LAN 中的主机的 IP 分组被拦截，所以，这里还需要检测 OpenWRT，一般的要 把防火墙中的 Forward 选项 设置 为 accept，还有就是与 Wan 有关的 Forwardings 设置为 accept 。
 
-确认配置正确后，可以先启动 **node 1001**，然后是 **node 1002** 和 **node 1002**，这样 **node 1001** 就能第一时间为 **node 1002** 和 **node 1002** 提供 index service 。
+确认配置正确后，可以先启动 **node 1001**，然后是 **node 1002** 和 **node 1003**，这样 **node 1001** 就能第一时间为 **node 1002** 和 **node 1003** 提供 index service 。
 
-把 **node 1001**，**node 1002** ，**node 1002** 都启动后，可以先尝试这3个  GNB 节点对应的虚拟IP，即 `10.1.0.1` `10.1.0.2` `10.1.0.3` 能否成功通过 ping 测试。
+把 **node 1001**，**node 1002** ，**node 1003** 都启动后，可以先尝试这3个  GNB 节点对应的虚拟IP，即 `10.1.0.1` `10.1.0.2` `10.1.0.3` 能否成功通过 ping 测试。
 
 如果一切顺利的话，就可以尝试从  **LAN A** 中某台主机去 ping  **LAN B** 下某台主机 。
 

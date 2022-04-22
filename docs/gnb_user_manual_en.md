@@ -313,7 +313,7 @@ $nodeid|$relay_nodeid3,$relay_nodeid2,$relay_nodeid1
 $nodeid|$relay_mode
 ```
 
-The path for the payload of the local node to reach the peer node through the relay node is local_node => relay_node1 => relay_node2 => relay_node3 => dst_node, and the path from dst_node to local_node is determined by the node.conf configuration of the peer dst_node.
+The path for the payload of the local node to reach the peer node through the relay node is local_node => relay_node1 => relay_node2 => relay_node3 => dst_node, and the path from dst_node to local_node is determined by the route.conf configuration of the peer dst_node.
 
 `$relay_mode` can be **auto**, **force**, **static**, **balance**
 
@@ -502,9 +502,9 @@ ip route add 192.168.0.0/24 via 10.1.0.2
 
 Usually, OpenWRT has some firewall rules by default, which may cause the IP packets forwarded by GNB to the host in the current LAN to be blocked. Therefore, OpenWRT needs to be detected here. Generally, the Forward option in the firewall should be set to accept. , and the Forwardings related to Wan are set to accept.
 
-After confirming that the configuration is correct, you can start **node 1001** first, then **node 1002** and **node 1002**, so that **node 1001** can be the first time **node 1002** And **node 1002** provides index service.
+After confirming that the configuration is correct, you can start **node 1001** first, then **node 1002** and **node 1003**, so that **node 1001** can be the first time **node 1002** And **node 1003** provides index service.
 
-After starting **node 1001**, **node 1002** and **node 1002**, you can first try the virtual IPs corresponding to these three GNB nodes, namely `10.1.0.1` `10.1.0.2` ` 10.1.0.3` can successfully pass the ping test.
+After starting **node 1001**, **node 1002** and **node 1003**, you can first try the virtual IPs corresponding to these three GNB nodes, namely `10.1.0.1` `10.1.0.2` ` 10.1.0.3` can successfully pass the ping test.
 
 If all goes well, you can try to ping a host on **LAN B** from a host in **LAN A**.
 
