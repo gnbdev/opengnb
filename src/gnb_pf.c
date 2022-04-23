@@ -136,7 +136,7 @@ finish:
 #define GNB_PF_INET_FORWARD_TO_INET 31
 
 
-static char* gnb_pf_status_strings[31];
+static char* gnb_pf_status_strings[32];
 
 
 gnb_pf_ctx_array_t * gnb_pf_ctx_array_init(gnb_heap_t *heap, int size){
