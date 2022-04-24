@@ -80,7 +80,7 @@ gnb -n 1002 -I "$public_index_ip/$port" -l 9002 --multi-socket=on -p 12345678
 
 此时应可以看到主机 A 上的 TUN IP 是 10.1.0.1， 主机 B 上的 TUN IP 是 10.1.0.2，此时两个节点如果建立起连接就可以互相访问。
 
-用户当然可以在 **Lite Mode** 下设置更多的节点，这需要了解 `gnb` 的 `-n`， `-I`， `-a,`， `-r`，`-p` 等参数的使用。
+用户当然可以在 **Lite Mode** 下设置更多的节点，这需要了解 `gnb` 的 `-n`， `-I`， `-a`， `-r`，`-p` 等参数的使用。
 
 
 
@@ -97,7 +97,7 @@ gnb -n 1002 -I "$public_index_ip/$port" -l 9002 --multi-socket=on -p 12345678
 
 ### 目录结构
 
-以节点 `1001` `1002` `1003`为例,  这些节点的配置目录如下
+以节点 `1001` `1002` `1003`为例，  这些节点的配置目录如下
 
 ```
 gnb/conf/1001/
@@ -204,7 +204,7 @@ nodeid $nodeid
 listen ip_address:$listen_port
 ```
 
-GNB 支持IPV6和IPV4。
+GNB 支持IPv6和IPv4。
 
 有一些值得重点关注的选项，可以很好提升 GNB 的 NAT 穿透能力：
 ```
@@ -217,7 +217,7 @@ multi-socket on
 ```
 打开更多 UDP 监听端口，增加NAT穿透是端口探测成功的概率。
 
-`multi-socket` 被设为 on 后会除原有的 `listen` 的端口外，在额外打开4个随机 UDP 端口，如果想额外监听指定的端口，可以用多个 `listen` 设置项，GNB 支持用`listen` 指定监听5个地址端口或通过`listen6` 监听 5个IPV6地址和端口 以及用 `listen4` 监听5个IPV4地址端口。
+`multi-socket` 被设为 on 后会除原有的 `listen` 的端口外，在额外打开4个随机 UDP 端口，如果想额外监听指定的端口，可以用多个 `listen` 设置项，GNB 支持用`listen` 指定监听5个地址端口或通过`listen6` 监听 5个IPv6地址和端口 以及用 `listen4` 监听5个IPv4地址端口。
 
 `node.conf` 所支持的配置项与 gnb 命令行参数一一对应，目前支持的配置项有:
 ```
@@ -273,14 +273,14 @@ $nodeid|$tun_ipv4|$tun_netmask
 
 每个配置项的含义是这样:
 `$nodeid`                节点的UUID
-`$tun_ipv4`           虚拟网卡的IPV4地址
-`$tun_netmask`     虚拟网卡的IPV4地址的子网掩码
+`$tun_ipv4`           虚拟网卡的IPv4地址
+`$tun_netmask`     虚拟网卡的IPv4地址的子网掩码
 
 
 
 #### route type relay
 
-为目的节点设定中继节点, 可以为一个对端的节点设置最多8条中继的路由，每条中继路由最多可以有5个中继节点。
+为目的节点设定中继节点， 可以为一个对端的节点设置最多8条中继的路由，每条中继路由最多可以有5个中继节点。
 
 以下是 `route.conf` type relay 一些例子：
 
@@ -313,9 +313,9 @@ $nodeid|$relay_nodeid3,$relay_nodeid2,$relay_nodeid1
 $nodeid|$relay_mode
 ```
 
-本地节点的payload通过中继节点到达对端节点的路径是 local_node => relay_node1 => relay_node2 => relay_node3 => dst_node, 而 dst_node 到 local_node 的路径则由对端的 dst_node 的route.conf配置所决定。
+本地节点的payload通过中继节点到达对端节点的路径是 local_node => relay_node1 => relay_node2 => relay_node3 => dst_node，而 dst_node 到 local_node 的路径则由对端的 dst_node 的route.conf配置所决定。
 
-`$relay_mode` 可以是 **auto**, **force**, **static**, **balance**
+`$relay_mode` 可以是 **auto**，**force**， **static**，**balance**
 
 **auto**         当对目的节点无法点对点通信及没有forward节点转发时通过预设的中继路由转发
 **force**        强制与该目的节点的通信必须经过中继路由
@@ -326,7 +326,7 @@ $nodeid|$relay_mode
 
 ### address.conf  配置文件
 
-`address.conf` 用于配置节点的属性和公网ip地址及端口,以下是 `address.conf` 一个例子：
+`address.conf` 用于配置节点的属性和公网IP地址及端口，以下是 `address.conf` 一个例子：
 
 ```
 i|0|a.a.a.a|9001
@@ -340,15 +340,15 @@ n|1002|c.c.c.c|9001
 $attrib|$nodeid|$ipv4/$ipv6/$hostname|$port
 ```
 
-**$attrib**         节点的属性，用一组字符来表示，i表示这个节点是index节点; f表示这个节点是forward节点; n表示这个节点是一个普通节点; s为静默(slience)节点,本地节点如果含有s属性将不会与index节点通信避免，也不会响应ping-pong及地址探测的请求暴露本地ip地址
+**$attrib**         节点的属性，用一组字符来表示，i表示这个节点是index节点; f表示这个节点是forward节点; n表示这个节点是一个普通节点; s为静默(slience)节点,本地节点如果含有s属性将不会与index节点通信，也不会响应ping-pong及地址探测的请求，避免暴露本地IP地址
 **$nodeid**       节点的 nodeid，与 `route.conf` 中的 **$nodeid** 相对应
-**$ipv6**             GNB 节点的 IPV6 地址
-**$ipv4**             GNB 节点的 IPV4 地址
+**$ipv6**             GNB 节点的 IPv6 地址
+**$ipv4**             GNB 节点的 IPv4 地址
 **$hostname**  GNB 节点的 域名
 **$port**             GNB 节点的服务端口
 
 
-如果一个节点拥有多个 IP 地址, 需要按格式分成多行来配置，GNB 会通过 **GNB node ping-pong** 协议方式去测量该节点哪个 IP 地址有更低的时延，在发送 IP 分组数据的时候自动发往低时延的地址。
+如果一个节点拥有多个 IP 地址，需要按格式分成多行来配置，GNB 会通过 **GNB node ping-pong** 协议方式去测量该节点哪个 IP 地址有更低的时延，在发送 IP 分组数据的时候自动发往低时延的地址。
 
 `gnb` 进程不会对 `address.conf` 中的 **$hostname** 进行域名解释，而是由 `gnb_es` 异步处理，相关信息可以了解 `gnb_es` 的 `--resolv` 选项。
 
@@ -356,16 +356,16 @@ $attrib|$nodeid|$ipv4/$ipv6/$hostname|$port
 
 在 `address.conf` 中 index 节点的 **$attrib**  里需要带有 **i** 属性。
 
-GNB index 协议允许在提交和查询节点ip地址端口过程中不验证报文的数字签名,即 index 节点允许对提交和查询ip的报文不验证数字签名，节点对 index 节点响应查询ip的报文不验证数字签名。
+GNB index 协议允许在提交和查询节点IP地址端口过程中不验证报文的数字签名，即 index 节点允许对提交和查询IP的报文不验证数字签名，节点对 index 节点响应查询IP的报文不验证数字签名。
 
-**GNB Public Index node**  在 `address.conf` 中的对应的 **nodeid** 可以设为 **0**,不需要在 `route.conf` 中设定 "route" 规则，以下是一个 **GNB Public Index node** 的例子：
+**GNB Public Index node**  在 `address.conf` 中的对应的 **nodeid** 可以设为 **0**，不需要在 `route.conf` 中设定 "route" 规则，以下是一个 **GNB Public Index node** 的例子：
 ```
 i|0|a.a.a.a|9001
 ```
 
-forward 节点  **$attrib**  设为**f**, **$nodeid** 不能设为 **0**，并且必须绑定 nodeid 作为配置项出现在 `route.conf` 中， gnb forward 协议相关的报文都要发送验证节点的数字签名，即要求 forward 节点和通过 forward 节点转发报文的节点都必须相互交换了公钥。
+forward 节点  **$attrib**  设为**f**，**$nodeid** 不能设为 **0**，并且必须绑定 nodeid 作为配置项出现在 `route.conf` 中， gnb forward 协议相关的报文都要发送验证节点的数字签名，即要求 forward 节点和通过 forward 节点转发报文的节点都必须相互交换了公钥。
 
-forward 节点可以为无法直接互访的 GNB 节点中转 IP 分组，这些节点通常部署在内网中且没有固定公网ip，并且用尽了所有的办法都无法实现nat穿透实现点对点通讯，forward 节点并不能解密两个节点之间的通信的内容。
+forward 节点可以为无法直接互访的 GNB 节点中转 IP 分组，这些节点通常部署在内网中且没有固定公网IP，并且用尽了所有的办法都无法实现NAT穿透实现点对点通讯，forward 节点并不能解密两个节点之间的通信的内容。
 
 用户当然可以把一个 GNB 节点作为GNB网络中的 index节点 和 forward节点，同时还可以为其他 GNB 网络提供 index service，以下是一个例子：
 ```
@@ -573,18 +573,18 @@ GNB 节点除了通过 index 节点找到其他节点外还可以通过在 `addr
 
 
 
-# 关于GNB 的 IPV6 网关/防火墙穿透
+# 关于GNB 的 IPv6 网关/防火墙穿透
 
-在一般情况下，IPV6 地址都是 WAN 地址，但这并不意味着位于网关后面的拥有 IPV6 的主机就不需要穿透，当然这种穿透不能称之为NAT穿透，而是可以被称为网关/防火墙穿透。
+在一般情况下，IPv6 地址都是 WAN 地址，但这并不意味着位于网关后面的拥有 IPv6 的主机就不需要穿透，当然这种穿透不能称之为NAT穿透，而是可以被称为网关/防火墙穿透。
 由于位于网关的防火墙作用，某些网关(例如OpenWRT route)的防火墙策略默认情况下并不会放行由对端主机主动发起的来自 WAN 的IP分组，这需要两端的主机几乎在同时向对方的端口发送IP分组。
 
-毫无疑问，IPV6的网关/防火墙穿透比IPV4的NAT穿透容易得多，而且成功率可以是100%。
+毫无疑问，IPv6的网关/防火墙穿透比IPv4的NAT穿透容易得多，而且成功率可以是100%。
 
-GNB 为 IPV6 的网关/防火墙穿透做了一些工作。
+GNB 为 IPv6 的网关/防火墙穿透做了一些工作。
 
-假设一些位于网关后面的 GNB 节点拥有 IPV6地址，而位于 WAN 的 index 节点没有 IPV6  地址，而，这样 index 节点就无法直接得到位于网关后面的 GNB 节点的 IPV6 地址从而没法帮助这些节点建立起通信，要解决这个问题就需要位于网关后面的 GNB 节点获取所在主机的 IPV6 地址后告 index 节点。
+假设一些位于网关后面的 GNB 节点拥有 IPv6地址，而位于 WAN 的 index 节点没有 IPv6  地址，而，这样 index 节点就无法直接得到位于网关后面的 GNB 节点的 IPv6 地址从而没法帮助这些节点建立起通信，要解决这个问题就需要位于网关后面的 GNB 节点获取所在主机的 IPv6 地址后告 index 节点。
 
-假设主机拥有IPV6地址，可以用以下两个命令中的其中一个命令获得本主机的IPV6地址并保存在文件里。
+假设主机拥有IPv6地址，可以用以下两个命令中的其中一个命令获得本主机的IPv6地址并保存在文件里。
 
 ```
 dig -6 TXT +short o-o.myaddr.l.google.com @ns1.google.com | awk -F'"' '{ print $2}' > /tmp/wan6_addr.dump
@@ -598,7 +598,7 @@ wget http://api.myip.la -q -6 -O /tmp/wan6_addr.dump
 ```
 gnb_es -b gnb/conf/1002/gnb.map --wan-address6-file=/tmp/wan6_addr.dump
 ```
-通过 `gnb` 和 `gnb_es` 的共享内存，`gnb`进程就能获得本节点所在的 IPV6 地址并上报给 index 节点。
+通过 `gnb` 和 `gnb_es` 的共享内存，`gnb`进程就能获得本节点所在的 IPv6 地址并上报给 index 节点。
 
 相关信息可以了解`gnb_es` 的  `-b, --ctl_block` 和 `--wan-address6-file`
 
@@ -716,11 +716,11 @@ node route
 
 
 #### -4, --ipv4-only
-禁用ipv6，gnb将不通过ipv6地址收发数据，gnb开启的虚拟网卡不会绑定ipv6地址，由于禁用了ipv6，因此gnb可以设置小于1280的mtu,对于一些限制比较多的网络环境可以利用这个特性尝试使用更小的mtu
+禁用IPv6，gnb将不通过IPv6地址收发数据，gnb开启的虚拟网卡不会绑定IPv6地址，由于禁用了IPv6，因此gnb可以设置小于1280的mtu,对于一些限制比较多的网络环境可以利用这个特性尝试使用更小的mtu
 
 
 #### -6, --ipv6-only
-禁用ipv4，gnb将不通过ipv4地址收发数据，gnb开启的虚拟网卡不会绑定ipv4地址
+禁用IPv4，gnb将不通过IPv4地址收发数据，gnb开启的虚拟网卡不会绑定IPv4地址
 
 
 #### -d, --daemon
@@ -780,7 +780,7 @@ port detect range
 
 
 #### --mtu
-虚拟网卡的mtu，在比较糟糕的网络环境下ipv4可以设为532,ipv6不可小于1280
+虚拟网卡的mtu，在比较糟糕的网络环境下IPv4可以设为532，IPv6不可小于1280
 
 
 #### --crypto
@@ -800,7 +800,7 @@ port detect range
 
 
 #### --socket-if-name
-example: 'eth0', 'eno1', only for unix-like os;在unix-like系统上可以让gnb的数据通过指定物理网卡发送，这里需要用户输入物理网卡的名字，Windows不支持这个特性，也看不到该选项
+example: 'eth0', 'eno1', only for unix-like os;在unix-like系统上可以让GNB的数据通过指定物理网卡发送，这里需要用户输入物理网卡的名字，Windows不支持这个特性，也看不到该选项
 
 
 #### --address-secure
@@ -808,7 +808,7 @@ example: 'eth0', 'eno1', only for unix-like os;在unix-like系统上可以让gnb
 
 
 #### --if-dump
-'dump the interface data frame 'on' or 'off' default is 'off';把经过gnb开启的虚拟网卡的ip分组在日志中输出，这样方便调试系统
+'dump the interface data frame 'on' or 'off' default is 'off';把经过GNB开启的虚拟网卡的IP分组在日志中输出，这样方便调试系统
 
 
 #### --pf-route
@@ -816,7 +816,7 @@ packet filter route
 
 
 #### --multi-socket
-开启多端口探测,在nat穿透端口探测过程中可以较大提升nat穿透成功率
+开启多端口探测,在NAT穿透端口探测过程中可以较大提升NAT穿透成功率
 
 
 #### --direct-forwarding
@@ -848,7 +848,7 @@ packet filter route
 
 
 #### --node-cache-file
-gnb会定期把成功连通的节点的ip地址和端口记录在一个缓存文件中，gnb进程在退出后，这些地址信息不会消失，重新启动进程时会读入这些数据，这样新启动gnb进程就可能不需通过index 节点查询曾经成功连接过的节点的地址信息
+gnb会定期把成功连通的节点的IP地址和端口记录在一个缓存文件中，gnb进程在退出后，这些地址信息不会消失，重新启动进程时会读入这些数据，这样新启动gnb进程就可能不需通过index 节点查询曾经成功连接过的节点的地址信息
 
 
 #### --log-file-path
