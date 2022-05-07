@@ -47,7 +47,7 @@ make -f Makefile.linux install
 主机 A 上用 **root** 执行
 
 ```
-gnb -n 1001 -I "39.108.10.191/9001" --multi-socket=on -p 12345678
+gnb -n 1001 -I "120.76.206.113/9001" --multi-socket=on -p 12345678
 ```
 
 启动成功后，主机 A 上执行 ip addr 可见 GNB 节点 IP
@@ -67,7 +67,7 @@ gnb -n 1001 -I "39.108.10.191/9001" --multi-socket=on -p 12345678
 主机 B 上用 **root** 执行
 
 ```
-gnb -n 1002 -I "39.108.10.191/9001" --multi-socket=on -p 12345678
+gnb -n 1002 -I "120.76.206.113/9001" --multi-socket=on -p 12345678
 ```
 启动成功后，主机 B 上执行 ip addr 可见 GNB 节点 IP
 
