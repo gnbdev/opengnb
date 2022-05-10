@@ -140,9 +140,9 @@ gnb/conf/1003/scripts
 
 假设这些节点的配置目录已经分别部署到不同的主机上，启动`1001` `1002` `1003` 节点的命令可以是：
 ```
-gnb -c gnb/conf/1001/1001
-gnb -c gnb/conf/1002/1002
-gnb -c gnb/conf/1003/1003
+gnb -c gnb/conf/1001
+gnb -c gnb/conf/1002
+gnb -c gnb/conf/1003
 ```
 
 `scripts/`目录下存放的是在虚拟网卡启动/关闭后调用的脚本，用于用户自定义设置路由，防火墙的指令。

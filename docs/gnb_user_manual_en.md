@@ -140,9 +140,9 @@ gnb/conf/1003/scripts
 
 Assuming that the configuration directories of these nodes have been deployed to different hosts, the commands to start the `1001` `1002` `1003` nodes can be:
 ```
-gnb -c gnb/conf/1001/1001
-gnb -c gnb/conf/1002/1002
-gnb -c gnb/conf/1003/1003
+gnb -c gnb/conf/1001
+gnb -c gnb/conf/1002
+gnb -c gnb/conf/1003
 ```
 
 The `scripts/` directory stores scripts that are called after the virtual network card is started/closed, which is used for user-defined routing and firewall instructions.
