@@ -127,10 +127,8 @@ In extreme cases where peer-to-peer communication cannot be established, whether
 Here are the available `index` nodes provided by volunteers
 
 ```
-i|0|156.251.179.84|9001
-i|0|39.108.10.191|9001
+i|0|120.76.206.113|9001
 i|0|101.32.178.3|9001
-i|0|103.27.187.204|9001
 ```
 
 
