@@ -5,7 +5,8 @@
  *  This code was inspired by the CIPE-Win32 driver by Damion K. Wilson.
  *
  *  This source code is Copyright (C) 2002-2014 OpenVPN Technologies, Inc.,
- *  and is released under the GPL version 2 (see below).
+ *  and is released under the GPL version 2 (see below). This particular file
+ *  (tap-windows.h) is also licensed using the MIT license (see COPYRIGHT.MIT).
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License version 2
@@ -49,6 +50,13 @@
 
 /* obsoletes TAP_WIN_IOCTL_CONFIG_POINT_TO_POINT */
 #define TAP_WIN_IOCTL_CONFIG_TUN            TAP_WIN_CONTROL_CODE (10, METHOD_BUFFERED)
+
+/* Control whether 802.1Q headers are added for priority */
+#define TAP_WIN_IOCTL_PRIORITY_BEHAVIOR     TAP_WIN_CONTROL_CODE (11, METHOD_BUFFERED)
+#define TAP_PRIORITY_BEHAVIOR_NOPRIORITY    0
+#define TAP_PRIORITY_BEHAVIOR_ENABLED       1
+#define TAP_PRIORITY_BEHAVIOR_ADDALWAYS     2
+#define TAP_PRIORITY_BEHAVIOR_MAX           2
 
 /*
  * =================
