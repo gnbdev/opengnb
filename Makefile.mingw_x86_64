@@ -20,6 +20,8 @@ GNB_CLI_OBJS =                             \
        ./src/mingw/gnb_drv_win32.o         \
        ./src/mingw/gnb_drv_wintun.o
 
+GNB_ES_OBJS += ./src/mingw/windows_platform.o
+
 all:${GNB_CLI} ${GNB_CRYPTO} ${GNB_ES} ${GNB_CTL}
 
 

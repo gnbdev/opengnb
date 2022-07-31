@@ -20,7 +20,10 @@
 
 #include "gnb.h"
 
+
+void local_node_file_config(gnb_core_t *gnb_core);
 void gnb_config_file(gnb_core_t *gnb_core);
+
 
 size_t gnb_get_node_num_from_file(gnb_conf_t *conf);
 

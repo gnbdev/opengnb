@@ -82,7 +82,7 @@ int gnb_load_keypair(gnb_core_t *gnb_core){
     close(private_file_fd);
 
     if ( 128 != rlen ) {
-        GNB_ERROR1(gnb_core->log, GNB_LOG_ID_CORE, "load node private file[%s]  key error\n", node_private_file_name);
+        GNB_ERROR1(gnb_core->log, GNB_LOG_ID_CORE, "load node private file[%s] key error\n", node_private_file_name);
         exit(0);
     }
 

@@ -24,6 +24,7 @@
 #include "gnb_udp.h"
 #include "gnb_time.h"
 #include "gnb_mmap.h"
+#include "gnb_address.h"
 
 #ifdef __UNIX_LIKE_OS__
 
@@ -42,6 +43,8 @@
 
 extern gnb_worker_t gnb_discover_in_lan_worker_mod;
 
+void gnb_set_env(const char *name, const char *value);
+
 void gnb_es_dump_address_list(gnb_es_ctx *es_ctx);
 void gnb_broadcast_address(gnb_es_ctx *es_ctx);
 void gnb_es_upnp(gnb_conf_t *conf, gnb_log_ctx_t *log);
@@ -50,7 +53,7 @@ void gnb_load_wan_ipv6_address(gnb_es_ctx *es_ctx);
 void gnb_discover_in_lan_ipv4(gnb_es_ctx *es_ctx);
 void gnb_es_if_up(gnb_es_ctx *es_ctx);
 void gnb_es_if_down(gnb_es_ctx *es_ctx);
-
+void gnb_es_if_loop(gnb_es_ctx *es_ctx);
 
 static void sync_es_time(gnb_es_ctx *es_ctx){
 
@@ -145,6 +148,13 @@ gnb_map_init_success:
         GNB_HASH32_UINT32_SET(es_ctx->uuid_node_map, node->uuid32, node);
     }
 
+    es_ctx->local_node = (gnb_node_t *)GNB_HASH32_UINT32_GET_PTR(es_ctx->uuid_node_map, es_ctx->ctl_block->core_zone->local_uuid);
+
+    if ( NULL == es_ctx->local_node ) {
+        GNB_LOG1(es_ctx->log, GNB_LOG_ID_ES_CORE, "gnb_es_ctx_create local node=%lu\n", es_ctx->ctl_block->core_zone->local_uuid);
+        return NULL;
+    }
+
 finish:
 
     return es_ctx;
@@ -179,6 +189,19 @@ void gnb_es_ctx_init(gnb_es_ctx *es_ctx){
 
 }
 
+static void gnb_es_setup_env(gnb_es_ctx *es_ctx){
+
+    char env_value_string[64];
+
+    gnb_set_env("GNB_IF_NAME", es_ctx->ctl_block->core_zone->ifname);
+    snprintf(env_value_string, 64, "%d", es_ctx->ctl_block->conf_zone->conf_st.mtu);
+
+    gnb_set_env("GNB_MTU", env_value_string);
+
+    gnb_set_env("GNB_TUN_IPV4", GNB_ADDR4STR1(&es_ctx->local_node->tun_addr4));
+    gnb_set_env("GNB_TUN_IPV6", GNB_ADDR6STR1(&es_ctx->local_node->tun_ipv6_addr));
+
+}
 
 #define GNB_RESOLV_INTERVAL_SEC              900
 #define GNB_UPNP_INTERVAL_SEC                145
@@ -193,6 +216,8 @@ void gnb_start_environment_service(gnb_es_ctx *es_ctx){
     uint64_t last_dump_address_sec      = 0;
     uint64_t last_broadcast_address_sec = 0;
     uint64_t last_discover_in_lan_sec   = 0;
+
+    gnb_es_setup_env(es_ctx);
 
     if ( es_ctx->if_up_opt ) {
         gnb_es_if_up(es_ctx);
@@ -216,6 +241,10 @@ void gnb_start_environment_service(gnb_es_ctx *es_ctx){
             gnb_resolv_address(es_ctx);
             gnb_load_wan_ipv6_address(es_ctx);
             last_resolv_address_sec = es_ctx->now_time_sec;
+        }
+
+        if ( es_ctx->if_loop_opt ) {
+            gnb_es_if_loop(es_ctx);
         }
 
         if ( es_ctx->upnp_opt && (es_ctx->now_time_sec - last_upnp_time_sec ) > GNB_UPNP_INTERVAL_SEC ) {
@@ -249,3 +278,4 @@ void gnb_stop_environment_service(gnb_es_ctx *es_ctx){
 
 
 }
+

@@ -18,6 +18,7 @@ GNB_CLI_OBJS =                             \
        ./src/unix/unix_platform.o          \
        ./src/Darwin/gnb_drv_darwin.o
 
+GNB_ES_OBJS += ./src/unix/unix_platform.o
 
 all:${GNB_CLI} ${GNB_CRYPTO} ${GNB_ES} ${GNB_CTL}
 

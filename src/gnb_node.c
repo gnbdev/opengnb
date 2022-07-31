@@ -47,17 +47,96 @@
 
 #include "gnb_binary.h"
 
-void gnb_init_node_key512(gnb_core_t *gnb_core){
 
-    uint32_t map_size = gnb_core->uuid_node_map->kv_num;
 
-    if (0==map_size) {
-        return;
+gnb_node_t * gnb_node_init(gnb_core_t *gnb_core, uint32_t uuid32){
+
+    gnb_node_t *node = &gnb_core->ctl_block->node_zone->node[gnb_core->node_nums];
+
+    memset(node,0,sizeof(gnb_node_t));
+
+    node->uuid32 = uuid32;
+
+    node->type =  GNB_NODE_TYPE_STD;
+
+    uint32_t node_id_network_order;
+    uint32_t local_node_id_network_order;
+
+    gnb_address_list_t *static_address_list;
+    gnb_address_list_t *dynamic_address_list;
+    gnb_address_list_t *resolv_address_list;
+    gnb_address_list_t *push_address_list;
+    gnb_address_list_t *detect_address_list;
+
+    static_address_list  = (gnb_address_list_t *)node->static_address_block;
+    dynamic_address_list = (gnb_address_list_t *)node->dynamic_address_block;
+    resolv_address_list  = (gnb_address_list_t *)node->resolv_address_block;
+    push_address_list    = (gnb_address_list_t *)node->push_address_block;
+
+    detect_address_list  = (gnb_address_list_t *)node->detect_address4_block;
+
+    static_address_list->size  = GNB_NODE_STATIC_ADDRESS_NUM;
+    dynamic_address_list->size = GNB_NODE_DYNAMIC_ADDRESS_NUM;
+    resolv_address_list->size  = GNB_NODE_RESOLV_ADDRESS_NUM;
+    push_address_list->size    = GNB_NODE_PUSH_ADDRESS_NUM;
+
+    detect_address_list->size  = 3;
+
+    if ( 0 == gnb_core->conf->lite_mode ) {
+
+        if ( gnb_core->conf->local_uuid != uuid32 ) {
+
+            gnb_load_public_key(gnb_core, uuid32, node->public_key);
+            ed25519_key_exchange(node->shared_secret, node->public_key, gnb_core->ed25519_private_key);
+
+        } else {
+
+            memcpy(node->public_key, gnb_core->ed25519_public_key, 32);
+            memset(node->shared_secret, 0, 32);
+            memset(node->crypto_key, 0, 64);
+
+        }
+
+    } else {
+
+        //lite mode
+        if ( gnb_core->conf->local_uuid == uuid32 ) {
+            memset(gnb_core->ed25519_private_key, 0, 64);
+            memset(gnb_core->ed25519_public_key,  0,32);
+        }
+
+        memset(node->public_key, 0, 32);
+
+        node_id_network_order       = htonl(uuid32);
+        local_node_id_network_order = htonl(gnb_core->conf->local_uuid);
+
+        memcpy(node->public_key, &node_id_network_order, 4);
+
+        memset(node->shared_secret, 0, 32);
+        memcpy(node->shared_secret, gnb_core->conf->crypto_passcode, 4);
+
+        if ( node_id_network_order > local_node_id_network_order ) {
+
+            memcpy(node->shared_secret+4, &node_id_network_order, 4);
+            memcpy(node->shared_secret+8, &local_node_id_network_order, 4);
+
+        } else {
+
+            memcpy(node->shared_secret+4, &local_node_id_network_order, 4);
+            memcpy(node->shared_secret+8, &node_id_network_order, 4);
+
+        }
+
     }
 
-    uint32_t num = map_size;
+    return node;
 
-    uint32_t *uuid32_array = (uint32_t *)gnb_hash32_uint32_keys(gnb_core->uuid_node_map, &num);
+}
+
+
+void gnb_init_node_key512(gnb_core_t *gnb_core){
+
+    int num = gnb_core->ctl_block->node_zone->node_num;
 
     int i;
 
@@ -69,9 +148,7 @@ void gnb_init_node_key512(gnb_core_t *gnb_core){
 
     for (i=0;i<num;i++) {
 
-        uuid32 = uuid32_array[i];
-
-        node = (gnb_node_t *)GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, uuid32);
+        node = &gnb_core->ctl_block->node_zone->node[i];
 
         if (NULL==node) {
             continue;
@@ -84,7 +161,6 @@ void gnb_init_node_key512(gnb_core_t *gnb_core){
 
     }
 
-    gnb_heap_free(gnb_core->uuid_node_map->heap, uuid32_array);
 }
 
 
@@ -554,6 +630,8 @@ finish:
 
 int gnb_forward_payload_to_node(gnb_core_t *gnb_core, gnb_node_t *node, gnb_payload16_t *payload){
 
+    int ret;
+
     if ( GNB_ADDR_TYPE_IPV4 == gnb_core->conf->udp_socket_type ) {
         goto send_by_ipv4;
     } else if ( GNB_ADDR_TYPE_IPV6 == gnb_core->conf->udp_socket_type ) {
@@ -592,7 +670,7 @@ send_by_ipv6:
 
 send_by_ipv4:
 
-    sendto(gnb_core->udp_ipv4_sockets[ node->socket4_idx ], (void *)payload, GNB_PAYLOAD16_FRAME_SIZE(payload), 0, (struct sockaddr *)&node->udp_sockaddr4, sizeof(struct sockaddr_in));
+    ret = sendto(gnb_core->udp_ipv4_sockets[ node->socket4_idx ], (void *)payload, GNB_PAYLOAD16_FRAME_SIZE(payload), 0, (struct sockaddr *)&node->udp_sockaddr4, sizeof(struct sockaddr_in));
 
 finish:
 

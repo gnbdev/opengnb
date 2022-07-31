@@ -56,7 +56,8 @@
 #include "gnb_node.h"
 #include "gnb_ring_buffer.h"
 #include "gnb_worker_queue_data.h"
-#include "gnb_fwdu2_frame_type.h"
+#include "gnb_ur1_frame_type.h"
+
 #include "gnb_time.h"
 #include "gnb_udp.h"
 
@@ -84,20 +85,20 @@ typedef struct _main_worker_ctx_t{
 
 #pragma pack(push, 1)
 
-typedef struct _gnb_fwdu0_frame_head_t {
+typedef struct _gnb_ur0_frame_head_t {
 
     uint8_t  dst_addr4[4];
     uint16_t dst_port4;
 
     unsigned char passcode[4];
 
-} __attribute__ ((__packed__)) gnb_fwdu0_frame_head_t;
+} __attribute__ ((__packed__)) gnb_ur0_frame_head_t;
 
 #pragma pack(pop)
 
 
 
-void gnb_send_fwdu0_frame(gnb_core_t *gnb_core, gnb_node_t *dst_node, gnb_payload16_t *payload){
+void gnb_send_ur0_frame(gnb_core_t *gnb_core, gnb_node_t *dst_node, gnb_payload16_t *payload){
 
     unsigned char buffer[GNB_MAX_PAYLOAD_SIZE];
 
@@ -124,105 +125,108 @@ void gnb_send_fwdu0_frame(gnb_core_t *gnb_core, gnb_node_t *dst_node, gnb_payloa
 
     gnb_address_t *fwd_address = &gnb_core->fwdu0_address_ring.address_list->array[0];
 
-    gnb_fwdu0_frame_head_t *fwdu0_frame_head = (gnb_fwdu0_frame_head_t *)fwd_payload->data;
+    gnb_ur0_frame_head_t *ur0_frame_head = (gnb_ur0_frame_head_t *)fwd_payload->data;
 
-    fwd_payload->type = GNB_PAYLOAD_TYPE_FWDU0;
+    fwd_payload->type = GNB_PAYLOAD_TYPE_UR0;
 
-    memcpy(fwdu0_frame_head->dst_addr4, &dst_address->m_address4, 4);
-    fwdu0_frame_head->dst_port4 = dst_address->port;
+    memcpy(ur0_frame_head->dst_addr4, &dst_address->m_address4, 4);
+    ur0_frame_head->dst_port4 = dst_address->port;
 
-    memcpy(fwdu0_frame_head->passcode, gnb_core->conf->ufwd_passcode, 4);
+    memcpy(ur0_frame_head->passcode, gnb_core->conf->crypto_passcode, 4);
 
     uint16_t payload_size = gnb_payload16_size(payload);
 
-    memcpy(fwd_payload->data + sizeof(gnb_fwdu0_frame_head_t), payload, payload_size);
+    memcpy(fwd_payload->data + sizeof(gnb_ur0_frame_head_t), payload, payload_size);
 
-    gnb_payload16_set_data_len(fwd_payload, sizeof(gnb_fwdu0_frame_head_t) + payload_size);
+    gnb_payload16_set_data_len(fwd_payload, sizeof(gnb_ur0_frame_head_t) + payload_size);
 
     gnb_send_to_address(gnb_core, fwd_address, fwd_payload);
 
     if ( 1==gnb_core->conf->if_dump ) {
-        GNB_LOG3(gnb_core->log,GNB_LOG_ID_MAIN_WORKER, "send ufwd4 =>[%s]=>dst_addr[%s:%d]\n",GNB_IP_PORT_STR1(fwd_address), GNB_ADDR4STR2(fwdu0_frame_head->dst_addr4), ntohs(fwdu0_frame_head->dst_port4));
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_MAIN_WORKER, "send ur0 local =>[%s]=>dst_addr[%s:%d]\n", GNB_IP_PORT_STR1(fwd_address), GNB_ADDR4STR2(ur0_frame_head->dst_addr4), ntohs(ur0_frame_head->dst_port4));
     }
 
 }
 
 
-static void handle_fwdu0_frame(gnb_core_t *gnb_core, gnb_payload16_t *payload){
+static void handle_ur0_frame(gnb_core_t *gnb_core, gnb_payload16_t *payload, gnb_sockaddress_t *source_node_addr){
+
+    gnb_ur0_frame_head_t *ur0_frame_head = (gnb_ur0_frame_head_t *)payload->data;
 
     gnb_address_t dst_address_st;
+    dst_address_st.type = AF_INET;
+    memcpy(&dst_address_st.address.addr4, ur0_frame_head->dst_addr4, 4);
 
-    gnb_fwdu0_frame_head_t *fwdu0_frame_head = (gnb_fwdu0_frame_head_t *)payload->data;
+    dst_address_st.port = ur0_frame_head->dst_port4;
 
-    if ( 0 != memcmp(fwdu0_frame_head->passcode, gnb_core->conf->ufwd_passcode, 4) ) {
+    if ( 0 != memcmp(ur0_frame_head->passcode, gnb_core->conf->crypto_passcode, 4) ) {
+
+        if ( 1==gnb_core->conf->if_dump ) {
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_MAIN_WORKER, "handle ur0 =>[%s] passcode invalid\n", GNB_IP_PORT_STR1(&dst_address_st) );
+        }
         return;
+
     }
 
-    dst_address_st.type = AF_INET;
-    memcpy(&dst_address_st.address.addr4, fwdu0_frame_head->dst_addr4, 4);
-
-    dst_address_st.port = fwdu0_frame_head->dst_port4;
-
-    gnb_payload16_t *fwd_payload = (gnb_payload16_t *)(payload->data + sizeof(gnb_fwdu0_frame_head_t));
+    gnb_payload16_t *fwd_payload = (gnb_payload16_t *)(payload->data + sizeof(gnb_ur0_frame_head_t));
 
     gnb_send_to_address(gnb_core, &dst_address_st, fwd_payload);
 
     if ( 1==gnb_core->conf->if_dump ) {
-        GNB_LOG3(gnb_core->log,GNB_LOG_ID_MAIN_WORKER, "handle ufwd4 =>[%s]\n",GNB_IP_PORT_STR1(&dst_address_st) );
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_MAIN_WORKER, "handle ur0 %s => %s\n", GNB_SOCKETADDRSTR1(source_node_addr), GNB_IP_PORT_STR1(&dst_address_st) );
     }
 
 }
 
 
-static void handle_fwdu2_frame(gnb_core_t *gnb_core, gnb_payload16_t *payload){
+static void handle_ur1_frame(gnb_core_t *gnb_core, gnb_payload16_t *payload){
 
-    gnb_address_t fwd_address_st;
+    gnb_address_t ur1_address_st;
 
-    gnb_node_t *fwd_node;
+    gnb_node_t *relay_node;
 
-    gnb_fwdu2_frame_head_t *fwdu2_frame_head = (gnb_fwdu2_frame_head_t *)payload->data;
+    gnb_ur1_frame_head_t *ur1_frame_head = (gnb_ur1_frame_head_t *)payload->data;
 
-    if ( 0 != memcmp(fwdu2_frame_head->passcode, gnb_core->conf->ufwd_passcode, 4) ) {
+    if ( 0 != memcmp(ur1_frame_head->passcode, gnb_core->conf->crypto_passcode, 4) ) {
         return;
     }
 
-    uint32_t dst_uuid32 = ntohl(fwdu2_frame_head->dst_uuid32);
+    uint32_t dst_uuid32 = ntohl(ur1_frame_head->dst_uuid32);
 
-    //to gnb node or fwd node
+    //to gnb node or ur1 node
     if ( dst_uuid32 != gnb_core->local_node->uuid32 ) {
 
-        fwd_node = (gnb_node_t *)GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, dst_uuid32);
+        relay_node = (gnb_node_t *)GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, dst_uuid32);
 
-        if ( NULL==fwd_node ) {
+        if ( NULL==relay_node ) {
             return;
         }
 
-        gnb_forward_payload_to_node(gnb_core, fwd_node, payload);
+        gnb_forward_payload_to_node(gnb_core, relay_node, payload);
 
         return;
 
     }
 
     //to gnb_fwd host address
-    memset(&fwd_address_st, 0, sizeof(gnb_address_t));
+    memset(&ur1_address_st, 0, sizeof(gnb_address_t));
 
-    if ( '6' == fwdu2_frame_head->fwd_addr_type ) {
-        fwd_address_st.type = AF_INET6;
-        memcpy(&fwd_address_st.address.addr6, fwdu2_frame_head->fwd_addr, 16);
-    } else if ( '4' == fwdu2_frame_head->fwd_addr_type ) {
-        fwd_address_st.type = AF_INET;
-        memcpy(&fwd_address_st.address.addr4, fwdu2_frame_head->fwd_addr, 4);
+    if ( '6' == ur1_frame_head->relay_addr_type ) {
+        ur1_address_st.type = AF_INET6;
+        memcpy(&ur1_address_st.address.addr6, ur1_frame_head->relay_addr, 16);
+    } else if ( '4' == ur1_frame_head->relay_addr_type ) {
+        ur1_address_st.type = AF_INET;
+        memcpy(&ur1_address_st.address.addr4, ur1_frame_head->relay_addr, 4);
     } else {
-
         return;
     }
 
-    fwd_address_st.port = fwdu2_frame_head->fwd_in_port;
+    ur1_address_st.port = ur1_frame_head->relay_in_port;
 
-    gnb_send_to_address(gnb_core, &fwd_address_st, payload);
+    gnb_send_to_address(gnb_core, &ur1_address_st, payload);
 
     if ( 1==gnb_core->conf->if_dump ) {
-        GNB_LOG3(gnb_core->log,GNB_LOG_ID_MAIN_WORKER, "handle fwdu2_frame => [%s]\n", GNB_IP_PORT_STR1(&fwd_address_st) );
+        GNB_LOG3(gnb_core->log,GNB_LOG_ID_MAIN_WORKER, "handle ur1_frame => [%s]\n", GNB_IP_PORT_STR1(&ur1_address_st) );
     }
 
 }
@@ -253,7 +257,6 @@ static gnb_worker_queue_data_t* make_worker_receive_queue_data(gnb_worker_t *wor
     return receive_queue_data;
 
 }
-
 
 
 static void handle_udp(gnb_core_t *gnb_core, uint8_t socket_idx, int af){
@@ -384,14 +387,14 @@ static void handle_udp(gnb_core_t *gnb_core, uint8_t socket_idx, int af){
     }
 
 
-    if ( GNB_PAYLOAD_TYPE_FWDU2 == gnb_core->inet_payload->type ) {
-        handle_fwdu2_frame(gnb_core, gnb_core->inet_payload);
+    if ( GNB_PAYLOAD_TYPE_UR1 == gnb_core->inet_payload->type ) {
+        handle_ur1_frame(gnb_core, gnb_core->inet_payload);
         goto finish;
     }
 
 
-    if ( 1 == gnb_core->conf->fwdu0 && GNB_PAYLOAD_TYPE_FWDU0 == gnb_core->inet_payload->type ) {
-        handle_fwdu0_frame(gnb_core, gnb_core->inet_payload);
+    if ( 1 == gnb_core->conf->universal_relay0 && GNB_PAYLOAD_TYPE_UR0 == gnb_core->inet_payload->type ) {
+        handle_ur0_frame(gnb_core, gnb_core->inet_payload, &node_addr_st);
         goto finish;
     }
 
@@ -675,7 +678,6 @@ static void* tun_udp_loop_thread_func(void *data){
             }
         }
 
-
         if ( gnb_core->conf->udp_socket_type & GNB_ADDR_TYPE_IPV6 ) {
 
             for ( i=0; i < gnb_core->conf->udp6_socket_num; i++ ) {
@@ -762,8 +764,6 @@ static void release(gnb_worker_t *gnb_worker){
 
     gnb_core_t *gnb_core = main_worker_ctx->gnb_core;
 
-    gnb_heap_free(gnb_core->heap, main_worker_ctx);
-
 }
 
 
@@ -848,7 +848,9 @@ static int start(gnb_worker_t *gnb_worker){
 #endif
 
     return 0;
+
 }
+
 
 static int stop(gnb_worker_t *gnb_worker){
 
@@ -885,4 +887,3 @@ gnb_worker_t gnb_main_worker_mod = {
     .notify    = notify,
     .ctx       = NULL
 };
-

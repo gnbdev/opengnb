@@ -1,11 +1,12 @@
-CFLAGS=-O2 -ffunction-sections -fdata-sections -Wno-unused-result -I./src/ -I./libs/ -I./libs/miniupnpc/
-CLI_LDFLAGS=-Wl,--gc-sections -L/usr/lib -pthread
-GNB_ES_LDFLAGS=-Wl,--gc-sections -L/usr/lib -pthread
+CFLAGS=-ffunction-sections -fdata-sections -Wno-unused-result -I./src/ -I./libs/ -I./libs/miniupnpc/
+CLI_LDFLAGS=-Wl,--gc-sections -L/usr/lib -pthread -static
+GNB_ES_LDFLAGS=-Wl,--gc-sections -L/usr/lib -pthread -static
 
 
 ifeq ($(DEBUG),1)
 CFLAGS += -g
 else
+CFLAGS += -O2
 CLI_LDFLAGS    += -s
 GNB_ES_LDFLAGS += -s
 endif
@@ -26,6 +27,7 @@ GNB_CLI_OBJS =                             \
        ./src/unix/unix_platform.o          \
        ./src/linux/gnb_drv_linux.o
 
+GNB_ES_OBJS += ./src/unix/unix_platform.o
 
 all:${GNB_CLI} ${GNB_CRYPTO} ${GNB_ES} ${GNB_CTL}
 

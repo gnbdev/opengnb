@@ -105,6 +105,7 @@ static void if_down_script(gnb_core_t *gnb_core){
 
 }
 
+
 /*
  set_route4的作用是 创建一条路由，以 tun ip 为 10.1.0.15 的local node为例：
  route -n add -net 10.1.0.0 -netmask 255.255.255.0 10.1.0.15

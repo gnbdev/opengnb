@@ -200,7 +200,7 @@ gnb_ctl_block_t *gnb_get_ctl_block(const char *ctl_block_file, int flag){
     ctl_block->mmap_block = mmap_block;
 
     if ( 0 == flag ) {
-    	return ctl_block;
+        return ctl_block;
     }
 
     if ( now_sec < ctl_block->status_zone->keep_alive_ts_sec ) {

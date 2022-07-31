@@ -65,6 +65,7 @@ void bind_socket_if(gnb_core_t *gnb_core){
 
 }
 
+
 static void if_up_script(gnb_core_t *gnb_core){
 
     int ret;
@@ -75,7 +76,7 @@ static void if_up_script(gnb_core_t *gnb_core){
 
     ret = system(cmd);
 
-    if ( -1==ret || 0 ==ret ) {
+    if ( -1==ret || 0==ret ) {
         return;
     }
 
@@ -93,7 +94,7 @@ static void if_down_script(gnb_core_t *gnb_core){
 
     ret = system(cmd);
 
-    if ( -1==ret || 0 ==ret ) {
+    if ( -1==ret || 0==ret ) {
         return;
     }
 

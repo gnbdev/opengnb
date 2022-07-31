@@ -26,6 +26,7 @@ GNB_CLI_OBJS =                             \
        ./src/unix/unix_platform.o          \
        ./src/freebsd/gnb_drv_freebsd.o
 
+GNB_ES_OBJS += ./src/unix/unix_platform.o
 
 all:${GNB_CLI} ${GNB_CRYPTO} ${GNB_ES} ${GNB_CTL}
 

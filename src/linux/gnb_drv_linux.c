@@ -43,6 +43,8 @@
 #include <linux/ipv6.h>
 
 #include "gnb.h"
+#include "gnb_arg_list.h"
+#include "gnb_exec.h"
 #include "gnb_tun_drv.h"
 #include "gnb_payload16.h"
 
@@ -134,6 +136,7 @@ static void setifmtu(char *if_name,int mtu) {
 
     close(socket_fd);
 }
+
 
 static int set_addr4(char *interface_name, char *ip, char *netmask){
 

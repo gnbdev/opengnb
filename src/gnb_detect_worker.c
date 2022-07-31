@@ -108,7 +108,7 @@ static void detect_node_address(gnb_worker_t *gnb_detect_worker, gnb_node_t *nod
 
     detect_worker_ctx->is_send_detect = 1;
 
-    //GNB_LOG3(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "#detect_node_address [%d]->[%d]%s\n", gnb_core->local_node->uuid32, node->uuid32, GNB_IP_PORT_STR1(&address_st));
+    //GNB_LOG4(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "#detect_node_address [%d]->[%d]%s\n", gnb_core->local_node->uuid32, node->uuid32, GNB_IP_PORT_STR1(&address_st));
 
 }
 
@@ -158,7 +158,7 @@ static void detect_node_set_address(gnb_worker_t *gnb_detect_worker, gnb_node_t 
     }
 
     if ( gnb_core->conf->port_detect_start == node->detect_port4 ) {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "#START DECETE node[%d] idx[%d]\n", node->uuid32, node->detect_address4_idx);
+        GNB_LOG4(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "#START DECETE node[%d] idx[%d]\n", node->uuid32, node->detect_address4_idx);
     }
 
 }
@@ -280,7 +280,6 @@ static void release(gnb_worker_t *gnb_worker){
 
     detect_worker_ctx_t *detect_worker_ctx =  (detect_worker_ctx_t *)gnb_worker->ctx;
     gnb_core_t *gnb_core = detect_worker_ctx->gnb_core;
-    gnb_heap_free(gnb_core->heap, detect_worker_ctx);
 
 }
 

@@ -70,12 +70,16 @@ static void send_broadcast4(gnb_es_ctx *es_ctx, struct sockaddr_in *src_address_
     int ret;
     int on;
 
+#if 0
     local_node = (gnb_node_t *)GNB_HASH32_UINT32_GET_PTR(es_ctx->uuid_node_map, es_ctx->ctl_block->core_zone->local_uuid);
 
     if ( NULL == local_node ) {
         GNB_LOG1(es_ctx->log, GNB_LOG_ID_ES_DISCOVER_IN_LAN, "send broadcast4 error local node=%lu\n", es_ctx->ctl_block->core_zone->local_uuid);
         return;
     }
+#endif
+
+    local_node = es_ctx->local_node;
 
     payload = (gnb_payload16_t *)payload_buffer;
 

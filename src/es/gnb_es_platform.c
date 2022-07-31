@@ -75,3 +75,7 @@ void gnb_es_if_down(gnb_es_ctx *es_ctx){
 #endif
 
 }
+
+void gnb_es_if_loop(gnb_es_ctx *es_ctx){
+
+}

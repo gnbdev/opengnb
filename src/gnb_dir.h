@@ -57,6 +57,9 @@ char *gnb_file_path_cut(char *filename, size_t len);
 
 char *gnb_file_path_dup(const char *filename, size_t len);
 
+/* 从传入的文件路径中得到文件的目录和文件名，通过 realpath(Unix 平台) 或 _fullpath (Windows平台) 获得文件目录的绝对路径，与文件名合并成一个字符串返回 */
+char *gnb_realpath(char *in_path, char *resolved_path);
+
 void gnb_release_file_info_lst(gnb_file_info_t **file_info_lst, int lst_len);
 
 #endif

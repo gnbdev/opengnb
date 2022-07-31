@@ -33,6 +33,15 @@
 #include "crypto/random/gnb_random.h"
 #include "ed25519/ed25519.h"
 
+static void show_useage(int argc,char *argv[]){
+
+    printf("Build[%s %s]\n", __DATE__, __TIME__);
+
+    printf("usage: %s -c -p private_key_file -k public_key_file\n",argv[0]);
+    printf("example:\n");
+    printf("%s -c -p 1001.private -k 1001.public\n",argv[0]);
+
+}
 
 static void create_keypair(uint32_t uuid32, const char *private_key_file, const char *public_key_file){
 
@@ -140,19 +149,9 @@ int main (int argc,char *argv[]){
 
     }
 
-
     if ( NULL==cmd || NULL==private_key_file || NULL==public_key_file ) {
-
-        #ifndef GNB_SKIP_BUILD_TIME
-        printf("Build[%s %s]\n", __DATE__, __TIME__);
-        #endif
-
-        printf("usage: %s -c -p private_key_file -k public_key_file\n",argv[0]);
-        printf("example:\n");
-        printf("%s -c -p 1001.private -k 1001.public\n",argv[0]);
-
+        show_useage(argc, argv);
         exit(0);
-
     }
 
     create_keypair(uuid32, private_key_file, public_key_file);

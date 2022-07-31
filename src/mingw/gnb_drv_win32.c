@@ -199,7 +199,7 @@ int init_tun_win32(gnb_core_t *gnb_core){
     if ( NULL != devicename ) {
         snprintf(tun_win_ctx->if_name, PATH_MAX, "%s", devicename);
         free(devicename);
-    }    
+    }
 
     if ( tun_win_ctx->if_name && 0 != strncmp(gnb_core->ifname,tun_win_ctx->if_name,256) ) {
         snprintf(gnb_core->ifname, 256, "%s", tun_win_ctx->if_name);

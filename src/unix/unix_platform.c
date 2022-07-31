@@ -22,8 +22,11 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <fcntl.h>
+
+#include "gnb_exec.h"
 #include "gnb_arg_list.h"
 
+extern char **__environ;
 
 int gnb_get_pid(){
     int pid = getpid();
@@ -43,20 +46,30 @@ pid_t gnb_exec(char *app_filename, char *current_path, gnb_arg_list_t *arg_list,
     pid_t pid;
 
     int fd;
-
     int ret;
+    int argc = 0;
 
     char *argv[arg_list->argc];
 
     pid = fork();
 
-    if ( 0 != pid ){
+    if ( 0 != pid ) {
+
+        if ( -1 == pid ) {
+            return pid;
+        }
+
+        if ( flag & GNB_EXEC_WAIT ) {
+            waitpid(pid, NULL, 0);
+        }
+
         return pid;
+
     }
 
     int i;
 
-    for(i=0; i<arg_list->argc; i++){
+    for (i=0; i<arg_list->argc; i++) {
         argv[i] = arg_list->argv[i];
     }
 
@@ -68,6 +81,10 @@ pid_t gnb_exec(char *app_filename, char *current_path, gnb_arg_list_t *arg_list,
         goto finish;
     }
 
+    if ( flag & GNB_EXEC_FOREGROUND ) {
+        goto do_exec;
+    }
+
     fd = open("/dev/null", O_RDWR);
 
     if ( 0 != fd ){
@@ -76,9 +93,11 @@ pid_t gnb_exec(char *app_filename, char *current_path, gnb_arg_list_t *arg_list,
         ret = dup2(fd, STDERR_FILENO);
     }
 
-    ret = execve(app_filename, argv, NULL);
+do_exec:
 
-    if( -1==ret ){
+    ret = execve(app_filename, argv, __environ);
+
+    if( -1==ret ) {
         goto finish;
     }
 

@@ -75,8 +75,8 @@ gnb_kv32_t** gnb_hash32_array(gnb_hash32_map_t *hash32_map, uint32_t *num);
 
 #define GNB_HASH32_UINT32_GET_PTR(hash32_map,uint32key) GNB_HASH32_VALUE_PTR(gnb_hash32_get(hash32_map,(u_char *)&uint32key,sizeof(uint32_t)))
 #define GNB_HASH32_UINT32_DEL(hash32_map,uint32key) gnb_hash32_del(hash32_map,(u_char *)&uint32key,sizeof(uint32_t))
-uint32_t* gnb_hash32_uint32_keys(gnb_hash32_map_t *hash32_map, uint32_t *num);
 
+uint32_t* gnb_hash32_uint32_keys(gnb_hash32_map_t *hash32_map, uint32_t *num);
 
 #define GNB_HASH32_UINT64_SET(hash32_map,uint64key,value) gnb_hash32_set(hash32_map,(u_char *)&uint64key,sizeof(uint64_t),value,0)
 #define GNB_HASH32_UINT64_STORE(hash32_map,uint64key,value,value_len) gnb_hash32_store(hash32_map,(u_char *)&uint64key,sizeof(uint64_t),value,value_len)
@@ -119,4 +119,3 @@ u_char** gnb_hash32_string_keys(gnb_hash32_map_t *hash32_map, uint32_t *num);
 #define GNB_HASH32_UINT32_GET_VALUE(hash32_map,uint32key) ( GNB_HASH32_VALUE( gnb_hash32_get(hash32_map,(u_char *)&uint32key,sizeof(uint32_t)) ) )
 
 #endif
-

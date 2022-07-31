@@ -15,22 +15,22 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef GNB_FWDU2_FRAME_TYPE_H
-#define GNB_FWDU2_FRAME_TYPE_H
+#ifndef GNB_UR1_FRAME_TYPE_H
+#define GNB_UR1_FRAME_TYPE_H
 
 #include "stdint.h"
 #include "gnb_core_frame_type_defs.h"
 
 #pragma pack(push, 1)
 
-typedef struct _gnb_fwdu2_frame_head_t{
+typedef struct _gnb_ur1_frame_head_t{
 
 	uint32_t dst_uuid32;     //网络字节序
 
-	uint8_t  fwd_addr_type;
-	uint8_t  fwd_addr[16];
-	uint16_t fwd_in_port;    //网络字节序
-	uint16_t fwd_out_port;   //网络字节序
+	uint8_t  relay_addr_type;
+	uint8_t  relay_addr[16];
+	uint16_t relay_in_port;    //网络字节序
+	uint16_t relay_out_port;   //网络字节序
 
 	uint8_t  dst_addr_type;
 	uint8_t  dst_addr[16];
@@ -38,10 +38,10 @@ typedef struct _gnb_fwdu2_frame_head_t{
 
 	unsigned char passcode[4];
 
-}__attribute__ ((__packed__)) gnb_fwdu2_frame_head_t;
+}__attribute__ ((__packed__)) gnb_ur1_frame_head_t;
 
 #pragma pack(pop)
 
-#define GNB_MAX_FWDU2_FRAME_SIZE       (32*1024)
+#define GNB_MAX_UR1_FRAME_SIZE       (32*1024)
 
 #endif

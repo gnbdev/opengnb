@@ -1,36 +1,34 @@
 OpenGNB 用户手册
 
-
+version 1.3.0.0  protocol version 1.2.0
 
 # 概述
 
-[OpenGNB](https://github.com/gnbdev/opengnb "OpenGNB") 是一个开源的 P2P 去中心化的具有极致的内网穿透能力的 VPN 。
+[OpenGNB](https://github.com/gnbdev/opengnb "OpenGNB") 是一个开源的 P2P 去中心化的具有极致的内网穿透能力的软件自定义虚拟网络（SDVN）。
 
 GNB 是一个去中心化的网络，网络中每个节点都是对等的，没有 Server 和 Client 的概念。
 
-在用户创建的每个 GNB 网络中的各个节点的 ID 是唯一的，被称为 **nodeid** ，这是一个 32bit 无符号整型数字。
+在一个 GNB 网络中每个节点的 ID 是唯一的，被称为 **nodeid** ，这是一个 32bit 无符号整型数字。
 
-GNB 节点可以通过  index 节点找到其他 GNB 节点并建立起通信，在这过程中 GNB index 节点的作用类似于 **DNS** 和 **Bit Torrent** 中的** tracker** 。
+GNB 节点可以通过 index 节点找到其他 GNB 节点并建立起通信，在这过程中 GNB index 节点的作用类似于 **DNS** 和 **Bit Torrent** 中的 **tracker** 。
 
-GNB 与 index 节点通信时使用 **ed25519** 的 public key 和 `passcode`  与  **nodeid** 的 sha512 摘要作为唯一标识，基于这个特点，一个 GNB index 节点可以为许多 GNB 网络 提供 index service 而不容易发生碰撞冲突。
+GNB 与 index 节点通信时使用 **ed25519** 的 public key 和 `passcode` 与  **nodeid** 的 sha512 摘要作为唯一标识，基于这个特点，一个 GNB index 节点可以为许多个 GNB 网络 提供 index service 而不容易发生碰撞冲突。
 
 GNB 节点也可以通过域名或静态 IP 地址或内网广播找到其他 GNB 节点。
 
-GNB 通过包括但不限于端口探测， upnp，multi-index，multi-socket 等许多办法使得位于 LAN 中的节点能够成功 NAT 穿透与其他节点建立 P2P 通信，最糟糕的情况下，当两个 GNB 节点无法建立起P2P连接时可以通过网络内其他节点中转 payload。
+GNB 通过***upnp***，***multi index***，***port detect***,***multi socket***, ***unified forwarding*** 等许多办法使得位于 LAN 中的节点能够成功 NAT 穿透与其他节点建立 P2P 通信，最糟糕的情况下，当两个 GNB 节点无法建立起P2P连接时可以通过网络内其他节点中转 payload。
 
 GNB目前支持的操作系统及平台有 Linux，Windows10， macOS，FreeBSD，OpenBSD，树莓派，OpenWRT，除有特别的说明，本文档适用于这些支持的平台发行版及针对特定平台源码编译的版本。
 
 
-
 # 部署 GNB
-
 
 
 ## GNB Public Index node
 
 **GNB Public Index node** 仅提供 index service，不打开 TUN 设备，不创建虚拟IP，不处理 IP 分组，不需要用 root 启动，由志愿者提供。
 
-以 **Public Index** 方式启动 GNB 节点的命令可以是
+以 **Public Index** 方式启动 GNB 节点
 
 启动默认监听 9001 端口
 ```
@@ -43,14 +41,13 @@ gnb -P -l 9002
 ```
 
 
-
 ## GNB 的 Lite Mode
 
 在 **Lite Mode**  下不需要为节点创建 **ed25519** 密钥对 和 配置文件，通过设定命令行参数就能启动 GNB 节点。
 
-在 **Lite Mode** 下 **upnp** 选项是默认被启用。
+在 **Lite Mode** 下 **upnp** 选项默认被启用。
 
-GNB的源码 里 hardcode 了一个有5个节点的 GNB 网络供 **Lite Mode** 下使用。
+GNB的源码 里 hardcode 了一个有5个节点的 GNB 网络供 **Lite Mode** 下使用,这极大了简化部署的过程。
 ```
 nodeid       tun address
 1001         10.1.0.1/255.255.0.0
@@ -59,8 +56,6 @@ nodeid       tun address
 1004         10.1.0.4/255.255.0.0
 1005         10.1.0.5/255.255.0.0
 ```
-
-这极大了简化部署的过程。
 
 **Lite Mode** 下的 GNB 节点 通过 `passcode` 生成通讯密钥，安全性远低于基于 **ed25519** 的非对称加密的安全模式。
 
@@ -78,10 +73,9 @@ gnb -n 1001 -I "$public_index_ip/$port" -l 9001 --multi-socket=on -p 12345678
 gnb -n 1002 -I "$public_index_ip/$port" -l 9002 --multi-socket=on -p 12345678
 ```
 
-此时应可以看到主机 A 上的 TUN IP 是 10.1.0.1， 主机 B 上的 TUN IP 是 10.1.0.2，此时两个节点如果建立起连接就可以互相访问。
+此时应可以看到主机 A 上的 TUN IP 是 10.1.0.1， 主机 B 上的 TUN IP 是 10.1.0.2，此时,两个节点如果建立起连接 P2P 通讯就可以互相访问。
 
 用户当然可以在 **Lite Mode** 下设置更多的节点，这需要了解 `gnb` 的 `-n`， `-I`， `-a,`， `-r`，`-p` 等参数的使用。
-
 
 
 ## GNB 的 Safe Mode
@@ -89,13 +83,13 @@ gnb -n 1002 -I "$public_index_ip/$port" -l 9002 --multi-socket=on -p 12345678
 以 **Safe Mode** 方式启动 GNB 需要正确设置 `node.conf` `address.conf` `route.conf` 文件以及 **ed25519** 公私钥，这些文件需要放在一个目录下，目录的名字可以是 **nodeid**。
 
 其中，`address.conf` 是可选的。
-假设一个nodeid为`1000`的节点固定运行在 WAN 上充当 index 节点的角色，而其他GNB节点通过 `address.conf` 的配置找到 `1000`节点，那么一般而言，`1000`节点就不需要`address.conf` 。
+假设一个nodeid为`1000`的节点固定运行在 WAN 上充当 index 节点的角色，其他GNB节点通过 `address.conf` 的配置找到 `1000`节点,如此场景下`1000`节点一般不需要`address.conf` 。
 
 如果创建了多个 GNB 节点，可以把这些节点的配置目录放在 `gnb/conf/` 下以便管理。
 
 
 
-### 目录结构
+## 目录结构
 
 以节点 `1001` `1002` `1003`为例,  这些节点的配置目录如下
 
@@ -150,12 +144,11 @@ gnb -c gnb/conf/1003
 `security/` 存放的是本节点的 **ed25519** 公钥和私钥，`ed25519/` 存放的是其他节点的公钥。
 
 
-
-### 密钥交换
+## 密钥交换
 
 **Safe Mode** 下，GNB 节点通过非对称加密(ed25519)来交换通讯密钥，这是 GNB 节点通信的基础，因此需要为每个 GNB 节点创建一组公私钥用于通讯。
 
-公私钥的命名分别是以节点的UUID为文件名 .private 和 .public 为文件的后缀名，以UUID为1001的节点公私钥文件应为 `1001.public` `1001.private`
+公私钥的命名分别是以节点的UUID为文件名 .private 和 .public 为文件的后缀名，以 UUID 为 1001 的节点公私钥文件应为 `1001.public` `1001.private`
 
 GNB 提供了一个名为 `gnb_crypto` 命令行工具，用于生成公私钥，
 
@@ -184,8 +177,14 @@ GNB 提供了一个名为 `gnb_crypto` 命令行工具，用于生成公私钥�
 GNB通讯密钥有关的信息需要参考 `--crypto` `--crypto-key-update-interval` `--passcode` 的说明。
 
 
+## GNB payload forwarding
+  - **Direct Forwarding** 节点间 P2P 通信；通常情况下，位于 WAN 上节点必可与其他节点建立起 P2P 通信，位于 LAN 中节点与其他 LAN 中的节点建立起 P2P 通信要经过NAT穿透;
+  - **Unified Forwarding** 自动通过已经建立 P2P 通信的节点转发 IP 分组，多节点重传 IP 分组;
+  - **Relay Forwarding** 高度自定义中继路由，IP 分组发往下一个中继点前都会作加密处理，相关设置在 `route.conf`;
+  - **Standard Forwarding** 用尽一切策略都无法建立起 P2P 通信的节点可以通过位于公网 forward 节点中继 IP 分组
 
-### node.conf 配置文件
+
+## node.conf 配置文件
 
 以下是 `node.conf` 一个例子：
 ```
@@ -199,6 +198,7 @@ nodeid $nodeid
 listen $listen_port
 ```
 或
+
 ```
 nodeid $nodeid
 listen ip_address:$listen_port
@@ -219,47 +219,25 @@ multi-socket on
 
 `multi-socket` 被设为 on 后会除原有的 `listen` 的端口外，在额外打开4个随机 UDP 端口，如果想额外监听指定的端口，可以用多个 `listen` 设置项，GNB 支持用`listen` 指定监听5个地址端口或通过`listen6` 监听 5个IPV6地址和端口 以及用 `listen4` 监听5个IPV4地址端口。
 
+```
+unified-forwarding super
+```
+在发送 ip 分组的过程通过多个已经分别和A，B节点都建立起 P2P 通信的节点对 TCP 类型的 ip 分组进行重传中转
+
+
 `node.conf` 所支持的配置项与 gnb 命令行参数一一对应，目前支持的配置项有:
 ```
-ifname nodeid listen listen6 listen4 ctl-block multi-socket disabled-direct-forward ipv4-only ipv6-only passcode quiet daemon mtu set-tun address-secure node-worker index-worker index-service-worker node-detect-worker port-detect-range port-detect-start port-detect-end pid-file node-cache-file log-file-path log-udp4 log-udp-type console-log-level file-log-level udp-log-level core-log-level pf-log-level main-log-level node-log-level index-log-level detect-log-level es-argv
+ifname nodeid listen listen6 listen4 ctl-block multi-socket direct-forwarding unified-forwarding ipv4-only ipv6-only passcode quiet daemon mtu set-tun address-secure node-worker index-worker index-service-worker node-detect-worker port-detect-range port-detect-start port-detect-end pid-file node-cache-file log-file-path log-udp4 log-udp-type console-log-level file-log-level udp-log-level core-log-level pf-log-level main-log-level node-log-level index-log-level detect-log-level es-argv
 ```
 
 
+### route.conf 配置文件
 
-### route.conf  配置文件
-
-GNB 节点之间通信的数据分组被称为 **gnb payload**，网络里所有的节点共享的一张路由表，配置文件是 `route.conf`，其作用就是告诉 GNB 核心如何"route"这些包含 IP 分组的 **gnb payload**。
+GNB 节点之间通信的数据分组被称为 **gnb payload**，网络里所有的节点共享的一张路由表，配置文件是 `route.conf`，其作用就是告诉 GNB 核心如何"route" 这些包含 IP 分组的 **gnb payload**。
 
 每个路由配置项占一行，路由配置项有两个类型 **forward** 与 **relay** 用于设定本地节点的 payload 到达对端节点的方式。
 
-
-
-#### forward 与 relay 的区别：
-
-**forward**  默认情况下，GNB 根据 `route.conf` 中的配置项和 IP 分组的目的地址确定发送到指定的 GNB 节点。
-
-例如 `route.conf` 中 有一行
-```
-1001|10.1.0.1|255.255.255.0
-```
-
-当 GNB 处理一个目的地址 是 10.1.0.1 的 IP 分组时，就确定这个 IP 分组需要用 **nodeid**  为 1001 的节点的通信密钥加密封装成 **gnb payload** 发送到该节点 1001 上，这个过程我们称为 **direct forwarding**。
-
-当两个节点没有建立起 P2P 通信时，假如 `address.conf` 中有定义了 f 属性的节点，当前节点会通过这个被称为  **forward node** 的节点上来转发 **gnb payload** 到目的节点。
-
-**relay** 通过明确的自定义的中继路径对 **gnb payload** 进行中继，**gnb payload** 在中继过程中会被中继节点再次加密。
-
-节点间 route 方式可以是 **forward** 或 **relay**，也可以是 **forward** 和 **relay** 组合。
-
-由于是端对端加密，**forward node** 与 **relay node** 节点无法得到通信的两端的 **gnb payload** 中的 IP 分组的明文。
-
-
-
-#### route type forward
-
-节点之间通信默认是点对点方式，配置中如果有 forward 节点，在点对点不成功的情况下或强制 forward 的情况下节点之间的通信会通过 forward 节点转发；
-
-以下是 `route.conf` type forward 一个例子：
+以下是 `route.conf` 的例子：
 ```
 1001|10.1.0.1|255.255.255.0
 1002|10.1.0.2|255.255.255.0
@@ -272,13 +250,41 @@ $nodeid|$tun_ipv4|$tun_netmask
 ```
 
 每个配置项的含义是这样:
-`$nodeid`                节点的UUID
-`$tun_ipv4`           虚拟网卡的IPV4地址
+`$nodeid`          节点的UUID
+`$tun_ipv4`        虚拟网卡的IPV4地址
 `$tun_netmask`     虚拟网卡的IPV4地址的子网掩码
 
 
+#### Direct forwarding 
 
-#### route type relay
+节点之间通信默认是点对点方式被称为**Direct forwarding**，即 IP 分组直接发往对端节点的IP地址和端口。
+
+例如 `route.conf` 中 有一行
+```
+1001|10.1.0.1|255.255.255.0
+```
+
+当 GNB 处理一个目的地址 是 10.1.0.1 的 IP 分组时，就确定这个 IP 分组需要用 **nodeid**  为 1001 的节点的通信密钥加密封装成 **gnb payload** 发送到该节点 1001 上，这个过程我们称为 **Direct forwarding**。
+
+
+#### Standard Forwarding
+
+节点之间在没有起建立P2P通讯的情况下可以通过 `address.conf` 中有定义了 **f** 属性的 **forward** 节点转发**gnb payload**，这个通讯方式被成为 **Standard Forwarding**
+
+例：
+`address.conf`
+```
+if|1001|x.x.x.x|9001
+```
+
+以上例子中 1001 节点是一个 **idnex** 节点，同时也是一个 **forward** 节点。
+
+
+#### Relay Forwarding
+
+**Relay Forwarding** 通过明确的自定义的中继路径对 **gnb payload** 进行中继，**gnb payload** 在中继过程中会被中继节点再次加密。
+
+由于是端对端加密，**forward node** 与 **relay node** 节点无法得到通信的两端的 **gnb payload** 中的 IP 分组的明文。
 
 为目的节点设定中继节点, 可以为一个对端的节点设置最多8条中继的路由，每条中继路由最多可以有5个中继节点。
 
@@ -289,7 +295,7 @@ $nodeid|$tun_ipv4|$tun_netmask
 1006|1003
 1006|auto,static
 ```
-这组 route 的作用是：在当前节点无法与 1006 节点建立起 P2P 通信时，将通过 1003节点中继发往  1006 节点的 IP分组。
+这组 route 的作用是：在当前节点无法与 1006 节点建立起 P2P 通信时，将通过 1003节点中继发往 1006 节点的 IP 分组。
 
 
 ```
@@ -313,20 +319,19 @@ $nodeid|$relay_nodeid3,$relay_nodeid2,$relay_nodeid1
 $nodeid|$relay_mode
 ```
 
-本地节点的payload通过中继节点到达对端节点的路径是 local_node => relay_node1 => relay_node2 => relay_node3 => dst_node, 而 dst_node 到 local_node 的路径则由对端的 dst_node 的route.conf配置所决定。
+本地节点的payload通过中继节点到达对端节点的路径是 local_node => relay_node1 => relay_node2 => relay_node3 => dst_node, 而 dst_node 到 local_node 的路径则由对端的 dst_node 的 `route.conf` 配置所决定。
 
 `$relay_mode` 可以是 **auto**, **force**, **static**, **balance**
 
-**auto**         当对目的节点无法点对点通信及没有forward节点转发时通过预设的中继路由转发
-**force**        强制与该目的节点的通信必须经过中继路由
-**static**       当一个目的节点有多条中继路由时，使用第一条中继路由
-**balance**   当一个目的节点有多条中继路由时，以负载均衡的方式选择中继路由
-
+**auto**       当对目的节点无法点对点通信及没有forward节点转发时通过预设的中继路由转发
+**force**      强制与该目的节点的通信必须经过中继路由
+**static**     当一个目的节点有多条中继路由时，使用第一条中继路由
+**balance**    当一个目的节点有多条中继路由时，以负载均衡的方式选择中继路由
 
 
 ### address.conf  配置文件
 
-`address.conf` 用于配置节点的属性和公网ip地址及端口,以下是 `address.conf` 一个例子：
+`address.conf` 用于配置节点的属性和公网ip地址及端口,以下是一个例子：
 
 ```
 i|0|a.a.a.a|9001
@@ -334,58 +339,74 @@ if|1001|b.b.b.b|9001
 n|1002|c.c.c.c|9001
 ```
 
-文件中的 `a.a.a.a` `b.b.b.b` `c.c.c.c` 代表节点的物理网卡的 IP 地址，需要根据实际情况填写，配置文件中的每一行是一个地址的描述，格式如下
+文件中的 `a.a.a.a` `b.b.b.b` `c.c.c.c` 代表节点的物理网卡的 IP 地址，需要根据实际情况填写，配置文件中的每一行是一个地址的描述，格式如下:
 
 ```
 $attrib|$nodeid|$ipv4/$ipv6/$hostname|$port
 ```
 
-**$attrib**         节点的属性，用一组字符来表示，i表示这个节点是index节点; f表示这个节点是forward节点; n表示这个节点是一个普通节点; s为静默(slience)节点,本地节点如果含有s属性将不会与index节点通信避免，也不会响应ping-pong及地址探测的请求暴露本地ip地址
-**$nodeid**       节点的 nodeid，与 `route.conf` 中的 **$nodeid** 相对应
-**$ipv6**             GNB 节点的 IPV6 地址
-**$ipv4**             GNB 节点的 IPV4 地址
-**$hostname**  GNB 节点的 域名
-**$port**             GNB 节点的服务端口
+`$attrib`    节点的属性，用一组字符来表示，**i**表示这个节点是index节点; **f**表示这个节点是forward节点; **n** 表示这个节点是一个普通节点; **s**为静默(slience)节点,本地节点如果含有**s**属性将不会与index节点通信避免，也不会响应ping-pong及地址探测的请求暴露本地ip地址
+`$nodeid`    节点的 nodeid，与 `route.conf` 中的 `$nodeid` 相对应
+`$ipv6`      GNB 节点的 IPV6 地址
+`$ipv4`      GNB 节点的 IPV4 地址
+`$hostname`  GNB 节点的 域名
+`$port`      GNB 节点的服务端口
 
 
-如果一个节点拥有多个 IP 地址, 需要按格式分成多行来配置，GNB 会通过 **GNB node ping-pong** 协议方式去测量该节点哪个 IP 地址有更低的时延，在发送 IP 分组数据的时候自动发往低时延的地址。
+如果一个节点拥有多个 IP 地址, 需按格式分成多行配置，GNB 会通过 **GNB node ping-pong** 协议方式去测量该节点每个 IP 地址的时延，在发送 IP 分组数据的时候自动发往低时延的IP地址。
 
-`gnb` 进程不会对 `address.conf` 中的 **$hostname** 进行域名解释，而是由 `gnb_es` 异步处理，相关信息可以了解 `gnb_es` 的 `--resolv` 选项。
+`gnb` 进程不会对 `address.conf` 中的 `$hostname` 进行域名解释，而是由 `gnb_es` 异步处理，相关信息可以了解 `gnb_es` 的 `--resolv` 选项。
 
-前文提到 index 节点的作用类似于 **DNS** 和 **Bit Torrent** 中的 ** tracker** ，如果一组相互之间不知道对方 IP 地址和端口的 GNB 节点都向同一个 index 节点提交自身的 IP 地址和端口，那么这些 GNB 节点就可以通过对端节点的公钥向 index 查询对端节点的 IP 地址和端口。
+前文提到 index 节点的作用类似于 **DNS** 和 **Bit Torrent** 中的 **tracker**, 如果一组相互之间不知道对方 IP 地址和端口的 GNB 节点都向同一个 index 节点提交自身的 IP 地址和端口, GNB 节点就可以通过对端节点的公钥向 index 查询对端节点的 IP 地址和端口。
 
-在 `address.conf` 中 index 节点的 **$attrib**  里需要带有 **i** 属性。
+在 `address.conf` 中 index 节点的 `$attrib`  里需要带有 **i** 属性。
 
-GNB index 协议允许在提交和查询节点ip地址端口过程中不验证报文的数字签名,即 index 节点允许对提交和查询ip的报文不验证数字签名，节点对 index 节点响应查询ip的报文不验证数字签名。
+GNB index 协议允许在提交和查询节点ip地址端口过程中不验证报文的数字签名,即 index 节点允许对提交和查询ip的报文不验证数字签名，节点对 index 节点响应查询IP的报文不验证数字签名。
 
-**GNB Public Index node**  在 `address.conf` 中的对应的 **nodeid** 可以设为 **0**,不需要在 `route.conf` 中设定 "route" 规则，以下是一个 **GNB Public Index node** 的例子：
+**GNB Public Index node**  在 `address.conf` 中的对应的 **nodeid** 可以设为 **0**,不需要在 `route.conf` 中设定 "route" 规则，以下是一个 **GNB Public Index node** 的例子:
 ```
 i|0|a.a.a.a|9001
 ```
 
-forward 节点  **$attrib**  设为**f**, **$nodeid** 不能设为 **0**，并且必须绑定 nodeid 作为配置项出现在 `route.conf` 中， gnb forward 协议相关的报文都要发送验证节点的数字签名，即要求 forward 节点和通过 forward 节点转发报文的节点都必须相互交换了公钥。
+forward 节点  `$attrib`  设为 **f**, `$nodeid` 不能设为 **0**，并且必须绑定 nodeid 作为配置项出现在 `route.conf` 中， gnb forward 协议相关的报文都要发送验证节点的数字签名，即要求 forward 节点和通过 forward 节点转发报文的节点都必须相互交换了公钥。
 
-forward 节点可以为无法直接互访的 GNB 节点中转 IP 分组，这些节点通常部署在内网中且没有固定公网ip，并且用尽了所有的办法都无法实现nat穿透实现点对点通讯，forward 节点并不能解密两个节点之间的通信的内容。
+forward 节点可以为无法直接互访的 GNB 节点中转 IP 分组，这些节点通常部署在内网中且没有固定公网 IP，并且用尽了所有的办法都无法实现nat穿透实现点对点通讯，forward 节点并不能解密两个节点之间的通信的内容。
 
 用户当然可以把一个 GNB 节点作为GNB网络中的 index节点 和 forward节点，同时还可以为其他 GNB 网络提供 index service，以下是一个例子：
 ```
 if|1001|b.b.b.b|9001
 ```
 
-在 `address.conf` 中 index 节点和 forward 节点可以有多项，并可以通过
-`--multi-index-type` `--multi-forward-type` 设定负载均衡和容错的模式，
-
-假设一个 GNB 节点在LAN中经过非常复杂的地址转换后可能在同一时刻拥多个NAT后的 IP 地址，即运营商可能会根据 LAN 中的主机访问 WAN 的目标地址选用不同的网关出口，这时如果 `address.conf`  设有多个 Index 节点，那么在 NAT 穿透中，对端的GNB节点就可能掌握到该节点更多的地址和端口，从而增加NAT穿透建立 P2P 通信的成功率。
+在 `address.conf` 中 index 节点和 forward 节点可以有多项,并可以通过 `--multi-index-type` `--multi-forward-type` 设定负载均衡和容错的模式;假设一个 GNB 节点在LAN中经过非常复杂的地址转换后可能在同一时刻拥多个NAT后的 IP 地址，即运营商可能会根据 LAN 中的主机访问 WAN 的目标地址选用不同的网关出口，这时如果 `address.conf`  设有多个 Index 节点，那么在 NAT 穿透中，对端的GNB节点就可能掌握到该节点更多的地址与端口，从而增加NAT穿透建立 P2P 通信的成功率。
 
 
+## GNB Unified Forwarding
 
-### 关于  Discover In Lan
+在复杂 NAT 机制下，位于 LAN 中的节点无法确保可以 100% 成功实现 NAT 穿透，但总会有一些节点可以成功实现 NAT 穿透建立起 P2P 通讯，**GNB Unified Forwarding** 机制可以使得已经建立起 P2P 通讯的节点为未建立起 P2P 通讯的节点转发 IP 分组。
+
+GNB 网络中每个节点定期把与自身建立起 P2P 通讯的节点id在网内通告，这使得网内每个节点都掌握发送数据另一个节点时有哪些中转节点可用。
+
+以一个有A、B、C 3个节点的GNB网络为例： A与C, B与C 都建立起 P2P 通讯，而 A 与 B 由于复杂的 NAT 机制无法建立起 P2P 通讯，通过 **GNB Unified Forwarding** 机制，A与B 可以通过 C 转发 IP 分组。
+
+根据 **GNB Unified Forwarding** 的机制只要虚拟网络中节点的数量越多，节点之间越容易实现 NAT 穿透并建立起虚拟链路。
+
+发往目标节点的 IP 分组可以同时由多个中转节点转发，先到达目标节点的 IP 分组会被写入虚拟网卡，GNB 对每个目标节点维护了一个 64bit 时间戳及时间戳队列以确保重复传输的 IP 分组 被丢弃，因此**GNB Unified Forwarding**这个特点在一些场合下可以用作TCP重传加速。
+
+
+### GNB Unified Forwarding 工作模式
+`auto`  当A、B两个节点无法建立 P2P 通信时，自动通过已经分别和A，B都建立起 P2P 通信的节点（可以在LAN中）进行中转 IP 分组
+`super` 不管A、B两个节点有没有建立起 P2P 通信，在发送 ip 分组的过程通过多个已经分别和A，B都建立起 P2P 通信的节点对 TCP 类型的 ip 分组进行重传中转
+`hyper` 不管A、B两个节点有没有建立起 P2P 通信，在发送 ip 分组的过程通过多个已经分别和A，B都建立起 P2P 通信的节点对所有类型的 ip 分组进行重传中转
+
+
+要了解更多 **Unified Forwarding** 的信息，可以参考 `gnb` 的 `-U, --unified-forwarding` 选项
+
+
+## GNB Discover In Lan
 
 **Discover In Lan** 可以使得 GNB 节点通过广播发现 LAN 内其他的 GNB 节点，这使得同一个 LAN 下的  GNB 节点就不需要先经过 WAN 进行 NAT 穿透就能建立起通信。
 
-**Discover In Lan** 在 `gnb_es` 中实现。
-
-为了让 `gnb_es` 一直监听 LAN 中其他节点的广播分组，`gnb_es` 必须以 service 或 daemon 方式启动，并带有 `-L, --discover-in-lan` 选项。
+**Discover In Lan** 在 `gnb_es` 中实现，为了让 `gnb_es` 进程可以一直监听 LAN 中其他节点的广播分组，`gnb_es` 必须以 service 或 daemon 方式启动，并带有 `-L, --discover-in-lan` 选项。
 
 以下节点 1002 为例
 ```
@@ -396,11 +417,10 @@ gnb_es -s -L -b gnb/conf/1002/gnb.map
 
 在部署 GNB 节点的过程中，用户会发现在某些情况下同一个 LAN 里某些 GNB 节点可以成功NAT 穿透与另一个异地的 LAN 里的节点成功建立 P2P 通信，而某些节点却未能成功，借助 **Discover In Lan** 不但可以让更多的节点更轻易的连结在一起，同时还可以使得让已经成功NAT 穿透的节点去帮助同一个 LAN 下其他节点转发 IP 分组。
 
-要了解更多 **Discover In Lan** 的相关信息，可以参考 `gnb` 的`-b, --ctl-block`，以及  `gnb_es` 的`-s, --service` `-d, --daemon` `-L, --discover-in-lan` 选项。
+要了解更多 **Discover In Lan** 的信息，可以参考 `gnb` 的 `-b, --ctl-block`，以及  `gnb_es` 的 `-s, --service` `-d, --daemon` `-L, --discover-in-lan` 选项。
 
 
-
-### 关于 net to net
+## 关于 net to net
 
 一般而言，VPN通过建立虚拟链路的方式可以把几台计算机组成一个网络，也可以让一台计算机通过虚拟链路接入一个网络，还可以通过虚拟链路把两个或者更多的计算机网络组成一个大的虚拟网络，使得分散在各自不同网络里的计算机可以互相访问。
 
@@ -422,7 +442,6 @@ GNB 让 ** net to net ** 的部署变得非常轻而易举，借助 GNB 强大�
 **nodeid**=1003  位于 **LAN B** 的 OpenWRT Router 上，NetWork=192.168.1.0/24
 
 
-
 设置 **node 1001**
 
 `conf/1001/node.conf`
@@ -437,7 +456,6 @@ listen 9001
 1002|10.1.0.2|255.255.255.0
 1003|10.1.0.3|255.255.255.0
 ```
-
 
 
 设置  **LAN A**  中的 **node 1002**
@@ -462,7 +480,7 @@ es-argv --upnp
 ```
 if|1001|x.x.x.x|9001
 ```
-x.x.x.x 是 node 1001 的 WAN IP，需要根据实际情况填写。
+**x.x.x.x** 是 node 1001 的 WAN IP，需要根据实际情况填写。
 
 `conf/1002/scripts/if_up_linux.sh`
 ```
@@ -514,9 +532,7 @@ ip route add 192.168.0.0/24 via 10.1.0.2
 
 
 
-
-
-# 关于 GNB 的 NAT 穿透
+# GNB 的 NAT 穿透
 
 极致的 NAT 穿透能力或许是 GNB 最令人激动的一个特性，但绝这不是 GNB 的全部，GNB 还有许多有价值的特性待用户去挖掘。
 
@@ -532,11 +548,11 @@ ip route add 192.168.0.0/24 via 10.1.0.2
 **What GNB has to do, just try it's best to traverse the NAT**
 
 
-毫无疑问，GNB 从 **Bit Torrent**  这些 P2P 软件获得灵感，既然两个位于不同的 LAN 中的主机通过 NAT 访问互联网能够建立起 P2P 通信用于传输文件的数据块，那么就意味这样的方式也能用于传输虚拟网卡的 IP 分组。
+毫无疑问，GNB 从 **Bit Torrent**  这些 P2P 软件中获得灵感，既然两个位于不同的 LAN 中的主机通过 NAT 访问互联网能够建立起 P2P 通信用于传输文件的数据块，那么就意味这样的方式也能用于传输虚拟网卡的 IP 分组。
 
-GNB 用尽各种策略去促使节点能够 NAT 穿透的成功，这些策略中，一些策略非常有效，一些效果不大，一些策略在某些场合效果不错而在另一些场合就可能没有效果。
+GNB 用尽各种策略去促使每个节点能够 NAT 穿透的成功，这些策略中，一些策略非常有效，一些效果不大，一些策略在某些场合效果不错而在另一些场合就可能没有效果。
 
-首先，本地节点通过与 index 节点通信交换信息获得其他节点的WAN地址和端口并尝试和这些节点进行联系；
+首先，本地节点通过与 index 节点通信交换信息获得其他节点的 WAN 地址和端口并尝试和这些节点进行联系；
 
 事实上，一些节点的在经过 NAT 之后会用一个以上的 WAN 地址去访问互联网，GNB 支持同时与多个 index 节点交换信息，这样就有机会发现对端节点更多的 WAN 地址。
 
@@ -554,28 +570,28 @@ GNB 还有专门的线程对未能建立起 P2P通信的接单定期进行大范
 
 既然监听一个 UDP 端口并启用 UPNP 可以有效提升 NAT 穿透成功的概率，那么通过监听更多 UDP 端口以及在网关上对应建立更多 UPNP 端口映射可以进一步提高节点 NAT 穿透成功的概率，详情可以了解  `--multi-socket` 选项。
 
-在一些网络环境下，充分了解 `gnb` 的 `--es-argv "--upnp"`，`--multi-socket`以及 `gnb_es` 的 `--upnp` 选项的作用可以非常有效提升 GNB 节点的 NAT 穿透的成功率。
+在一些网络环境下，充分了解 `gnb` 的 `--es-argv "--upnp"`, `--multi-socket`, `--unified-forwarding` 以及 `gnb_es` 的 `--upnp` 选项的作用可以非常有效提升 GNB 节点的 NAT 穿透的成功率。
 
 使用 `gnb_es` 的 `--dump-address` 选项可以使得已经建立起 P2P 通信的节点的地址信息定期保存到指定的 node cache file 里，当修改配置文件或升级程序或者重启主机需要重新启动 `gnb` 时可以用 `--node-cache-file` 选项指定 node cache file 快速重新建立起通信，要注意的是，对于一部分节点并不一定会成功，详情可以了解 `gnb` 的 `--node-cache-file` 选项 `gnb_es` 的 `--dump-address` 选项。
 
 GNB 节点除了通过 index 节点找到其他节点外还可以通过在 `address.conf` 里配置对端节点的 域名或者动态域名，需要关注的是，仅依靠这种方式去尝试 NAT 穿透效果不如通过 index 节点帮助建立 P2P 通信好。
 
-至此，GNB 为节点的 NAT 穿透做了大量的工作，NAT 穿透的成功率也达到了前所未有的高度，但是这依然不够，
 
+至此，GNB 为节点的 NAT 穿透做了大量的工作，使得 GNB 的 NAT 穿透的成功率也达到了前所未有的高度，但这依然不够：
+
+**GNB Unified Forwarding** 机制可以使得已经建立起 P2P 通讯的节点为未建立起 P2P 通讯的节点转发 IP 分组,并且只要虚拟网络中节点的数量越多，节点之间越容易实现 NAT 穿透并建立起虚拟链路。
+
+通过 **Discover In Lan** 可以让同一个 LAN 下的多个 GNB 节点可以不需要经过 WAN 实现 P2P 通信，与此同时，这可以使未能成功NAT穿透的节点可以通过 **Unified Forwarding**，**Relay Forwarding**,**Standard Forwarding** 让已经成功 NAT 穿透的节点中转 IP 分组，间接实现 P2P 通信。
 
 `gnb_es` 的 `--broadcast-address`  可以让 GNB 节点的将已经和本节点建立起 P2P 通信的节点的地址信息扩散给其他节点，使得这些节点可以获得 GNB 网络内其他节点的更多地址信息以增加 NAT 穿透的成功率。
 
-通过 **Discover In Lan** 可以让同一个 LAN 下的多个 GNB 节点可以不需要经过 WAN 实现 P2P 通信，与此同时，这可以使未能成功NAT穿透的节点可以通过 **relay**的方式让已经成功 NAT 穿透的节点中转 IP 分组，间接实现 P2P 通信。
-
-不得不强调：即使做了许多努力，通过 NAT 穿透建立起 P2P 通信不可能100%的成功率，灵活运用 GNB 提供的机制可以极大的提升成功的概率。
+不得不强调：即使做了许多努力，通过 NAT 穿透建立起 P2P 通信不可能100%的成功率，灵活运用 GNB 提供的机制可以极大的提升 NAT 穿透的成功概率。
 
 
+# 关于 GNB 的 IPV6 网关/防火墙穿透
 
+提示:在一般情况下，IPV6 地址都是 WAN 地址，但这并不意味着位于网关后面的拥有 IPV6 的主机就不需要穿透，当然这种穿透不能称之为NAT穿透，而是可以被称为网关/防火墙穿透。
 
-
-# 关于GNB 的 IPV6 网关/防火墙穿透
-
-在一般情况下，IPV6 地址都是 WAN 地址，但这并不意味着位于网关后面的拥有 IPV6 的主机就不需要穿透，当然这种穿透不能称之为NAT穿透，而是可以被称为网关/防火墙穿透。
 由于位于网关的防火墙作用，某些网关(例如OpenWRT route)的防火墙策略默认情况下并不会放行由对端主机主动发起的来自 WAN 的IP分组，这需要两端的主机几乎在同时向对方的端口发送IP分组。
 
 毫无疑问，IPV6的网关/防火墙穿透比IPV4的NAT穿透容易得多，而且成功率可以是100%。
@@ -604,9 +620,7 @@ gnb_es -b gnb/conf/1002/gnb.map --wan-address6-file=/tmp/wan6_addr.dump
 
 
 
-
-
-# GNB 的 编译构建 与 运行环境
+# GNB 的编译构建与运行环境
 
 从安全角度考虑，用户应尽可能自行编译构建 GNB ，如果没有条件编译构建也应尽可能使用来源可靠的二进制包。
 
@@ -672,13 +686,13 @@ make -f Makefile.Darwin
 make -f Makefile.mingw_x86_64
 ```
 
-`Makefile.mingw_x86_64` 是专门为在 Linux 下用  mingw 编译工具链编译的 Makefile，在 Windows 上也可以使用 。
+`Makefile.mingw_x86_64` 是专门为在 Linux 下用  mingw 编译工具链编译的 Makefile，在 Windows 上也可以使用。
 
 在 Windows 上，运行 GNB 需要安装虚拟网卡，可以在这里下载： [tap-windows](https://github.com/gnbdev/gnb_build/tree/main/if_drv/tap-windows ""downloads"")。
 
-tap-windows 源码所在的仓库:[https://github.com/OpenVPN/tap-windows6](https://github.com/OpenVPN/tap-windows6 "tap-windows6") 
+tap-windows 源码所在的仓库:[https://github.com/OpenVPN/tap-windows6](https://github.com/OpenVPN/tap-windows6 "tap-windows6")
 
-
+[wuqiong](https://www.github.com/wuqiong) 为 GNB 在Windows平台上开发了 wintun 虚拟网卡的接口模块。
 
 
 
@@ -739,6 +753,10 @@ self test
 a hexadecimal string of 32-bit unsigned integer, use to strengthen safety
 
 
+#### -U, --unified-forwarding
+Unified Forwarding "off","force","auto","super","hyper" default:"auto"
+
+
 #### -l, --listen
 listen address default is "0.0.0.0:9001"
 
@@ -753,6 +771,10 @@ pass-through gnb_es argv
 
 #### -V, --verbose
 verbose mode
+
+
+#### -T, --trace
+trace mode
 
 
 #### --node-woker-queue-length
@@ -900,10 +922,9 @@ index service log level  0-3
 
 
 #### --node-detect-log-level
-node detect log level      0-3
+node detect log level    0-3
 
 #### --help
-
 
 
 
@@ -968,6 +989,6 @@ send log to the address ipv4 default is "127.0.0.1:9000"
 the log udp type 'binary' or 'text' default is 'binary'
 
 
-
 ***
 https://github.com/gnbdev/opengnb
+

@@ -37,7 +37,14 @@
 #endif
 
 
+
 void gnb_ctl_dump_status(gnb_ctl_block_t *ctl_block, int reachabl_opt){
+
+    #define LINE_SIZE 1024
+    char line_string[LINE_SIZE];
+    char *p;
+    int line_string_len;
+    int wlen;
 
     gnb_conf_t *conf = NULL;
 
@@ -68,11 +75,11 @@ void gnb_ctl_dump_status(gnb_ctl_block_t *ctl_block, int reachabl_opt){
 
     int i,j;
 
-    for( i=0; i<node_num; i++ ){
+    for ( i=0; i<node_num; i++ ) {
 
         node = &ctl_block->node_zone->node[i];
 
-        if ( 0 != reachabl_opt && !((GNB_NODE_STATUS_IPV6_PONG | GNB_NODE_STATUS_IPV4_PONG) & node->udp_addr_status) && node->uuid32 != ctl_block->core_zone->local_uuid ){
+        if ( 0 != reachabl_opt && !((GNB_NODE_STATUS_IPV6_PONG | GNB_NODE_STATUS_IPV4_PONG) & node->udp_addr_status) && node->uuid32 != ctl_block->core_zone->local_uuid ) {
             continue;
         }
 
@@ -105,15 +112,15 @@ void gnb_ctl_dump_status(gnb_ctl_block_t *ctl_block, int reachabl_opt){
 
         if ( node->uuid32 != ctl_block->core_zone->local_uuid ) {
 
-            if ( (node->udp_addr_status & GNB_NODE_STATUS_IPV6_PONG) ){
+            if ( (node->udp_addr_status & GNB_NODE_STATUS_IPV6_PONG) ) {
                 printf("ipv6 REACHABL\n");
-            }else{
+            } else {
                 printf("ipv6 UNREACHABL\n");
             }
 
-            if ( (node->udp_addr_status & GNB_NODE_STATUS_IPV4_PONG) ){
+            if ( (node->udp_addr_status & GNB_NODE_STATUS_IPV4_PONG) ) {
                 printf("ipv4 REACHABL\n");
-            }else{
+            } else {
                 printf("ipv4 UNREACHABL\n");
             }
 
@@ -137,7 +144,7 @@ void gnb_ctl_dump_status(gnb_ctl_block_t *ctl_block, int reachabl_opt){
 
         for( j=0; j<static_address_list->num; j++ ){
             gnb_address = &static_address_list->array[j];
-            if (0==gnb_address->port){
+            if (0==gnb_address->port) {
                 continue;
             }
             gnb_timef("%Y-%m-%d %H:%M:%S", (time_t)gnb_address->ts_sec, time_string, 128);
@@ -148,7 +155,7 @@ void gnb_ctl_dump_status(gnb_ctl_block_t *ctl_block, int reachabl_opt){
 
         for( j=0; j<dynamic_address_list->num; j++ ){
             gnb_address = &dynamic_address_list->array[j];
-            if (0==gnb_address->port){
+            if (0==gnb_address->port) {
                 continue;
             }
             gnb_timef("%Y-%m-%d %H:%M:%S", (time_t)gnb_address->ts_sec, time_string, 128);
@@ -159,7 +166,7 @@ void gnb_ctl_dump_status(gnb_ctl_block_t *ctl_block, int reachabl_opt){
 
         for( j=0; j<resolv_address_list->num; j++ ){
             gnb_address = &resolv_address_list->array[j];
-            if (0==gnb_address->port){
+            if (0==gnb_address->port) {
                 continue;
             }
             gnb_timef("%Y-%m-%d %H:%M:%S", (time_t)gnb_address->ts_sec, time_string, 128);
@@ -170,12 +177,51 @@ void gnb_ctl_dump_status(gnb_ctl_block_t *ctl_block, int reachabl_opt){
 
         for( j=0; j<push_address_list->num; j++ ){
             gnb_address = &push_address_list->array[j];
-            if (0==gnb_address->port){
+            if (0==gnb_address->port) {
                 continue;
             }
             gnb_timef("%Y-%m-%d %H:%M:%S", (time_t)gnb_address->ts_sec, time_string, 128);
             printf("address idx=%u %s ts_sec[%"PRIu64"](%s) delay_usec[%"PRIu64"]\n", gnb_address->socket_idx, GNB_IP_PORT_STR1(gnb_address), gnb_address->ts_sec, time_string, gnb_address->delay_usec);
         }
+
+        p = line_string;
+        wlen = 0;
+        line_string_len = LINE_SIZE;
+
+        for ( j=0; j<GNB_UNIFIED_FORWARDING_NODE_ARRAY_SIZE; j++ ) {
+
+            wlen = snprintf(p, line_string_len-wlen,  "%u,", node->unified_forwarding_node_array[j].uuid32);
+
+            line_string_len -= wlen;
+
+            if ( line_string_len <= 16 ) {
+                break;
+            }
+
+            p += wlen;
+
+        }
+
+        printf("unified node:  %s\n", line_string);
+
+        p = line_string;
+        wlen = 0;
+        line_string_len = LINE_SIZE;
+
+        for ( j=0; j<UNIFIED_FORWARDING_RECV_SEQ_ARRAY_SIZE; j++ ) {
+
+            wlen = snprintf(p, line_string_len-wlen, "%"PRIu64",", node->unified_forwarding_recv_seq_array[j]);
+
+            line_string_len -= wlen;
+
+            if ( line_string_len <= 16 ) {
+                break;
+            }
+
+
+        }
+
+        printf("unified_forwarding_recv_seq_array:  %s\n", line_string);
 
 
     }
@@ -200,7 +246,6 @@ void gnb_ctl_dump_address_list(gnb_ctl_block_t *ctl_block,int reachabl_opt){
 
     int i,j;
 
-
     for( i=0; i<node_num; i++ ){
 
         node = &ctl_block->node_zone->node[i];
@@ -214,7 +259,6 @@ void gnb_ctl_dump_address_list(gnb_ctl_block_t *ctl_block,int reachabl_opt){
         if ( 0 != reachabl_opt && !((GNB_NODE_STATUS_IPV6_PONG | GNB_NODE_STATUS_IPV4_PONG) & node->udp_addr_status) ){
             continue;
         }
-
 
         if ( 0 != reachabl_opt ){
 
@@ -307,3 +351,72 @@ void gnb_ctl_dump_address_list(gnb_ctl_block_t *ctl_block,int reachabl_opt){
     }
 
 }
+
+
+void gnb_ctl_dump_node_wan_address(gnb_ctl_block_t *ctl_block){
+
+    gnb_node_t *node;
+
+    char node_type_string[16];
+    int type_idx;
+
+    int node_num;
+
+    node_num = ctl_block->node_zone->node_num;
+
+    int i;
+
+    for( i=0; i<node_num; i++ ){
+
+        node = &ctl_block->node_zone->node[i];
+
+        if (node->uuid32 == ctl_block->core_zone->local_uuid){
+            continue;
+        }
+
+        if ( !((GNB_NODE_STATUS_IPV6_PONG | GNB_NODE_STATUS_IPV4_PONG) & node->udp_addr_status) ){
+            continue;
+        }
+
+        memset(node_type_string, 0, 16);
+        type_idx=0;
+        node_type_string[type_idx] = 'n';
+        type_idx++;
+
+        if ( GNB_NODE_TYPE_IDX & node->type ) {
+            node_type_string[type_idx] = 'i';
+            type_idx++;
+        }
+
+        if ( GNB_NODE_TYPE_FWD & node->type ) {
+            node_type_string[type_idx] = 'f';
+            type_idx++;
+        }
+
+        if ( GNB_NODE_TYPE_RELAY & node->type ) {
+            node_type_string[type_idx] = 'r';
+            type_idx++;
+        }
+
+        if ( GNB_NODE_TYPE_SLIENCE & node->type ) {
+            node_type_string[type_idx] = 'S';
+            type_idx++;
+        }
+
+        if ( GNB_NODE_TYPE_STATIC_ADDR & node->type ) {
+            node_type_string[type_idx] = 's';
+            type_idx++;
+        }
+
+        if ( GNB_NODE_STATUS_IPV6_PONG & node->udp_addr_status ) {
+            printf( "%s|%u|%s\n", node_type_string, node->uuid32, GNB_SOCKADDR6STR1(&node->udp_sockaddr6) );
+        }
+
+        if ( GNB_NODE_STATUS_IPV4_PONG & node->udp_addr_status ) {
+            printf( "%s|%u|%s\n", node_type_string, node->uuid32, GNB_SOCKADDR4STR1(&node->udp_sockaddr4) );
+        }
+
+    }
+
+}
+

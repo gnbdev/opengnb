@@ -19,14 +19,9 @@
 #include <stddef.h>
 #include <string.h>
 
-#include "ed25519/ed25519.h"
-#include "ed25519/sha512.h"
+#include "gnb_conf_type.h"
+#include "gnb.h"
 
-#include "gnb_node.h"
-#include "gnb_keys.h"
-#include "gnb_arg_list.h"
-
-extern  gnb_arg_list_t *gnb_es_arg_list;
 
 char * check_domain_name(char *host_string){
 
@@ -85,90 +80,6 @@ int gnb_test_field_separator(char *config_string){
 
 }
 
-
-gnb_node_t * gnb_node_init(gnb_core_t *gnb_core, uint32_t uuid32){
-
-    gnb_node_t *node = &gnb_core->ctl_block->node_zone->node[gnb_core->node_nums];
-
-    memset(node,0,sizeof(gnb_node_t));
-
-    node->uuid32 = uuid32;
-
-    node->type =  GNB_NODE_TYPE_STD;
-
-    uint32_t node_id_network_order;
-    uint32_t local_node_id_network_order;
-
-    gnb_address_list_t *static_address_list;
-    gnb_address_list_t *dynamic_address_list;
-    gnb_address_list_t *resolv_address_list;
-    gnb_address_list_t *push_address_list;
-    gnb_address_list_t *detect_address_list;
-
-    static_address_list  = (gnb_address_list_t *)node->static_address_block;
-    dynamic_address_list = (gnb_address_list_t *)node->dynamic_address_block;
-    resolv_address_list  = (gnb_address_list_t *)node->resolv_address_block;
-    push_address_list    = (gnb_address_list_t *)node->push_address_block;
-
-    detect_address_list  = (gnb_address_list_t *)node->detect_address4_block;
-
-    static_address_list->size  = GNB_NODE_STATIC_ADDRESS_NUM;
-    dynamic_address_list->size = GNB_NODE_DYNAMIC_ADDRESS_NUM;
-    resolv_address_list->size  = GNB_NODE_RESOLV_ADDRESS_NUM;
-    push_address_list->size    = GNB_NODE_PUSH_ADDRESS_NUM;
-
-    detect_address_list->size  = 3;
-
-    if ( 0 == gnb_core->conf->lite_mode ) {
-
-        if ( gnb_core->conf->local_uuid != uuid32 ) {
-
-            gnb_load_public_key(gnb_core, uuid32, node->public_key);
-            ed25519_key_exchange(node->shared_secret, node->public_key, gnb_core->ed25519_private_key);
-
-        } else {
-
-            memcpy(node->public_key, gnb_core->ed25519_public_key, 32);
-            memset(node->shared_secret, 0, 32);
-            memset(node->crypto_key, 0, 64);
-
-        }
-
-    } else {
-
-        //lite mode
-        if ( gnb_core->conf->local_uuid == uuid32 ) {
-            memset(gnb_core->ed25519_private_key, 0, 64);
-            memset(gnb_core->ed25519_public_key,  0,32);
-        }
-
-        memset(node->public_key, 0, 32);
-
-        node_id_network_order       = htonl(uuid32);
-        local_node_id_network_order = htonl(gnb_core->conf->local_uuid);
-
-        memcpy(node->public_key, &node_id_network_order, 4);
-
-        memset(node->shared_secret, 0, 32);
-        memcpy(node->shared_secret, gnb_core->conf->crypto_passcode, 4);
-
-        if ( node_id_network_order > local_node_id_network_order ) {
-
-            memcpy(node->shared_secret+4, &node_id_network_order, 4);
-            memcpy(node->shared_secret+8, &local_node_id_network_order, 4);
-
-        } else {
-
-            memcpy(node->shared_secret+4, &local_node_id_network_order, 4);
-            memcpy(node->shared_secret+8, &node_id_network_order, 4);
-
-        }
-
-    }
-
-    return node;
-
-}
 
 /*
 return value:
@@ -259,34 +170,6 @@ void gnb_setup_listen_addr_port(char *listen_address_string, uint16_t *port_ptr,
     p++;
 
     *port_ptr = strtoul(p, NULL, 10);
-
-    return;
-
-}
-
-
-void gnb_setup_es_argv(char *es_argv_string){
-
-    int num;
-    size_t len;
-
-    char argv_string0[1024];
-    char argv_string1[1024];
-
-    len = strlen(es_argv_string);
-
-    if ( len >1024 ) {
-        return;
-    }
-
-    num = sscanf(es_argv_string,"%256[^ ] %256s", argv_string0, argv_string1);
-
-    if ( 1 == num ) {
-        gnb_arg_append(gnb_es_arg_list, argv_string0);
-    } else if ( 2 == num ) {
-        gnb_arg_append(gnb_es_arg_list, argv_string0);
-        gnb_arg_append(gnb_es_arg_list, argv_string1);
-    }
 
     return;
 

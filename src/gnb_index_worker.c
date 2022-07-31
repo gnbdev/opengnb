@@ -90,7 +90,7 @@ static void send_post_addr_frame(gnb_worker_t *gnb_index_worker){
     if ( 0 != gnb_core->ctl_block->core_zone->wan_port6 ) {
         memcpy(post_addr_frame->data.wan_addr6, gnb_core->ctl_block->core_zone->wan_addr6, 16);
         post_addr_frame->data.port6 = gnb_core->ctl_block->core_zone->wan_port6;
-        GNB_LOG2(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "#POST wan6 address [%s:%d]\n", GNB_ADDR6STR1(post_addr_frame->data.wan_addr6), ntohs(post_addr_frame->data.port6));
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "post wan6 address [%s:%d]\n", GNB_ADDR6STR1(post_addr_frame->data.wan_addr6), ntohs(post_addr_frame->data.port6));
     }
 
     //debug_text
@@ -104,6 +104,12 @@ static void send_post_addr_frame(gnb_worker_t *gnb_index_worker){
     gnb_send_address_list(gnb_core, gnb_core->index_address_ring.address_list, index_worker_ctx->index_frame_payload);
 
     index_worker_ctx->last_post_addr_ts_sec = index_worker_ctx->now_time_sec;
+
+    int i;
+
+    for ( i=0; i<gnb_core->index_address_ring.address_list->num; i++ ) {
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "post local address to index %s\n", gnb_get_ip_port_string(&gnb_core->index_address_ring.address_list->array[i], gnb_static_ip_port_string_buffer1, gnb_addr_secure) );
+    }
 
 }
 
@@ -157,8 +163,6 @@ static void send_request_addr_frame(gnb_worker_t *gnb_index_worker, gnb_node_t *
 
     } else {
         //向所有index节点发请求
-        //gnb_send_address_list(gnb_core, gnb_core->index_address_ring.address_list, index_worker_ctx->index_frame_payload);
-
         gnb_send_address_list_through_all_sockets(gnb_core, gnb_core->index_address_ring.address_list, index_worker_ctx->index_frame_payload);
     }
 
@@ -369,7 +373,7 @@ static void handle_push_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *i
 
     //校验 本地存储的 key512 与  push_addr_frame->data.node_key 是否相同
     if ( memcmp(node->key512, push_addr_frame->data.node_key, 64) ) {
-        GNB_LOG2(gnb_core->log,GNB_LOG_ID_INDEX_WORKER, "#handle push_addr frame node key not match node[%s] frame[%s]\n", GNB_HEX1_BYTE128(node->key512), GNB_HEX2_BYTE128(push_addr_frame->data.node_key));
+        GNB_LOG2(gnb_core->log,GNB_LOG_ID_INDEX_WORKER, "handle push_addr frame node key not match node[%s] frame[%s]\n", GNB_HEX1_BYTE128(node->key512), GNB_HEX2_BYTE128(push_addr_frame->data.node_key));
         return;
     }
 
@@ -550,7 +554,7 @@ static void handle_echo_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *i
         return;
     }
 
-    //更新最后一次在 N 个 index 节点中的其中一个返回echo的时间戳
+    //更新最后一次在 n 个 index 节点中的其中一个返回echo的时间戳
     gnb_core->index_address_ring.address_list->update_sec = index_worker_ctx->now_time_sec;
 
     //更新返回 ehco 的index 节点的地址对应的时间戳
@@ -559,13 +563,13 @@ static void handle_echo_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *i
     if ( '6' == echo_addr_frame->data.addr_type ) {
         memcpy(&gnb_core->local_node->udp_sockaddr6.sin6_addr, &echo_addr_frame->data.addr, 16);
         gnb_core->local_node->udp_sockaddr6.sin6_port = echo_addr_frame->data.port;
-        GNB_LOG3(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"HANDLE ECHO addr %s\n", GNB_ADDR6STR1(echo_addr_frame->data.addr));
+        GNB_LOG3(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"get echo address %s from index %s\n", GNB_ADDR6STR1(echo_addr_frame->data.addr), GNB_SOCKETADDRSTR2(sockaddress));
     } else if ( '4' == echo_addr_frame->data.addr_type ) {
         memcpy(&gnb_core->local_node->udp_sockaddr4.sin_addr, &echo_addr_frame->data.addr, 4);
         gnb_core->local_node->udp_sockaddr4.sin_port = echo_addr_frame->data.port;
-        GNB_LOG3(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"HANDLE ECHO addr %s\n", GNB_ADDR4STR1(echo_addr_frame->data.addr));
+        GNB_LOG3(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"get echo address %s from index %s\n", GNB_ADDR4STR1(echo_addr_frame->data.addr), GNB_SOCKETADDRSTR2(sockaddress));
     } else {
-        GNB_LOG3(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"HANDLE ECHO addr type error%.*s\n", 80, echo_addr_frame->data.text);
+        GNB_LOG3(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"handle echo address type error%.*s from %s\n", 80, echo_addr_frame->data.text, GNB_SOCKETADDRSTR2(sockaddress));
         return;
     }
 
@@ -582,6 +586,8 @@ static void handle_detect_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t 
 
     uint32_t src_uuid32 = ntohl(detect_addr_frame->data.src_uuid32);
     uint32_t dst_uuid32 = ntohl(detect_addr_frame->data.dst_uuid32);
+
+    gnb_sockaddress_t *sockaddress = &index_worker_in_data->node_addr_st;
 
     gnb_node_t *src_node;
 
@@ -603,16 +609,15 @@ static void handle_detect_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t 
     dynamic_address_list = (gnb_address_list_t *)&src_node->dynamic_address_block;
 
     if ( 0 != memcmp(src_node->key512, detect_addr_frame->data.src_key512, 64) ) {
-        GNB_LOG2(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"handle detect addr invalid key512！！\n", src_uuid32);
+        GNB_LOG2(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"handle detect addr invalid key512 src=%u %s ！！\n", src_uuid32, GNB_SOCKETADDRSTR1(sockaddress));
         return;
     }
 
     if ( 0 == gnb_core->conf->lite_mode && !ed25519_verify(detect_addr_frame->src_sign, (const unsigned char *)&detect_addr_frame->data, sizeof(struct detect_addr_frame_data), src_node->public_key) ) {
-        GNB_LOG2(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"handle detect addr src[%u] invalid signature!!\n", src_uuid32);
+        GNB_LOG2(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"handle detect addr src=%u invalid signature %s !!\n", src_uuid32, GNB_SOCKETADDRSTR1(sockaddress));
         return;
     }
 
-    gnb_sockaddress_t *sockaddress = &index_worker_in_data->node_addr_st;
 
     gnb_address_t *address = alloca(sizeof(gnb_address_t));
 
@@ -625,6 +630,7 @@ static void handle_detect_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t 
 
         if ( 'e' == detect_addr_frame->data.arg0 ) {
             src_node->udp_addr_status |= GNB_NODE_STATUS_IPV6_PONG;
+            src_node->addr6_update_ts_sec = index_worker_ctx->now_time_sec;
         } else {
             src_node->udp_addr_status |= GNB_NODE_STATUS_IPV6_PING;
         }
@@ -637,13 +643,14 @@ static void handle_detect_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t 
 
         gnb_set_address6(address, &sockaddress->addr.in6);
 
-        GNB_LOG2(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "=== RECEIVE_DETECT_ADDR6 node[%u]->[%u] idx[%u]%s[%c] ===\n", src_uuid32, dst_uuid32, src_node->socket6_idx, GNB_IP_PORT_STR1(address),detect_addr_frame->data.arg0);
+        GNB_LOG2(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "== RECEIVE_DETECT_ADDR6 node[%u]->[%u] idx[%u]%s[%c] ==\n", src_uuid32, dst_uuid32, src_node->socket6_idx, GNB_IP_PORT_STR1(address),detect_addr_frame->data.arg0);
     }
 
     if (AF_INET == sockaddress->addr_type) {
 
         if ( 'e' == detect_addr_frame->data.arg0 ) {
             src_node->udp_addr_status |= GNB_NODE_STATUS_IPV4_PONG;
+            src_node->addr6_update_ts_sec = index_worker_ctx->now_time_sec;
         } else {
             src_node->udp_addr_status |= GNB_NODE_STATUS_IPV4_PING;
         }
@@ -656,7 +663,7 @@ static void handle_detect_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t 
 
         gnb_set_address4(address, &sockaddress->addr.in);
 
-        GNB_LOG2(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "=== RECEIVE_DETECT_ADDR4 node[%u]->[%u] idx[%u]%s[%c] ===\n", src_uuid32, dst_uuid32, src_node->socket4_idx, GNB_IP_PORT_STR1(address),detect_addr_frame->data.arg0);
+        GNB_LOG2(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "== RECEIVE_DETECT_ADDR4 node[%u]->[%u] idx[%u]%s[%c] ==\n", src_uuid32, dst_uuid32, src_node->socket4_idx, GNB_IP_PORT_STR1(address),detect_addr_frame->data.arg0);
     }
 
     address->ts_sec = index_worker_ctx->now_time_sec;
@@ -800,10 +807,7 @@ static void init(gnb_worker_t *gnb_worker, void *ctx){
 static void release(gnb_worker_t *gnb_worker){
 
     index_worker_ctx_t *index_worker_ctx =  (index_worker_ctx_t *)gnb_worker->ctx;
-
     gnb_ring_buffer_release(gnb_worker->ring_buffer);
-
-    gnb_heap_free(index_worker_ctx->gnb_core->heap, index_worker_ctx);
 
 }
 

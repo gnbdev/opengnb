@@ -18,10 +18,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <limits.h>
 #include <dirent.h>
 #include <sys/stat.h>
-#include <limits.h>
 
 #include "gnb_platform.h"
 #include "gnb_dir.h"
@@ -31,23 +30,29 @@
 #endif
 
 #ifdef _WIN32
+
 #define GNB_FILE_SP '\\'
+
+#ifndef NAME_MAX
+#define NAME_MAX 255
+#endif
+
 #endif
 
 
 char *gnb_get_file_dir(char *in_file_name, char *file_dir){
 
-#if __UNIX_LIKE_OS__
+    #if __UNIX_LIKE_OS__
     if ( NULL == realpath(in_file_name, file_dir) ) {
         return NULL;
     }
-#endif
+    #endif
 
-#ifdef _WIN32
+    #ifdef _WIN32
     if ( NULL == _fullpath(file_dir, in_file_name , PATH_MAX) ) {
         return NULL;
     }
-#endif
+    #endif
 
     size_t string_len = strlen( (const char *)file_dir );
 
@@ -56,7 +61,7 @@ char *gnb_get_file_dir(char *in_file_name, char *file_dir){
     for ( i=string_len-1; i>0; i-- ) {
 
         if ( GNB_FILE_SP==file_dir[i] ) {
-        	file_dir[i]='\0';
+            file_dir[i]='\0';
             break;
         }
 
@@ -86,53 +91,150 @@ char *gnb_get_file_dir_dup(char *file_name){
 
     }
 
-#if __UNIX_LIKE_OS__
+    #if __UNIX_LIKE_OS__
     if ( NULL == realpath(string,resolved_path) ) {
         free(string);
         free(resolved_path);
         return NULL;
     }
-
     free(string);
-
     return resolved_path;
-#endif
+    #endif
 
-#ifdef _WIN32
+    #ifdef _WIN32
     if ( NULL == _fullpath(resolved_path, string, PATH_MAX) ) {
         free(string);
         free(resolved_path);
         return NULL;
     }
-
     free(string);
     return resolved_path;
-#endif
+    #endif
 
 }
 
 
+char *gnb_realpath(char *in_path, char *resolved_path){
+
+    int ret;
+    size_t len;
+    char *path;
+    struct stat st;
+    char *file_basename = NULL;
+    char file_dir[PATH_MAX+NAME_MAX];
+
+    ret = stat(in_path,&st);
+
+    if ( 0 == ret && S_ISDIR(st.st_mode) ) {
+
+        #if __UNIX_LIKE_OS__
+
+        if ( NULL == realpath(in_path,resolved_path) ) {
+            return NULL;
+        } else {
+            return resolved_path;
+        }
+
+        #endif
+
+        #ifdef _WIN32
+
+        if ( NULL == _fullpath(resolved_path, in_path, PATH_MAX) ) {
+            return NULL;
+        } else {
+            return resolved_path;
+        }
+
+        #endif
+
+    }
+
+    int i;
+
+    len = strlen(in_path);
+
+    for ( i=(int)len-1; i>=0; i-- ) {
+
+        if ( GNB_FILE_SP == in_path[i] ) {
+            file_basename = (char*)(in_path+i+1);
+            break;
+        }
+
+    }
+
+    if ( NULL == file_basename ) {
+        return NULL;
+    }
+
+    len = strlen(file_basename);
+
+    if ( len > NAME_MAX ) {
+        return NULL;
+    }
+
+    strncpy(file_dir, in_path, PATH_MAX+NAME_MAX);
+
+    len = strlen(file_dir);
+
+    path = gnb_file_path_cut(file_dir, len);
+
+    #if __UNIX_LIKE_OS__
+
+    if ( NULL == realpath(path,resolved_path) ) {
+        return NULL;
+    }
+
+    #endif
+
+    #ifdef _WIN32
+
+    if ( NULL == _fullpath(resolved_path, path, PATH_MAX) ) {
+        return NULL;
+    }
+
+    #endif
+
+
+    len = strlen(resolved_path);
+    resolved_path[len]   = GNB_FILE_SP;
+    resolved_path[len+1] = '\0';
+
+    len++;
+
+    for (i=0; i<NAME_MAX; i++) {
+
+        resolved_path[len+i] = file_basename[i];
+
+        if ( '\0' == file_basename[i]) {
+            break;
+        }
+
+    }
+
+    return resolved_path;
+
+}
 
 
 char *gnb_realpath_dup(char *path){
 
     char *resolved_path = (char *)malloc(PATH_MAX);
 
-#if __UNIX_LIKE_OS__
+    #if __UNIX_LIKE_OS__
     if ( NULL == realpath(path,resolved_path) ) {
         free(resolved_path);
         return NULL;
     }
     return resolved_path;
-#endif
+    #endif
 
-#ifdef _WIN32
+    #ifdef _WIN32
     if ( NULL == _fullpath(resolved_path, path, PATH_MAX) ) {
         free(resolved_path);
         return NULL;
     }
     return resolved_path;
-#endif
+    #endif
 
 }
 
@@ -163,11 +265,11 @@ int gnb_get_subdirname(char *path, int max_filename_len, char **filename_lst, in
 
     struct dirent *sub_dirent;
 
-#ifdef _WIN32
+    #ifdef _WIN32
     struct stat st;
     char test_file_name[FILENAME_MAX];
     int ret;
-#endif
+    #endif
 
     dir = opendir (path);
 
@@ -181,13 +283,13 @@ int gnb_get_subdirname(char *path, int max_filename_len, char **filename_lst, in
     while ( NULL !=( sub_dirent = readdir( dir ) ) ) {
 
 
-#if __UNIX_LIKE_OS__
+        #if __UNIX_LIKE_OS__
         if ( DT_DIR != sub_dirent->d_type ) {
           continue;
         }
-#endif
+        #endif
 
-#ifdef _WIN32
+        #ifdef _WIN32
         snprintf(test_file_name, max_filename_len, "%s/%s", path, sub_dirent->d_name);
 
         ret = stat(test_file_name,&st);
@@ -199,7 +301,7 @@ int gnb_get_subdirname(char *path, int max_filename_len, char **filename_lst, in
         if ( !S_ISDIR(st.st_mode) ) {
             continue;
         }
-#endif
+        #endif
 
         if (strlen(sub_dirent->d_name)>max_filename_len) {
             continue;
@@ -281,7 +383,7 @@ int gnb_get_dir_file_names(char *path, gnb_file_info_t **sub_file_info_lst, int 
             continue;
         }
 
-#if __UNIX_LIKE_OS__
+        #if __UNIX_LIKE_OS__
 
         if ( '/' == path[path_len-1] || '\\' == path[path_len-1] ) {
             snprintf(abs_filename, GNB_MAX_FILE_NAME_LEN, "%s%s", path, sub_dirent->d_name);
@@ -290,9 +392,10 @@ int gnb_get_dir_file_names(char *path, gnb_file_info_t **sub_file_info_lst, int 
         }
 
         ret = lstat(abs_filename,&st);
-#endif
 
-#ifdef _WIN32
+        #endif
+
+        #ifdef _WIN32
 
         if ( '/' == path[path_len-1] || '\\' == path[path_len-1] ) {
             snprintf(abs_filename, GNB_MAX_FILE_NAME_LEN, "%s%s", path, sub_dirent->d_name);
@@ -301,7 +404,7 @@ int gnb_get_dir_file_names(char *path, gnb_file_info_t **sub_file_info_lst, int 
         }
 
         ret = stat(abs_filename,&st);
-#endif
+        #endif
 
         if ( -1==ret ) {
             continue;
@@ -312,10 +415,10 @@ int gnb_get_dir_file_names(char *path, gnb_file_info_t **sub_file_info_lst, int 
         } else if ( S_ISDIR(st.st_mode) ) {
             file_type = GNB_FILE_TYPE_DIR;
 
-#if __UNIX_LIKE_OS__
+        #if __UNIX_LIKE_OS__
         } else if (S_ISLNK(st.st_mode)) {
             file_type = GNB_FILE_TYPE_LNK;
-#endif
+        #endif
         } else {
             file_type = GNB_FILE_TYPE_INIT;
         }

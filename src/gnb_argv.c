@@ -102,8 +102,8 @@ void gnb_setup_es_argv(char *es_argv_string);
 #define SET_INDEX_SERVICE_WORKER       (GNB_OPT_INIT + 41)
 #define SET_DETECT_WORKER              (GNB_OPT_INIT + 42)
 
-#define SET_FWDU0                      (GNB_OPT_INIT + 43)
-#define SET_FWDU1                      (GNB_OPT_INIT + 44)
+#define SET_UR0                        (GNB_OPT_INIT + 43)
+#define SET_UR1                        (GNB_OPT_INIT + 44)
 
 #define SET_SYSTEMD_DAEMON             (GNB_OPT_INIT + 45)
 
@@ -149,9 +149,9 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
     conf->direct_forwarding  = 1;
 
-    conf->unified_forwarding = 1;
+    conf->unified_forwarding = GNB_UNIFIED_FORWARDING_AUTO;
 
-    conf->fwdu0          = 1;
+    conf->universal_relay0   = 1;
 
     /*
     IPv4最小MTU=576bytes
@@ -232,7 +232,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
     char *binary_dir;
     binary_dir = gnb_get_file_dir(argv[0], conf->binary_dir);
 
-    if ( NULL==binary_dir ){
+    if ( NULL==binary_dir ) {
         //这种情况几乎不会发生
         #ifdef __UNIX_LIKE_OS__
         snprintf(conf->binary_dir, PATH_MAX, "%s", "/tmp");
@@ -269,7 +269,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
       { "node-route",     required_argument, 0, 'r' },
 
       { "ifname",   required_argument, 0, 'i' },
-	  { "if-drv",   required_argument, 0, SET_IF_DRV},
+      { "if-drv",   required_argument, 0, SET_IF_DRV},
       { "mtu",      required_argument, 0, SET_MTU },
       { "crypto",   required_argument, 0, SET_CRYPTO_TPYE },
       { "passcode", required_argument,  0, 'p' },
@@ -291,9 +291,9 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
       { "quiet",     no_argument,   0, 'q' },
       { "selftest",  no_argument,   0, 't' },
       { "verbose",   no_argument,   0, 'V' },
-	  { "trace",     no_argument,   0, 'T' },
+      { "trace",     no_argument,   0, 'T' },
 
-	  { "systemd",   no_argument,   0, SET_SYSTEMD_DAEMON },
+      { "systemd",   no_argument,   0, SET_SYSTEMD_DAEMON },
 
       { "es-argv",                   required_argument,  0,   'e' },
 
@@ -311,10 +311,10 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
       { "node-detect-worker",        required_argument,  0, SET_DETECT_WORKER },
 
       { "multi-socket",              required_argument,  0,  SET_MULTI_SOCKET },
-      { "set-fwdu0",                 required_argument,  0, SET_FWDU0 },
+      { "set-ur0",                   required_argument,  0,  SET_UR0 },
 
       { "pf-route",                  required_argument,  0, SET_PF_ROUTE},
-	  { "unified-forwarding",        required_argument,  0, 'U' },
+      { "unified-forwarding",        required_argument,  0, 'U' },
       { "direct-forwarding",         required_argument,  0, SET_DIRECT_FORWARDING },
       { "pid-file",                  required_argument,  0, SET_PID_FILE },
       { "node-cache-file",           required_argument,  0, SET_NODE_CACHE_FILE },
@@ -396,12 +396,12 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
             if ( !strncmp(optarg, "wintun", sizeof("wintun")-1) ) {
                 conf->if_drv = GNB_IF_DRV_TYPE_TAP_WINTUN;
             } else if ( !strncmp(optarg, "tap-windows", sizeof("tap-windows")-1) ) {
-            	conf->if_drv = GNB_IF_DRV_TYPE_TAP_WINDOWS;
+                conf->if_drv = GNB_IF_DRV_TYPE_TAP_WINDOWS;
             } else {
-            	conf->if_drv = GNB_IF_DRV_TYPE_DEFAULT;
+                conf->if_drv = GNB_IF_DRV_TYPE_DEFAULT;
             }
 
-        	break;
+            break;
 
         case 'l':
 
@@ -451,12 +451,12 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
             break;
 
         case 'T':
-        	is_trace = 1;
+            is_trace = 1;
             break;
 
         case SET_SYSTEMD_DAEMON:
-        	conf->systemd_daemon = 1;
-        	break;
+            conf->systemd_daemon = 1;
+            break;
 
         case SET_NODE_WORKER_QUEUE:
             conf->node_woker_queue_length = (uint16_t)strtoul(optarg, NULL, 10);
@@ -662,31 +662,35 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
             break;
 
-        case SET_FWDU0:
+        case SET_UR0:
 
             if ( !strncmp(optarg, "on", 2) ) {
-                conf->activate_detect_worker = 1;
+                conf->universal_relay0 = 1;
             } else if ( !strncmp(optarg, "off", 3) ) {
-                conf->fwdu0 = 0;
+                conf->universal_relay0 = 0;
             } else {
-                conf->fwdu0 = 1;
+                conf->universal_relay0 = 1;
             }
 
             break;
 
         case 'U':
 
-        	if ( !strncmp(optarg, "auto", sizeof("auto")-1) ) {
-                conf->unified_forwarding = GNB_UNIFIED_FORWARDING_AUTO;
-        	} else if ( !strncmp(optarg, "force", 3) ) {
-        		conf->unified_forwarding = GNB_UNIFIED_FORWARDING_FORCE;
-            } else if ( !strncmp(optarg, "off", 3) ) {
+            if ( !strncmp(optarg, "off", sizeof("off")-1) ) {
                 conf->unified_forwarding = GNB_UNIFIED_FORWARDING_OFF;
+            } else if ( !strncmp(optarg, "auto", sizeof("auto")-1) ) {
+                conf->unified_forwarding = GNB_UNIFIED_FORWARDING_AUTO;
+            } else if ( !strncmp(optarg, "force", sizeof("force")-1) ) {
+                conf->unified_forwarding = GNB_UNIFIED_FORWARDING_FORCE;
+            } else if ( !strncmp(optarg, "super", sizeof("super")-1) ) {
+                conf->unified_forwarding = GNB_UNIFIED_FORWARDING_SUPER;
+            }else if ( !strncmp(optarg, "hyper", sizeof("hyper")-1) ) {
+                conf->unified_forwarding = GNB_UNIFIED_FORWARDING_HYPER;
             } else {
-            	conf->unified_forwarding = GNB_UNIFIED_FORWARDING_AUTO;
+                conf->unified_forwarding = GNB_UNIFIED_FORWARDING_AUTO;
             }
 
-        	break;
+            break;
 
         case SET_DIRECT_FORWARDING:
 
@@ -774,8 +778,9 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
     }
 
+
     if ( 0 != conf->systemd_daemon ) {
-    	conf->daemon = 0;
+        conf->daemon = 0;
     }
 
     if ( 1 == conf->public_index_service ) {
@@ -889,6 +894,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
     gnb_arg_append(gnb_es_arg_list, gnb_map_path_q);
     #endif
 
+    gnb_arg_append(gnb_es_arg_list, "--if-loop");
 
     if ( 1 == conf->lite_mode ) {
         gnb_arg_append(gnb_es_arg_list, "--upnp");
@@ -896,46 +902,21 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
     char  resolved_path[PATH_MAX+NAME_MAX];
 
-    #ifdef __UNIX_LIKE_OS__
-
-    if ( '\0' != conf->conf_dir[0] && NULL != realpath(conf->conf_dir,resolved_path) ) {
+    if ( '\0' != conf->conf_dir[0] && NULL != gnb_realpath(conf->conf_dir,resolved_path) ) {
         strncpy(conf->conf_dir, resolved_path, PATH_MAX);
     }
 
-    if ( NULL != realpath(conf->map_file,resolved_path) ) {
+    if ( NULL != gnb_realpath(conf->map_file,resolved_path) ) {
         strncpy(conf->map_file, resolved_path, PATH_MAX);
     }
 
-    if ( NULL != realpath(conf->pid_file,resolved_path) ) {
+    if ( NULL != gnb_realpath(conf->pid_file,resolved_path) ) {
         strncpy(conf->pid_file, resolved_path, PATH_MAX);
     }
 
-    if ( '\0' != conf->node_cache_file[0] && NULL != realpath(conf->node_cache_file,resolved_path) ) {
+    if ( '\0' != conf->node_cache_file[0] && NULL != gnb_realpath(conf->node_cache_file,resolved_path) ) {
         strncpy(conf->node_cache_file, resolved_path, PATH_MAX);
     }
-
-    #endif
-
-
-    #ifdef _WIN32
-
-    if ( '\0' != conf->conf_dir[0] && NULL != _fullpath(resolved_path, conf->conf_dir, PATH_MAX) ) {
-        strncpy(conf->conf_dir, resolved_path, PATH_MAX);
-    }
-
-    if ( NULL != _fullpath(resolved_path, conf->map_file, PATH_MAX) ) {
-        strncpy(conf->map_file, resolved_path, PATH_MAX);
-    }
-
-    if ( NULL != _fullpath(resolved_path, conf->pid_file, PATH_MAX) ) {
-        strncpy(conf->pid_file, resolved_path, PATH_MAX);
-    }
-
-    if ( '\0' != conf->node_cache_file[0] && NULL != _fullpath(resolved_path, conf->node_cache_file, PATH_MAX) ) {
-        strncpy(conf->node_cache_file, resolved_path, PATH_MAX);
-    }
-
-    #endif
 
     return conf;
 
@@ -963,9 +944,11 @@ static void show_useage(int argc,char *argv[]){
     printf("  -d, --daemon                     daemon\n");
     printf("  -q, --quiet                      disabled console output\n");
     printf("  -t, --selftest                   self test\n");
-    printf("  -p, --passcode                   a hexadecimal string of 32-bit unsigned integer, use to strengthen safety default is 0x9d078107\n");
+    printf("  -p, --passcode                   a hexadecimal string of 32-bit unsigned integer,use to strengthen safety default:0x9d078107\n");
+    printf("  -U, --unified-forwarding         \"off\",\"force\",\"auto\",\"super\",\"hyper\" default:\"auto\"\n");
 
-    printf("  -l, --listen                     listen address default is \"0.0.0.0:9001\"\n");
+
+    printf("  -l, --listen                     listen address default:\"0.0.0.0:9001\"\n");
     printf("  -b, --ctl-block                  ctl block mapper file\n");
     printf("  -e, --es-argv                    pass-through gnb_es argv\n");
     printf("  -V, --verbose                    verbose mode\n");
@@ -981,36 +964,35 @@ static void show_useage(int argc,char *argv[]){
     printf("      --port-detect-end            port detect end\n");
     printf("      --port-detect-range          port detect range\n");
 
-    printf("      --mtu                        TUN Device MTU ipv4:532~1500, ipv6:1280~1500\n");
-    printf("      --crypto                     ip frame crypto \"xor\" or \"arc4\" or \"none\" default is \"xor\"\n");
-    printf("      --crypto-key-update-interval crypto key update interval, \"hour\" or \"minute\" or none default is \"none\"\n");
-    printf("      --multi-index-type           \"simple-fault-tolerant\" or \"simple-load-balance\" or \"full\" default is \"simple-load-balance\"\n");
-    printf("      --multi-forward-type         \"simple-fault-tolerant\" or \"simple-load-balance\" default is \"simple-fault-tolerant\"\n");
+    printf("      --mtu                        TUN Device MTU ipv4:532~1500,ipv6:1280~1500\n");
+    printf("      --crypto                     ip frame crypto \"xor\",\"arc4\",\"none\" default:\"xor\"\n");
+    printf("      --crypto-key-update-interval crypto key update interval, \"hour\",\"minute\",none default:\"none\"\n");
+    printf("      --multi-index-type           \"simple-fault-tolerant\",\"simple-load-balance\",\"full\" default:\"simple-load-balance\"\n");
+    printf("      --multi-forward-type         \"simple-fault-tolerant\",\"simple-load-balance\" default:\"simple-fault-tolerant\"\n");
 
     #ifdef _WIN32
-    printf("      --if-drv                     interface driver \"tap-windows\" or \"wintun\" default is \"tap-windows\"\n");
+    printf("      --if-drv                     interface driver \"tap-windows\",\"wintun\" default:\"tap-windows\"\n");
     #endif
 
     #ifdef __UNIX_LIKE_OS__
-    printf("      --socket-if-name             example: \"eth0\", \"eno1\", only for unix-like os\n");
+    printf("      --socket-if-name             example: \"eth0\",\"eno1\", only for unix-like os\n");
     #endif
 
-    printf("      --address-secure             hide part of ip address in logs \"on\" or \"off\" default is \"on\"\n");
-    printf("      --if-dump                    dump the interface data frame \"on\" or \"off\" default is \"off\"\n");
+    printf("      --address-secure             hide part of ip address in logs \"on\",\"off\" default:\"on\"\n");
+    printf("      --if-dump                    dump the interface data frame \"on\",\"off\" default:\"off\"\n");
     printf("      --pf-route                   packet filter route\n");
-    printf("      --unified-forwarding         \"auto\" or \"force\" or \"off\" default is \"auto\"\n");
-    printf("      --multi-socket               \"on\" or \"off\" default is \"off\"\n");
-    printf("      --direct-forwarding          \"on\" or \"off\" default is \"on\"\n");
-    printf("      --set-tun                    \"on\" or \"off\" default is \"on\"\n");
-    printf("      --index-worker               \"on\" or \"off\" default is \"on\"\n");
-    printf("      --index-service-worker       \"on\" or \"off\" default is \"on\"\n");
-    printf("      --node-detect-worker         \"on\" or \"off\" default is \"on\"\n");
-    printf("      --set-fwdu0                  \"on\" or \"off\" default is \"on\"\n");
+    printf("      --multi-socket               \"on\",\"off\" default:\"off\"\n");
+    printf("      --direct-forwarding          \"on\",\"off\" default:\"on\"\n");
+    printf("      --set-tun                    \"on\",\"off\" default:\"on\"\n");
+    printf("      --index-worker               \"on\",\"off\" default:\"on\"\n");
+    printf("      --index-service-worker       \"on\",\"off\" default:\"on\"\n");
+    printf("      --node-detect-worker         \"on\",\"off\" default:\"on\"\n");
+    printf("      --set-ur0                    \"on\",\"off\" default:\"on\"\n");
     printf("      --pid-file                   pid file\n");
     printf("      --node-cache-file            node address cache file\n");
     printf("      --log-file-path              log file path\n");
-    printf("      --log-udp4                   send log to the address ipv4 default is \"127.0.0.1:8666\"\n");
-    printf("      --log-udp-type               log udp type \"binary\" or \"text\" default is \"binary\"\n");
+    printf("      --log-udp4                   send log to the address ipv4 default:\"127.0.0.1:8666\"\n");
+    printf("      --log-udp-type               log udp type \"binary\",\"text\" default:\"binary\"\n");
     printf("      --console-log-level          log console level 0-3\n");
     printf("      --file-log-level             log file level    0-3\n" );
     printf("      --udp-log-level              log udp level     0-3\n");
@@ -1034,5 +1016,32 @@ static void show_useage(int argc,char *argv[]){
 
     printf("  %s -n 1001 -a \"i/0/$public_index_ip/$port\" --multi-socket=on -p $passcode\n",argv[0]);
     printf("  %s -n 1002 -a \"i/0/$public_index_ip/$port\" --multi-socket=on -p $passcode\n",argv[0]);
+
+}
+
+void gnb_setup_es_argv(char *es_argv_string){
+
+    int num;
+    size_t len;
+
+    char argv_string0[1024];
+    char argv_string1[1024];
+
+    len = strlen(es_argv_string);
+
+    if ( len >1024 ) {
+        return;
+    }
+
+    num = sscanf(es_argv_string,"%256[^ ] %256s", argv_string0, argv_string1);
+
+    if ( 1 == num ) {
+        gnb_arg_append(gnb_es_arg_list, argv_string0);
+    } else if ( 2 == num ) {
+        gnb_arg_append(gnb_es_arg_list, argv_string0);
+        gnb_arg_append(gnb_es_arg_list, argv_string1);
+    }
+
+    return;
 
 }

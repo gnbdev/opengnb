@@ -90,7 +90,7 @@ void* gnb_heap_alloc(gnb_heap_t *gnb_heap, uint32_t size){
 
 }
 
-
+#if 1
 void gnb_heap_free(gnb_heap_t *gnb_heap, void *p){
 
     gnb_heap_fragment_t *fragment;
@@ -146,7 +146,7 @@ finish:
     free(fragment);
 
 }
-
+#endif
 
 void gnb_heap_clean(gnb_heap_t *gnb_heap){
     

@@ -64,6 +64,7 @@ GNB_OBJS =                                 \
 
 GNB_PF_OBJS   =                                  \
       ./src/gnb_pf.o                             \
+      ./src/gnb_unified_forwarding.o             \
       ./src/packet_filter/gnb_pf_route.o         \
       ./src/packet_filter/gnb_pf_crypto_xor.o    \
       ./src/packet_filter/gnb_pf_crypto_arc4.o   \
@@ -87,7 +88,10 @@ GNB_ES_OBJS =                             \
       ./src/gnb_log.o                     \
       ./src/gnb_alloc.o                   \
       ./src/gnb_mmap.o                    \
+      ./src/gnb_dir.o                     \
       ./src/gnb_hash32.o                  \
+      ./src/gnb_conf.o                    \
+      ./src/gnb_arg_list.o                \
       ./libs/hash/murmurhash.o
 
 

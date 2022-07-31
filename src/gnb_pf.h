@@ -62,8 +62,17 @@ typedef struct _gnb_pf_ctx_t {
 	unsigned char *pf_type_bits;
 
 	//指向 fwd_payload 中的ip分组首地址
-	void *ip_frame;
+	void   *ip_frame;
 	ssize_t ip_frame_size;
+	uint8_t ipproto;
+
+	uint8_t relay_forwarding;
+	uint8_t unified_forwarding;
+	uint8_t direct_forwarding;
+
+	uint8_t std_forwarding;
+
+	uint8_t universal_udp4_relay;
 
 }gnb_pf_ctx_t;
 
@@ -146,10 +155,7 @@ gnb_pf_array_t * gnb_pf_array_init(gnb_heap_t *heap, int size);
 
 int gnb_pf_install(gnb_pf_array_t *pf_array, gnb_pf_t *pf);
 
-void gnb_pf_array_release(gnb_heap_t *heap, gnb_pf_array_t *pf_array);
-
 gnb_pf_ctx_array_t * gnb_pf_ctx_array_init(gnb_heap_t *heap, int size);
-void gnb_pf_ctx_array_release(gnb_heap_t *heap, gnb_pf_ctx_array_t *pf_ctx_array);
 
 #define GNB_PF_GET_CTX(gnb_core,gnb_pf) gnb_core->pf_ctx_array->ctx[gnb_pf.ctx_idx]
 

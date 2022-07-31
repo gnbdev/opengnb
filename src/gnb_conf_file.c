@@ -268,20 +268,20 @@ static void load_node_cache(gnb_core_t *gnb_core){
 
         if ( NULL != strchr(host_string, '.') ) {
             //ipv4
-        	ret = inet_pton(AF_INET, host_string, &address_st.m_address4);\
+            ret = inet_pton(AF_INET, host_string, &address_st.m_address4);\
             if ( ret >0 ) {
-            	address_st.type = AF_INET;
+                address_st.type = AF_INET;
             } else {
-            	address_st.type = AF_UNSPEC;
+                address_st.type = AF_UNSPEC;
             }
 
         } else if ( NULL != strchr(host_string, ':') ) {
             //ipv6
             ret = inet_pton(AF_INET6, host_string, &address_st.m_address6);
             if ( ret >0 ) {
-            	address_st.type = AF_INET6;
+                address_st.type = AF_INET6;
             } else {
-            	address_st.type = AF_UNSPEC;
+                address_st.type = AF_UNSPEC;
             }
 
         } else {
@@ -311,7 +311,7 @@ static void load_node_cache(gnb_core_t *gnb_core){
 }
 
 
-static void local_node_file_config(gnb_core_t *gnb_core){
+void local_node_file_config(gnb_core_t *gnb_core){
 
     FILE *file;
 
@@ -375,7 +375,6 @@ static void local_node_file_config(gnb_core_t *gnb_core){
         }
 
 
-
         if ( !strncmp(line_buffer, "if-drv", sizeof("if-drv")-1) ) {
 
             num = sscanf(line_buffer, "%32[^ ] %2s", field, value);
@@ -386,11 +385,11 @@ static void local_node_file_config(gnb_core_t *gnb_core){
             }
 
             if ( !strncmp(value, "wintun", sizeof("wintun")-1) ) {
-            	gnb_core->conf->if_drv = GNB_IF_DRV_TYPE_TAP_WINTUN;
+                gnb_core->conf->if_drv = GNB_IF_DRV_TYPE_TAP_WINTUN;
             } else if ( !strncmp(value, "tap-windows", sizeof("tap-windows")-1) ) {
-            	gnb_core->conf->if_drv = GNB_IF_DRV_TYPE_TAP_WINDOWS;
+                gnb_core->conf->if_drv = GNB_IF_DRV_TYPE_TAP_WINDOWS;
             } else {
-            	gnb_core->conf->if_drv = GNB_IF_DRV_TYPE_DEFAULT;
+                gnb_core->conf->if_drv = GNB_IF_DRV_TYPE_DEFAULT;
             }
 
         }
@@ -557,21 +556,25 @@ static void local_node_file_config(gnb_core_t *gnb_core){
 
         if (!strncmp(line_buffer, "unified-forwarding", sizeof("unified-forwarding")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer,"%32[^ ] %10s", field, value);
 
             if ( 2 != num ) {
-                printf("config %s error in [%s]\n", "direct-forwarding", node_conf_file);
+                printf("config %s error in [%s]\n", "unified-forwarding", node_conf_file);
                 exit(1);
             }
 
-        	if ( !strncmp(value, "auto", sizeof("auto")-1) ) {
-        		gnb_core->conf->unified_forwarding = GNB_UNIFIED_FORWARDING_AUTO;
-        	} else if ( !strncmp(value, "force", 3) ) {
-        		gnb_core->conf->unified_forwarding = GNB_UNIFIED_FORWARDING_FORCE;
-            } else if ( !strncmp(value, "off", 3) ) {
-            	gnb_core->conf->unified_forwarding = GNB_UNIFIED_FORWARDING_OFF;
+            if ( !strncmp(value, "off", sizeof("off")-1) ) {
+                gnb_core->conf->unified_forwarding = GNB_UNIFIED_FORWARDING_OFF;
+            } else if ( !strncmp(value, "auto", sizeof("auto")-1) ) {
+                gnb_core->conf->unified_forwarding = GNB_UNIFIED_FORWARDING_AUTO;
+            } else if ( !strncmp(value, "force", sizeof("force")-1) ) {
+                gnb_core->conf->unified_forwarding = GNB_UNIFIED_FORWARDING_FORCE;
+            } else if ( !strncmp(value, "super", sizeof("super")-1) ) {
+                gnb_core->conf->unified_forwarding = GNB_UNIFIED_FORWARDING_SUPER;
+            } else if ( !strncmp(value, "hyper", sizeof("hyper")-1) ) {
+                gnb_core->conf->unified_forwarding = GNB_UNIFIED_FORWARDING_HYPER;
             } else {
-            	gnb_core->conf->unified_forwarding = GNB_UNIFIED_FORWARDING_AUTO;
+                gnb_core->conf->unified_forwarding = GNB_UNIFIED_FORWARDING_AUTO;
             }
 
         }
@@ -702,6 +705,8 @@ static void local_node_file_config(gnb_core_t *gnb_core){
             } else {
                 gnb_core->conf->addr_secure = 0;
             }
+
+            gnb_addr_secure = gnb_core->conf->addr_secure;
 
         }
 
@@ -1255,8 +1260,6 @@ static void set_node_route(gnb_core_t *gnb_core, uint32_t uuid32, char *relay_no
     }
 
     if ( GNB_MAX_NODE_ROUTE == line ) {
-        //printf("#add_node_route uuid32[%u] relay_nodeids_string[%s]\n", uuid32, relay_nodeids_string);
-        //printf("#add_node_route is FULL\n");
         return;
     }
 
@@ -1398,9 +1401,6 @@ static void load_route_node_config(gnb_core_t *gnb_core){
 
 void gnb_config_file(gnb_core_t *gnb_core){
 
-    //加载 node.conf
-    local_node_file_config(gnb_core);
-
     //装载local node的公私钥
     gnb_load_keypair(gnb_core);
 
@@ -1433,6 +1433,7 @@ void gnb_config_file(gnb_core_t *gnb_core){
     load_route_node_config(gnb_core);
 
     //加载 address.conf
+
     address_file_config(gnb_core);
 
     //加载 node_cache.dump

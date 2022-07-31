@@ -82,7 +82,7 @@ static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 
 
 /*
-  用 fwd node(fwd 同时也可能是 dst) 的key 加密 payload
+  用 relay node 的key 加密 payload
 */
 static int pf_tun_fwd_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 
@@ -103,7 +103,6 @@ static int pf_tun_fwd_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 
         p = (unsigned char *)pf_ctx->fwd_payload->data;
 
-        //for ( i=0; i < gnb_core->route_frame_head_size; i++ ){
         for ( i=0; i < (gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(uint32_t)); i++ ){
 
             *p = *p ^ pf_ctx->fwd_node->crypto_key[j];
@@ -166,7 +165,6 @@ static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 
     p = (unsigned char *)pf_ctx->fwd_payload->data;
 
-    //for ( i=0; i<gnb_core->route_frame_head_size; i++ ){
     for ( i=0; i < (gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(uint32_t)); i++ ) {
         *p = *p ^ pf_ctx->src_fwd_node->crypto_key[j];
 
@@ -241,20 +239,19 @@ static int pf_inet_fwd_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 
     unsigned char *p;
 
-    if ( !(pf_ctx->fwd_payload->sub_type & GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY) ){
+    if ( !(pf_ctx->fwd_payload->sub_type & GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY) ) {
         return pf_ctx->pf_status;
     }
 
-    if (GNB_PF_FWD_INET==pf_ctx->pf_fwd){
+    if ( GNB_PF_FWD_INET==pf_ctx->pf_fwd ) {
 
-        if ( NULL==pf_ctx->fwd_node ){
+        if ( NULL==pf_ctx->fwd_node ) {
             pf_ctx->pf_status = GNB_PF_NOROUTE;
             goto finish;
         }
 
         p = (unsigned char *)pf_ctx->fwd_payload->data;
 
-        //for ( i=0; i < gnb_core->route_frame_head_size; i++ ){
         for ( i=0; i < (gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(uint32_t)); i++ ) {
 
             *p = *p ^ pf_ctx->fwd_node->crypto_key[j];
@@ -281,8 +278,9 @@ finish:
 
 
 static void pf_release_cb(gnb_core_t *gnb_core){
+
     gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t *)GNB_PF_GET_CTX(gnb_core, gnb_pf_crypto_xor);
-    gnb_heap_free(gnb_core->heap,ctx);
+
 }
 
 

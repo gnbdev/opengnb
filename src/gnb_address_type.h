@@ -47,11 +47,9 @@ typedef struct _gnb_address_t{
 
 	//最后更新时间
 	uint64_t ts_sec;
-	//uint64_t ts_sec __attribute__ ( (aligned(8)));
 
 	//延时 可以经过ping pong后算出
 	uint64_t delay_usec;
-	//uint64_t delay_usec __attribute__ ( (aligned(8)));
 
 	union{
 		uint8_t  addr4[4];

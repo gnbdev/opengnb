@@ -36,14 +36,13 @@
 
 void gnb_ctl_dump_status(gnb_ctl_block_t *ctl_block,int reachabl_opt);
 void gnb_ctl_dump_address_list(gnb_ctl_block_t *ctl_block,int reachabl_opt);
+void gnb_ctl_dump_node_wan_address(gnb_ctl_block_t *ctl_block);
+
 
 static void show_useage(int argc,char *argv[]){
 
-    printf("GNB Ctl version 1.0.0 protocol version 1.1.2\n");
-
-    #ifndef GNB_SKIP_BUILD_TIME
+    printf("GNB Ctl version 1.3.0.0  protocol version 1.2.0\n");
     printf("Build[%s %s]\n", __DATE__, __TIME__);
-    #endif
 
     printf("Copyright (C) 2019 gnbdev\n");
     printf("Usage: %s -b CTL_BLOCK [OPTION]\n", argv[0]);
@@ -51,6 +50,7 @@ static void show_useage(int argc,char *argv[]){
 
     printf("  -b, --ctl-block           ctl block mapper file\n");
     printf("  -a, --address             operate address zone\n");
+    printf("  -w, --wan-address         operate wan address zone\n");
     printf("  -c, --core                operate core zone\n");
     printf("  -r, --reachabl            only output reachabl node\n");
     printf("  -s, --show                show\n");
@@ -71,15 +71,17 @@ int main (int argc,char *argv[]){
 
     setvbuf(stdout,NULL,_IOLBF,0);
 
-    int address_opt  = 0;
-    int core_opt     = 0;
-    int show_opt     = 0;
-    int reachabl_opt = 0;
+    int address_opt     = 0;
+    int wan_address_opt = 0;
+    int core_opt        = 0;
+    int show_opt        = 0;
+    int reachabl_opt    = 0;
 
     static struct option long_options[] = {
 
       { "ctl-block",            required_argument, 0, 'b' },
       { "address",              no_argument, 0, 'a' },
+      { "wan-address",          no_argument, 0, 'w' },
       { "core",                 no_argument, 0, 'c' },
       { "show",                 no_argument, 0, 's' },
       { "reachabl",             no_argument, 0, 'r' },
@@ -96,7 +98,7 @@ int main (int argc,char *argv[]){
 
         int option_index = 0;
 
-        opt = getopt_long (argc, argv, "b:acrsh",long_options, &option_index);
+        opt = getopt_long (argc, argv, "b:awcrsh",long_options, &option_index);
 
         if (opt == -1) {
             break;
@@ -110,6 +112,10 @@ int main (int argc,char *argv[]){
 
         case 'a':
             address_opt = 1;
+            break;
+
+        case 'w':
+            wan_address_opt = 1;
             break;
 
         case 'c':
@@ -162,6 +168,12 @@ int main (int argc,char *argv[]){
     if (address_opt){
         gnb_ctl_dump_address_list(ctl_block,reachabl_opt);
     }
+
+    if (wan_address_opt){
+        gnb_ctl_dump_node_wan_address(ctl_block);
+    }
+
+
 
 #ifdef _WIN32
     WSACleanup();

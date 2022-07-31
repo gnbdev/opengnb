@@ -175,7 +175,7 @@ typedef struct _gnb_core_t{
 #define GNB_LOG_ID_INDEX_SERVICE_WORKER  5
 #define GNB_LOG_ID_DETECT_WORKER         6
 
-#define GNB_VERSION_STRING    "GNB  version 1.2.8.7  protocol version 1.1.3"
+#define GNB_VERSION_STRING    "GNB version 1.3.0.0  protocol version 1.2.0"
 #define GNB_COPYRIGHT_STRING  "Copyright (C) 2019 gnbdev<gnbdev@qq.com>"
 #define GNB_URL_STRING        "https://github.com/gnbdev/opengnb"
 #endif

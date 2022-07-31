@@ -105,14 +105,14 @@ typedef struct _gnb_conf_t {
 
 	uint8_t pf_route_mode;
 
-    #define GNB_UNIFIED_FORWARDING_OFF    0
-    #define GNB_UNIFIED_FORWARDING_AUTO   1
-    #define GNB_UNIFIED_FORWARDING_FORCE  2
-    #define GNB_UNIFIED_FORWARDING_FULL   3
+    #define GNB_UNIFIED_FORWARDING_OFF          0
+    #define GNB_UNIFIED_FORWARDING_FORCE        1
+    #define GNB_UNIFIED_FORWARDING_AUTO         2
+    #define GNB_UNIFIED_FORWARDING_SUPER        3
+    #define GNB_UNIFIED_FORWARDING_HYPER        4
 	uint8_t unified_forwarding;
 
 	uint8_t direct_forwarding;
-
 
     #define GNB_IF_DRV_TYPE_DEFAULT        0x0
     #define GNB_IF_DRV_TYPE_TAP_WINDOWS    0xA
@@ -125,8 +125,7 @@ typedef struct _gnb_conf_t {
 	uint8_t activate_index_service_worker;
 	uint8_t activate_detect_worker;
 
-	uint8_t fwdu0;
-	unsigned char ufwd_passcode[4];
+	uint8_t universal_relay0;
 
 	char listen_address6_string[46 + 2 + 1 + sizeof("65535") + 1];
 	char listen_address4_string[16 + 1 + sizeof("65535") + 1];

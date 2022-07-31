@@ -60,14 +60,14 @@ char * gnb_get_ip_port_string(gnb_address_t *address, char *dest, uint8_t addr_s
 char * gnb_get_address4string(void *byte4, char *dest, uint8_t addr_secure);
 char * gnb_get_address6string(void *byte16, char *dest, uint8_t addr_secure);
 
-#define GNB_ADDR4STR1(byte4) gnb_get_address4string(byte4,gnb_static_ip_port_string_buffer1,gnb_addr_secure)
-#define GNB_ADDR4STR2(byte4) gnb_get_address4string(byte4,gnb_static_ip_port_string_buffer2,gnb_addr_secure)
+#define GNB_ADDR4STR1(byte4)  gnb_get_address4string(byte4,gnb_static_ip_port_string_buffer1,gnb_addr_secure)
+#define GNB_ADDR4STR2(byte4)  gnb_get_address4string(byte4,gnb_static_ip_port_string_buffer2,gnb_addr_secure)
 #define GNB_ADDR6STR1(byte16) gnb_get_address6string(byte16,gnb_static_ip_port_string_buffer1,gnb_addr_secure)
 #define GNB_ADDR6STR2(byte16) gnb_get_address6string(byte16,gnb_static_ip_port_string_buffer2,gnb_addr_secure)
 
 
-#define GNB_ADDR4STR_PLAINTEXT1(byte4) gnb_get_address4string(byte4,gnb_static_ip_port_string_buffer1,0)
-#define GNB_ADDR4STR_PLAINTEXT2(byte4) gnb_get_address4string(byte4,gnb_static_ip_port_string_buffer2,0)
+#define GNB_ADDR4STR_PLAINTEXT1(byte4)  gnb_get_address4string(byte4,gnb_static_ip_port_string_buffer1,0)
+#define GNB_ADDR4STR_PLAINTEXT2(byte4)  gnb_get_address4string(byte4,gnb_static_ip_port_string_buffer2,0)
 #define GNB_ADDR6STR_PLAINTEXT1(byte16) gnb_get_address6string(byte16,gnb_static_ip_port_string_buffer1,0)
 #define GNB_ADDR6STR_PLAINTEXT2(byte16) gnb_get_address6string(byte16,gnb_static_ip_port_string_buffer2,0)
 
@@ -83,8 +83,11 @@ char * gnb_get_socket6string(struct sockaddr_in6 *in6, char *dest, uint8_t addr_
 #define GNB_SOCKADDR6STR3(in6) gnb_get_socket6string(in6,gnb_static_ip_port_string_buffer3,gnb_addr_secure)
 
 
-char * gnb_get_sockaddress_string(gnb_sockaddress_t *sockaddress,char *dest, uint8_t addr_secure);
+char * gnb_get_sockaddress_string(gnb_sockaddress_t *sockaddress, char *dest, uint8_t addr_secure);
 #define GNB_SOCKETADDRSTR1(sockaddress) gnb_get_sockaddress_string(sockaddress,gnb_static_ip_port_string_buffer1,gnb_addr_secure)
+#define GNB_SOCKETADDRSTR2(sockaddress) gnb_get_sockaddress_string(sockaddress,gnb_static_ip_port_string_buffer2,gnb_addr_secure)
+
+
 
 int gnb_cmp_sockaddr_in6(struct sockaddr_in6 *in1, struct sockaddr_in6 *in2);
 int gnb_cmp_sockaddr_in(struct sockaddr_in *in1, struct sockaddr_in *in2);
@@ -96,5 +99,7 @@ void gnb_set_sockaddress4(gnb_sockaddress_t *sockaddress, int protocol, const ch
 void gnb_set_sockaddress6(gnb_sockaddress_t *sockaddress, int protocol, const char *host, int port);
 
 gnb_address_t gnb_get_address4_from_string(const char *sockaddress4_string);
+
+void gnb_address_list3_fifo(gnb_address_list_t *address_list, gnb_address_t *address);
 
 #endif

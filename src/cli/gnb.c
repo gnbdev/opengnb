@@ -32,9 +32,14 @@
 #include <windows.h>
 #endif
 
+
+
 #ifndef GNB_SKIP_BUILD_TIME
-#define GNB_BUILD_STRING  "Build ["__DATE__","__TIME__"]"
+#define GNB_BUILD_STRING  "Build Time ["__DATE__","__TIME__"]"
+#else
+#define GNB_BUILD_STRING  "Build Time [Hidden]"
 #endif
+
 
 gnb_core_t *gnb_core;
 
@@ -53,10 +58,10 @@ extern int is_self_test;
 
 void signal_handler(int signum){
 
-	if ( SIGTERM == signum ) {
-		unlink(gnb_core->conf->pid_file);
-		exit(0);
-	}
+    if ( SIGTERM == signum ) {
+        unlink(gnb_core->conf->pid_file);
+        exit(0);
+    }
 
 }
 
@@ -78,8 +83,10 @@ static void self_test(){
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "selftest daemon='%d'\n", gnb_core->conf->daemon );
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "selftest systemd_daemon='%d'\n", gnb_core->conf->systemd_daemon );
 
-    GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "selftest local node=%lu\n", gnb_core->local_node->uuid32);
-    GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "selftest tun ipv4[%s]\n",   GNB_ADDR4STR_PLAINTEXT1(&gnb_core->local_node->tun_addr4));
+    if ( 1 == gnb_core->conf->activate_tun && 0 == gnb_core->conf->public_index_service ) {
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "selftest local node=%lu\n", gnb_core->local_node->uuid32);
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "selftest tun ipv4[%s]\n",   GNB_ADDR4STR_PLAINTEXT1(&gnb_core->local_node->tun_addr4));
+    }
 
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "selftest binary_dir='%s'\n", gnb_core->conf->binary_dir);
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "selftest conf_dir='%s'\n", gnb_core->conf->conf_dir);
@@ -99,6 +106,20 @@ static void self_test(){
 
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "selftest multi_socket=%d\n", gnb_core->conf->multi_socket);
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "selftest direct_forwarding=%d\n", gnb_core->conf->direct_forwarding);
+
+    if ( GNB_UNIFIED_FORWARDING_OFF == gnb_core->conf->unified_forwarding ) {
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "selftest unified_forwarding=off\n");
+    } else if ( GNB_UNIFIED_FORWARDING_FORCE == gnb_core->conf->unified_forwarding ) {
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "selftest unified_forwarding=force\n");
+    } else if ( GNB_UNIFIED_FORWARDING_AUTO == gnb_core->conf->unified_forwarding ) {
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "selftest unified_forwarding=auto\n");
+    } else if ( GNB_UNIFIED_FORWARDING_SUPER == gnb_core->conf->unified_forwarding ) {
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "selftest unified_forwarding=super\n");
+    } else if ( GNB_UNIFIED_FORWARDING_HYPER == gnb_core->conf->unified_forwarding ) {
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "selftest unified_forwarding=hyper\n");
+    } else {
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "selftest unified_forwarding=%d\n", gnb_core->conf->unified_forwarding);
+    }
 
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "selftest activate tun=%d\n", gnb_core->conf->activate_tun);
 
@@ -220,9 +241,7 @@ void log_out_description(gnb_log_ctx_t *log){
     GNB_LOG1(log, GNB_LOG_ID_CORE, "%s\n", GNB_COPYRIGHT_STRING);
     GNB_LOG1(log, GNB_LOG_ID_CORE, "Site: %s\n", GNB_URL_STRING);
 
-    #ifndef GNB_SKIP_BUILD_TIME
     GNB_LOG1(log, GNB_LOG_ID_CORE, "%s\n", GNB_BUILD_STRING);
-    #endif
 
 }
 
@@ -244,9 +263,7 @@ void show_description(){
 
     printf("\n");
 
-    #ifndef GNB_SKIP_BUILD_TIME
     printf("%s\n", GNB_BUILD_STRING);
-    #endif
 
 }
 
@@ -286,7 +303,6 @@ int main (int argc,char *argv[]){
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "gnb core created!\n");
 
     #ifdef __UNIX_LIKE_OS__
-
     signal(SIGPIPE, SIG_IGN);
     signal(SIGALRM, signal_handler);
     signal(SIGTERM, signal_handler);
@@ -299,6 +315,8 @@ int main (int argc,char *argv[]){
     #endif
 
     ret = gettimeofday(&gnb_core->now_timeval,NULL);
+    gnb_core->now_time_sec  = gnb_core->now_timeval.tv_sec;
+    gnb_core->now_time_usec = gnb_core->now_timeval.tv_sec * 1000000 + gnb_core->now_timeval.tv_usec;
 
     if ( 1 == is_self_test ) {
         self_test();
