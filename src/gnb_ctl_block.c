@@ -72,7 +72,7 @@ gnb_ctl_block_t *gnb_ctl_block_build(void *memory, size_t node_num){
     block->size = sizeof(gnb_ctl_magic_number_t);
     ctl_block->magic_number = (gnb_ctl_magic_number_t *)block->data;
     off_set += sizeof(gnb_block32_t) + sizeof(gnb_ctl_magic_number_t);
-    snprintf((char *)ctl_block->magic_number->data, 16, "%s", "GNB Ver1.2.8");
+    snprintf((char *)ctl_block->magic_number->data, 16, "%s", "GNB Ver1.3.0");
 
     ctl_block->entry_table256[GNB_CTL_CONF] = off_set;
     block = memory + ctl_block->entry_table256[GNB_CTL_CONF];

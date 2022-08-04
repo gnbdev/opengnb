@@ -338,7 +338,7 @@ int main (int argc,char *argv[]){
     gnb_es_ctx *es_ctx = gnb_es_ctx_create(service_opt, ctl_block_file, log);
 
     if ( NULL == es_ctx ) {
-        printf("es ctx init error [%s]\n",ctl_block_file);
+        printf("es ctx init error [%s]......\n",ctl_block_file);
         return 1;
     }
 

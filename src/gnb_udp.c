@@ -24,6 +24,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+
 #endif
 
 #ifdef _WIN32
@@ -40,6 +41,9 @@
 
 #include "gnb_udp.h"
 
+
+
+#include <netinet/ip.h>
 int gnb_bind_udp_socket_ipv4(int socketfd,const char *host, int port){
 
     struct sockaddr_in svr_addr;
