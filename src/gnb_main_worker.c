@@ -304,7 +304,7 @@ static void handle_udp(gnb_core_t *gnb_core, uint8_t socket_idx, int af){
         goto finish;
     }
 
-    if ( GNB_PAYLOAD_TYPE_IPFRAME == gnb_core->inet_payload->type ) {
+    if ( 1 == gnb_core->conf->activate_tun && GNB_PAYLOAD_TYPE_IPFRAME == gnb_core->inet_payload->type ) {
         gnb_pf_inet(gnb_core, gnb_core->inet_payload, &node_addr_st);
         goto finish;
     }
