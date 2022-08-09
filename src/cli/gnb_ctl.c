@@ -58,7 +58,7 @@ static void show_useage(int argc,char *argv[]){
     printf("      --help\n");
 
     printf("example:\n");
-    printf("%s --ctl_block=./gnb.map\n",argv[0]);
+    printf("%s --ctl-block=./gnb.map\n",argv[0]);
 
 }
 

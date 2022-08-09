@@ -285,7 +285,7 @@ void gnb_pf_tun(gnb_core_t *gnb_core, gnb_payload16_t *payload){
         GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "----- GNB PF TUN BEGIN -----\n");
     }
 
-    for( i=0; i<gnb_core->pf_array->num; i++ ) {
+    for ( i=0; i<gnb_core->pf_array->num; i++ ) {
 
         if ( NULL==gnb_core->pf_array->pf[i]->pf_tun_frame ) {
             continue;
@@ -335,7 +335,6 @@ void gnb_pf_tun(gnb_core_t *gnb_core, gnb_payload16_t *payload){
 
         if ( GNB_PF_DROP == pf_ctx_st.pf_status ) {
             pf_tun_route_status = GNB_PF_TUN_ROUTE_DROP;
-            goto pf_tun_finish;
         }
 
         if ( GNB_PF_NEXT == pf_ctx_st.pf_status ) {
@@ -346,7 +345,7 @@ void gnb_pf_tun(gnb_core_t *gnb_core, gnb_payload16_t *payload){
 
 
     /*
-     * 一般的，forwarding 的优先级是 relay_forwarding > unified_forwarding > direct_forwarding > std_forwarding
+     * 一般的,forwarding 的优先级是 relay_forwarding > unified_forwarding > direct_forwarding > std_forwarding
      * 以下条件跳转是确保 relay_forwarding > unified_forwarding
      * */
     if ( NULL != pf_ctx_st.fwd_node && 1 == pf_ctx_st.relay_forwarding ) {
@@ -373,7 +372,6 @@ void gnb_pf_tun(gnb_core_t *gnb_core, gnb_payload16_t *payload){
         goto pf_tun_finish;
 
     }
-
 
     if ( NULL == pf_ctx_st.fwd_node && GNB_UNIFIED_FORWARDING_AUTO == gnb_core->conf->unified_forwarding ) {
 
@@ -512,7 +510,7 @@ void gnb_pf_inet(gnb_core_t *gnb_core, gnb_payload16_t *payload, gnb_sockaddress
     gnb_core->select_fwd_node = gnb_select_forward_node(gnb_core);
 
     if ( 1 == gnb_core->conf->if_dump ) {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF,"----- GNB PF INET BEGIN -----\n");
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "----- GNB PF INET BEGIN -----\n");
     }
 
 
@@ -546,9 +544,9 @@ void gnb_pf_inet(gnb_core_t *gnb_core, gnb_payload16_t *payload, gnb_sockaddress
             continue;
         }
 
-        pf_ctx_st.pf_status = gnb_core->pf_array->pf[i]->pf_inet_frame(gnb_core,  &pf_ctx_st);
+        pf_ctx_st.pf_status = gnb_core->pf_array->pf[i]->pf_inet_frame(gnb_core, &pf_ctx_st);
 
-        if ( GNB_PF_ERROR == pf_ctx_st.pf_status ){
+        if ( GNB_PF_ERROR == pf_ctx_st.pf_status ) {
             pf_inet_frame_status = GNB_PF_INET_FRAME_ERROR;
             goto pf_inet_finish;
         }

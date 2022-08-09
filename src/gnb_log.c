@@ -133,7 +133,7 @@ static void log_udp_output(gnb_log_ctx_t *log, uint8_t log_type, char *log_strin
     struct sockaddr_in6 saddr6;
     struct sockaddr_in  saddr4;
 
-    if ( log->socket6_fd >0 ) {
+    if ( log->socket6_fd > 0 ) {
 
         memset(&saddr6,0, sizeof(struct sockaddr_in6));
         saddr6.sin6_family = AF_INET6;
@@ -146,7 +146,7 @@ static void log_udp_output(gnb_log_ctx_t *log, uint8_t log_type, char *log_strin
 
     }
 
-    if ( log->socket4_fd >0 ) {
+    if ( log->socket4_fd > 0 ) {
 
         memset(&saddr4,0, sizeof(struct sockaddr_in));
         saddr4.sin_family = AF_INET;
@@ -179,7 +179,7 @@ static void log_udp_binary_output(gnb_log_ctx_t *log, uint8_t log_type, uint8_t 
 
     gnb_payload16_set_data_len(gnb_payload16, data_size);
 
-    if ( log->socket6_fd >0 ) {
+    if ( log->socket6_fd > 0 ) {
 
         memset(&saddr6,0, sizeof(struct sockaddr_in));
         saddr6.sin6_family = AF_INET6;
@@ -192,7 +192,7 @@ static void log_udp_binary_output(gnb_log_ctx_t *log, uint8_t log_type, uint8_t 
 
     }
 
-    if ( log->socket4_fd >0 ) {
+    if ( log->socket4_fd > 0 ) {
 
         memset(&saddr4,0, sizeof(struct sockaddr_in));
         saddr4.sin_family = AF_INET;
@@ -355,9 +355,9 @@ int gnb_log_udp_set_addr4_string(gnb_log_ctx_t *log, char *sockaddress4_string){
 
     char *p = sockaddress4_string_copy;
 
-    for( i=0; i<sockaddress4_string_len; i++){
+    for ( i=0; i<sockaddress4_string_len; i++ ) {
 
-        if ( ':' == *p ){
+        if ( ':' == *p ) {
             *p = '\0';
             break;
         }

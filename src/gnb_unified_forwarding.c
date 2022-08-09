@@ -85,14 +85,14 @@ int gnb_unified_forwarding_tun(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
     gnb_setup_unified_forwarding_nodeid(gnb_core, dst_node);
 
     if ( 0 == dst_node->unified_forwarding_nodeid ) {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "unified_forwarding_nodeid not found dst=%u\n", dst_node->uuid32);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "unified forwarding from tun dst=%u nodeid not found!\n", dst_node->uuid32);
         return -1;
     }
 
     unified_forwarding_node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, dst_node->unified_forwarding_nodeid);
 
     if ( NULL == unified_forwarding_node ) {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "unified_forwarding_node %u not found dst=%u\n", dst_node->unified_forwarding_nodeid, dst_node->uuid32);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "unified forwarding from tun fwd %u not found dst=%u\n", dst_node->unified_forwarding_nodeid, dst_node->uuid32);
         return -2;
     }
 
@@ -119,7 +119,7 @@ int gnb_unified_forwarding_tun(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
     gnb_forward_payload_to_node(gnb_core, unified_forwarding_node, payload);
     dst_node->unified_forwarding_node_ts_sec = gnb_core->now_time_sec;
 
-    GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "*>> unified forwarding to tun %u=>%u=>%u seq=%"PRIu64" *>>\n", gnb_core->local_node->uuid32, dst_node->uuid32, dst_node->unified_forwarding_nodeid, dst_node->unified_forwarding_send_seq);
+    GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "*>> unified forwarding from tun %u=>%u=>%u seq=%"PRIu64" *>>\n", gnb_core->local_node->uuid32, dst_node->unified_forwarding_nodeid, dst_node->uuid32,  dst_node->unified_forwarding_send_seq);
 
     return 1;
 

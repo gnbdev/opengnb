@@ -81,7 +81,7 @@ static void show_useage(int argc,char *argv[]){
     printf("      --upnp                upnp\n");
     printf("      --resolv              resolv\n");
     printf("      --dump-address        dump address\n");
-    printf("      --broadcast-addres    broadcast addre\n");
+    printf("      --broadcast-address   broadcast address\n");
 
     printf("      --pid-file            pid file\n");
     printf("      --wan-address6-file   wan address6 file\n");
