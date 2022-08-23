@@ -29,10 +29,9 @@
 #include "gnb_time.h"
 #include "es/gnb_es_type.h"
 
-
 #include "miniupnpc.h"
+#include "natpmp.h"
 #include "upnpcommands.h"
-
 
 static void gnb_es_upnp_em(gnb_conf_t *conf, gnb_log_ctx_t *log){
 
@@ -185,7 +184,126 @@ next:
 }
 
 
+int gnb_es_natpnpc(gnb_conf_t *conf, gnb_log_ctx_t *log){
+
+	int forcegw = 0;
+	in_addr_t gateway = 0;
+    natpmp_t natpmp;
+	natpmpresp_t response;
+
+    struct in_addr gateway_in_use;
+
+    uint32_t lifetime = 3600;
+
+    int i;
+	int r;
+    int sav_errno;
+
+    int ret = 0;
+
+    r = initnatpmp(&natpmp, forcegw, gateway);
+
+    if ( r < 0 ) {
+        ret = -1;
+        goto finish;        
+    }
+
+	gateway_in_use.s_addr = natpmp.gateway;
+
+	r = sendpublicaddressrequest(&natpmp);
+
+    if ( r < 0 ) {
+        ret = -2;
+        goto finish;
+    }
+
+	struct timeval timeout;
+	fd_set fds;
+
+	do {
+
+		FD_ZERO(&fds);
+
+		FD_SET(natpmp.s, &fds);
+
+		getnatpmprequesttimeout(&natpmp, &timeout);
+
+		r = select(FD_SETSIZE, &fds, NULL, NULL, &timeout);
+
+		if ( r < 0 ) {
+            ret = -3;
+			goto finish;
+		}
+
+		r = readnatpmpresponseorretry(&natpmp, &response);
+
+		sav_errno = errno;
+
+		printf("readnatpmpresponseorretry returned %d (%s)\n", r, r==0?"OK":(r==NATPMP_TRYAGAIN?"TRY AGAIN":"FAILED"));
+
+		if( r<0 && r!=NATPMP_TRYAGAIN ) {
+
+#ifdef ENABLE_STRNATPMPERR
+			GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "readnatpmpresponseorretry() failed : %s\n", strnatpmperr(r));
+#endif
+
+			GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "errno=%d '%s'\n", sav_errno, strerror(sav_errno));
+
+		}
+
+	} while (r==NATPMP_TRYAGAIN);
+
+	if( r < 0 ) {
+        ret = -4;
+        goto finish;
+    }
+
+    for ( i = 0; i < conf->udp4_socket_num; i++ ) {
+
+        r = sendnewportmappingrequest(&natpmp, NATPMP_PROTOCOL_UDP, conf->udp4_ports[i], conf->udp4_ext_ports[i], lifetime);
+
+        if ( r<0 ) {
+            continue;
+        }
+
+		do {
+
+            FD_ZERO(&fds);
+
+            FD_SET(natpmp.s, &fds);
+
+            getnatpmprequesttimeout(&natpmp, &timeout);
+			
+            select(FD_SETSIZE, &fds, NULL, NULL, &timeout);
+			
+            r = readnatpmpresponseorretry(&natpmp, &response);
+			
+            GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "readnatpmpresponseorretry returned %d (%s)\n", r, r==0?"OK":(r==NATPMP_TRYAGAIN?"TRY AGAIN":"FAILED"));
+
+		} while(r==NATPMP_TRYAGAIN);
+
+    }
+
+finish:
+
+	r = closenatpmp(&natpmp);
+
+    return ret;
+
+}
+
 void gnb_es_upnp(gnb_conf_t *conf, gnb_log_ctx_t *log){
+
+    int ret;
+    
+    ret = gnb_es_natpnpc(conf, log);
+
+    if ( 0 == ret ) {    
+        GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "gnb_es_natpnpc ret=%d finish upnp\n");
+        return;
+    }
+
+    GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "gnb_es_natpnpc ret=%d gnb_es_upnp_em\n");
 
     gnb_es_upnp_em(conf, log);
 

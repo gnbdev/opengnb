@@ -1,4 +1,4 @@
-CFLAGS=-O2 -I./src/  -I./libs/ -I./libs/miniupnpc/
+CFLAGS=-O2 -I./src  -I./libs -I./libs/miniupnpc -I./libs/libnatpmp
 CLI_LDFLAGS=-L/usr/lib -pthread
 GNB_ES_LDFLAGS=-L/usr/lib -pthread
 
@@ -28,8 +28,8 @@ ${GNB_CTL}: ${GNB_CTL_OBJS}
 	strip ${GNB_CTL}
 
 
-${GNB_ES}: ${GNB_ES_OBJS} ${CRYPTO_OBJS} ${MINIUPNP_OBJS}
-	${CC} -o ${GNB_ES} ${GNB_ES_OBJS} ${CRYPTO_OBJS} ${MINIUPNP_OBJS} ${GNB_ES_LDFLAGS}
+${GNB_ES}: ${GNB_ES_OBJS} ${CRYPTO_OBJS} ${MINIUPNP_OBJS} ${LIBNATPMP_OBJS}
+	${CC} -o ${GNB_ES} ${GNB_ES_OBJS} ${CRYPTO_OBJS} ${MINIUPNP_OBJS} ${LIBNATPMP_OBJS} ${GNB_ES_LDFLAGS}
 	strip ${GNB_ES}
 
 

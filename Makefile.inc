@@ -14,6 +14,12 @@ MINIUPNP_OBJS =                            \
        ./libs/miniupnpc/minissdpc.o
 
 
+LIBNATPMP_OBJS =                            \
+       ./libs/libnatpmp/natpmp.o            \
+       ./libs/libnatpmp/getgateway.o        \
+       ./libs/libnatpmp/wingettimeofday.o   \
+
+
 CRYPTO_OBJS =                               \
        ./libs/ed25519/add_scalar.o          \
        ./libs/ed25519/fe.o                  \
@@ -108,7 +114,5 @@ GNB_CTL_OBJS =                            \
        ./src/gnb_mmap.o                   \
        ./libs/ed25519/sha512.o
 
-
 GNB_OBJS    += ./src/gnb_mod_register.o
 GNB_ES_OBJS += ./src/es/gnb_es_platform.o
-

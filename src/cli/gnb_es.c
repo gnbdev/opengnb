@@ -95,8 +95,8 @@ static void show_useage(int argc,char *argv[]){
     printf("      --help\n");
 
     printf("example:\n");
-    printf("%s --ctl_block=./gnb.map -s --upnp\n",argv[0]);
-    printf("%s --ctl_block=./gnb.map -s --resolv\n",argv[0]);
+    printf("%s --ctl-block=./gnb.map -s --upnp\n",argv[0]);
+    printf("%s --ctl-block=./gnb.map -s --resolv\n",argv[0]);
 
 }
 

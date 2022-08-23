@@ -193,7 +193,7 @@ static void gnb_es_setup_env(gnb_es_ctx *es_ctx){
 
     char env_value_string[64];
 
-    gnb_set_env("GNB_IF_NAME", es_ctx->ctl_block->core_zone->ifname);
+    gnb_set_env("GNB_IF_NAME", (const char *)es_ctx->ctl_block->core_zone->ifname);
     snprintf(env_value_string, 64, "%d", es_ctx->ctl_block->conf_zone->conf_st.mtu);
 
     gnb_set_env("GNB_MTU", env_value_string);
