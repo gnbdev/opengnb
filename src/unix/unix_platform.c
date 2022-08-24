@@ -30,7 +30,7 @@
 extern char **__environ;
 #endif
 
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
 extern char **environ;
 #endif
 
@@ -102,11 +102,11 @@ pid_t gnb_exec(char *app_filename, char *current_path, gnb_arg_list_t *arg_list,
 
 do_exec:
 
-    #if defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__)
+    #if defined(__linux__)
     ret = execve(app_filename, argv, __environ);
     #endif
 
-    #if defined(__APPLE__)
+    #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
     ret = execve(app_filename, argv, environ);
     #endif
 
