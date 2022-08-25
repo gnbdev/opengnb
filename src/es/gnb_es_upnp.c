@@ -186,17 +186,17 @@ next:
 
 int gnb_es_natpnpc(gnb_conf_t *conf, gnb_log_ctx_t *log){
 
-	int forcegw = 0;
-	in_addr_t gateway = 0;
+    int forcegw = 0;
+    in_addr_t gateway = 0;
     natpmp_t natpmp;
-	natpmpresp_t response;
+    natpmpresp_t response;
 
     struct in_addr gateway_in_use;
 
     uint32_t lifetime = 3600;
 
     int i;
-	int r;
+    int r;
     int sav_errno;
 
     int ret = 0;
@@ -208,52 +208,52 @@ int gnb_es_natpnpc(gnb_conf_t *conf, gnb_log_ctx_t *log){
         goto finish;        
     }
 
-	gateway_in_use.s_addr = natpmp.gateway;
+    gateway_in_use.s_addr = natpmp.gateway;
 
-	r = sendpublicaddressrequest(&natpmp);
+    r = sendpublicaddressrequest(&natpmp);
 
     if ( r < 0 ) {
         ret = -2;
         goto finish;
     }
 
-	struct timeval timeout;
-	fd_set fds;
+    struct timeval timeout;
+    fd_set fds;
 
-	do {
+    do {
 
-		FD_ZERO(&fds);
+        FD_ZERO(&fds);
 
-		FD_SET(natpmp.s, &fds);
+        FD_SET(natpmp.s, &fds);
 
-		getnatpmprequesttimeout(&natpmp, &timeout);
+        getnatpmprequesttimeout(&natpmp, &timeout);
 
-		r = select(FD_SETSIZE, &fds, NULL, NULL, &timeout);
+        r = select(FD_SETSIZE, &fds, NULL, NULL, &timeout);
 
-		if ( r < 0 ) {
-                    ret = -3;
-		    goto finish;
-		}
+        if ( r < 0 ) {
+            ret = -3;
+            goto finish;
+        }
 
-		r = readnatpmpresponseorretry(&natpmp, &response);
+        r = readnatpmpresponseorretry(&natpmp, &response);
 
-		sav_errno = errno;
+        sav_errno = errno;
 
-                GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "readnatpmpresponseorretry returned %d (%s)\n", r, r==0?"OK":(r==NATPMP_TRYAGAIN?"TRY AGAIN":"FAILED"));
-		
-		if( r<0 && r!=NATPMP_TRYAGAIN ) {
+        GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "readnatpmpresponseorretry returned %d (%s)\n", r, r==0?"OK":(r==NATPMP_TRYAGAIN?"TRY AGAIN":"FAILED"));
+
+        if( r<0 && r!=NATPMP_TRYAGAIN ) {
 
 #ifdef ENABLE_STRNATPMPERR
-			GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "readnatpmpresponseorretry() failed : %s\n", strnatpmperr(r));
+            GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "readnatpmpresponseorretry() failed : %s\n", strnatpmperr(r));
 #endif
 
-			GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "errno=%d '%s'\n", sav_errno, strerror(sav_errno));
+            GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "errno=%d '%s'\n", sav_errno, strerror(sav_errno));
 
-		}
+        }
 
-	} while (r==NATPMP_TRYAGAIN);
+    } while (r==NATPMP_TRYAGAIN);
 
-	if( r < 0 ) {
+    if ( r < 0 ) {
         ret = -4;
         goto finish;
     }
@@ -266,27 +266,27 @@ int gnb_es_natpnpc(gnb_conf_t *conf, gnb_log_ctx_t *log){
             continue;
         }
 
-		do {
+        do {
 
             FD_ZERO(&fds);
 
             FD_SET(natpmp.s, &fds);
 
             getnatpmprequesttimeout(&natpmp, &timeout);
-			
+            
             select(FD_SETSIZE, &fds, NULL, NULL, &timeout);
-			
+            
             r = readnatpmpresponseorretry(&natpmp, &response);
-			
+            
             GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "readnatpmpresponseorretry returned %d (%s)\n", r, r==0?"OK":(r==NATPMP_TRYAGAIN?"TRY AGAIN":"FAILED"));
 
-		} while(r==NATPMP_TRYAGAIN);
+        } while(r==NATPMP_TRYAGAIN);
 
     }
 
 finish:
 
-	r = closenatpmp(&natpmp);
+    r = closenatpmp(&natpmp);
 
     return ret;
 
