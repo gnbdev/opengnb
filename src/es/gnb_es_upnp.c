@@ -231,16 +231,16 @@ int gnb_es_natpnpc(gnb_conf_t *conf, gnb_log_ctx_t *log){
 		r = select(FD_SETSIZE, &fds, NULL, NULL, &timeout);
 
 		if ( r < 0 ) {
-            ret = -3;
-			goto finish;
+                    ret = -3;
+		    goto finish;
 		}
 
 		r = readnatpmpresponseorretry(&natpmp, &response);
 
 		sav_errno = errno;
 
-		printf("readnatpmpresponseorretry returned %d (%s)\n", r, r==0?"OK":(r==NATPMP_TRYAGAIN?"TRY AGAIN":"FAILED"));
-
+                GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "readnatpmpresponseorretry returned %d (%s)\n", r, r==0?"OK":(r==NATPMP_TRYAGAIN?"TRY AGAIN":"FAILED"));
+		
 		if( r<0 && r!=NATPMP_TRYAGAIN ) {
 
 #ifdef ENABLE_STRNATPMPERR
