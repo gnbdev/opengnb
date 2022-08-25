@@ -299,7 +299,7 @@ void gnb_es_upnp(gnb_conf_t *conf, gnb_log_ctx_t *log){
     ret = gnb_es_natpnpc(conf, log);
 
     if ( 0 == ret ) {    
-        GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "gnb_es_natpnpc ret=%d finish upnp\n");
+        GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "gnb_es_natpnpc finish upnp\n");
         return;
     }
 
