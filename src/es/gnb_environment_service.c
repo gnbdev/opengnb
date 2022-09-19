@@ -47,7 +47,7 @@ void gnb_set_env(const char *name, const char *value);
 
 void gnb_es_dump_address_list(gnb_es_ctx *es_ctx);
 void gnb_broadcast_address(gnb_es_ctx *es_ctx);
-void gnb_es_upnp(gnb_conf_t *conf, gnb_log_ctx_t *log);
+void gnb_es_upnp(gnb_es_ctx *es_ctx, gnb_conf_t *conf, gnb_log_ctx_t *log);
 void gnb_resolv_address(gnb_es_ctx *es_ctx);
 void gnb_load_wan_ipv6_address(gnb_es_ctx *es_ctx);
 void gnb_discover_in_lan_ipv4(gnb_es_ctx *es_ctx);
@@ -248,7 +248,7 @@ void gnb_start_environment_service(gnb_es_ctx *es_ctx){
         }
 
         if ( es_ctx->upnp_opt && (es_ctx->now_time_sec - last_upnp_time_sec ) > GNB_UPNP_INTERVAL_SEC ) {
-            gnb_es_upnp(&es_ctx->ctl_block->conf_zone->conf_st,  es_ctx->log);
+            gnb_es_upnp(es_ctx, &es_ctx->ctl_block->conf_zone->conf_st,  es_ctx->log);
             last_upnp_time_sec = es_ctx->now_time_sec;
         }
 

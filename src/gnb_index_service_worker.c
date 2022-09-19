@@ -336,6 +336,7 @@ static void handle_request_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t
 
     index_service_worker_ctx_t *index_service_worker_ctx = gnb_core->index_service_worker->ctx;
     request_addr_frame_t *request_addr_frame = (request_addr_frame_t *)&index_service_worker_in_data->payload_st.data;
+    gnb_sockaddress_t *sockaddress = &index_service_worker_in_data->node_addr_st;
 
     uint32_t src_uuid32 = ntohl(request_addr_frame->data.src_uuid32);
     uint32_t dst_uuid32 = ntohl(request_addr_frame->data.dst_uuid32);
@@ -393,11 +394,9 @@ static void handle_request_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t
         }
     }
 
-    //在节点开启了多个 socket 时，index server 只存最近一份地址，这里带来了其他问题
+    //即使节点开启了多个 socket ，index server 只存最近一份地址
     gnb_address_list_t *address6_list = (gnb_address_list_t *)l_key_address->address6_list_block6;
-    gnb_address_list_t *address4_list = (gnb_address_list_t *)l_key_address->address4_list_block4;
-
-    gnb_sockaddress_t *sockaddress = &index_service_worker_in_data->node_addr_st;
+    gnb_address_list_t *address4_list = (gnb_address_list_t *)l_key_address->address4_list_block4;    
 
     gnb_address_t *address = alloca(sizeof(gnb_address_t));
 
@@ -418,6 +417,7 @@ static void handle_request_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t
 
     GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE REQUEST push addr src[%u] => [%u] r_key_address[%s] now[%"PRIu64"] lastpost6[%"PRIu64"] lastpost4[%"PRIu64"]\n", src_uuid32, dst_uuid32,
                     GNB_HEX1_BYTE128(request_addr_frame->data.dst_key512), index_service_worker_ctx->now_time_sec, r_key_address->last_post_addr6_sec, r_key_address->last_post_addr4_sec);
+
 }
 
 

@@ -62,7 +62,11 @@ typedef struct _gnb_es_ctx{
 	char *wan_address6_file;
 
 	int service_opt;
-	int upnp_opt;
+
+    int upnp_opt;
+	char *upnp_multicase_if;
+    char *upnp_gateway4;
+
 	int resolv_opt;
 
 	int broadcast_address_opt;

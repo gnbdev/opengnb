@@ -4,10 +4,7 @@ version 1.3.0.0  protocol version 1.2.0
 
 [Chinese](/README.md)  [English](/README_EN.md)  [Russian](/README_RU.md)
 
-[OpenGNB](https://github.com/gnbdev/opengnb "OpenGNB") 是一个开源的 P2P 去中心化的具有极致的内网穿透能力的软件自定义虚拟网络（SDVN）。
-> 可以让你把公司-家庭网络组成直接访问的局域网。
-
-![GNB vs traditional VPN](images/gnb1.png)
+[OpenGNB](https://github.com/gnbdev/opengnb "OpenGNB") 是一个开源的 P2P 去中心化的具有极致的内网穿透能力的软件自定义虚拟网络(SDVN),可以让你把公司-家庭网络组成直接访问的局域网。
 
 ## GNB 特点
 
@@ -25,6 +22,137 @@ version 1.3.0.0  protocol version 1.2.0
 
 3. 多平台支持
     -  GNB 用 C 语言开发，项目相关代码以开源方式发布, 编译时不需要引用第三方库文件，可以方便移植到当前流行的操作系统上,目前支持的操作系统及平台有 Linux_x86_64，Windows10_x86_64， macOS，FreeBSD_AMD64，OpenBSD_AMD64，树莓派，OpenWRT；大至服务器环境，桌面系统，小至仅有 32M 内存的OpenWRT路由器都能很好的运行 GNB 网络。
+
+
+### Standard VPN payload forwarding
+```mermaid
+flowchart LR
+
+subgraph LAN A
+nodea[VPN clientA]
+end
+
+subgraph WAN
+nodef[VPN server]
+end
+
+subgraph LAN B
+nodeb[VPN clientB]
+end
+
+nodea <-- payload ---> nodef <-- payload ---> nodeb
+
+```
+
+
+### GNB payload standard forwarding
+NAT Traversal point to point
+
+```mermaid
+flowchart LR
+
+subgraph LAN A
+nodeA[gnb nodeA]
+end
+
+subgraph WAN
+index[gnb public index node]
+end
+
+subgraph LAN B
+nodeB[gnb nodeB]
+end
+
+nodeA -. nodeB address .-  index -. nodeA address.- nodeB
+nodeA <-- payload --> nodeB
+
+```
+
+### GNB payload relay forwarding
+```mermaid
+flowchart LR
+
+subgraph LAN A
+nodeA[gnb nodeA]
+end
+
+subgraph WAN
+
+nodeC[nodeC]
+nodeD[nodeD]
+nodeE[nodeE] 
+nodeF[nodeF]
+nodeJ[nodeJ]
+nodeK[nodeK]
+
+nodeG[nodeG]
+nodeH[nodeH]
+nodeI[nodeI]
+
+end
+
+subgraph LAN B
+nodeB[gnb nodeA]
+end
+
+nodeA[nodeA] ---- nodeC[nodeC] ---- nodeD[nodeD] ---- nodeE[nodeE] ---- nodeF[nodeF] ---- nodeB[nodeB]
+nodeA[nodeA] ---- nodeG[nodeG] ---- nodeH[nodeH] ---- nodeI[nodeI] ---- nodeB[nodeB]
+nodeA[nodeA] ---- nodeJ[nodeJ] ---- nodeK[nodeK] ---- nodeB[nodeB]
+
+```
+
+### GNB payload unified forwarding
+
+```mermaid
+flowchart LR
+
+subgraph LAN A
+nodeA[gnb nodeA]
+end
+
+
+subgraph LAN C
+nodeC[gnb nodeC]
+end
+
+subgraph LAN D
+nodeD[gnb nodeD]
+end
+
+subgraph LAN E
+nodeE[gnb nodee]
+end
+
+
+subgraph LAN B
+nodeB[gnb nodeB]
+end
+
+
+nodeA ---- nodeC & nodeD & nodeE ---- nodeB
+
+```
+
+### GNB payload via tcp forwarding
+
+```mermaid
+flowchart LR
+
+subgraph LAN A
+nodeA[gnb nodeA]
+upd_over_tcp_A[upd_over_tcp]
+end
+
+
+subgraph WAN
+upd_over_tcp_B[upd_over_tcp]
+nodeB[gnb nodeB]
+end
+
+nodeA --UDP payload--- upd_over_tcp_A --TCP payload--- upd_over_tcp_B --UDP payload--- nodeB
+
+```
+
 
 ## GNB 快速上手
 

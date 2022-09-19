@@ -468,7 +468,7 @@ if_dump:
 
         fwd_uuid32 = NULL != pf_ctx_st.fwd_node ? pf_ctx_st.fwd_node->uuid32:0;
 
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "tun src=%u dst=%u= fwd=%u [%s] [%s] relay=%d,unified=%d,direct=%d,forward=%d ip_frame_size=%u\n",
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "tun src=%u dst=%u fwd=%u [%s] [%s] relay=%d,unified=%d,direct=%d,forward=%d ip_frame_size=%u\n",
                pf_ctx_st.src_uuid32, pf_ctx_st.dst_uuid32, fwd_uuid32,
                gnb_pf_status_strings[pf_tun_frame_status], gnb_pf_status_strings[pf_tun_route_status],
                pf_ctx_st.relay_forwarding, pf_ctx_st.unified_forwarding, pf_ctx_st.direct_forwarding, pf_ctx_st.std_forwarding,

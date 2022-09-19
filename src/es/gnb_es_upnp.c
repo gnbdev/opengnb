@@ -15,6 +15,10 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__)
+#define __UNIX_LIKE_OS__ 1
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,6 +26,20 @@
 #include <errno.h>
 #include <pthread.h>
 #include <unistd.h>
+
+#ifdef __UNIX_LIKE_OS__
+#include <arpa/inet.h>
+#endif
+
+
+#if defined(_WIN32)
+#undef _WIN32_WINNT
+#define _WIN32_WINNT 0x0600
+
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#endif
+
 
 #include "gnb_conf_type.h"
 #include "gnb_node_type.h"
@@ -33,7 +51,7 @@
 #include "natpmp.h"
 #include "upnpcommands.h"
 
-static void gnb_es_upnp_em(gnb_conf_t *conf, gnb_log_ctx_t *log){
+static void gnb_es_upnp_em(gnb_es_ctx *es_ctx, gnb_conf_t *conf, gnb_log_ctx_t *log){
 
     const char *rootdescurl = NULL;
 
@@ -41,7 +59,7 @@ static void gnb_es_upnp_em(gnb_conf_t *conf, gnb_log_ctx_t *log){
 
     const char *multicastif = NULL;
 
-    const char *minissdpdpath = NULL;
+    const char *minissdpdpath = "";
 
     int localport = UPNP_LOCAL_PORT_ANY;
 
@@ -76,11 +94,18 @@ static void gnb_es_upnp_em(gnb_conf_t *conf, gnb_log_ctx_t *log){
     char ext_port_string[6];
     char in_port_string[6];
 
+    if ( NULL == es_ctx->upnp_multicase_if ) {
+        es_ctx->upnp_multicase_if = getenv("GNB_UPNP_MULTICAST_IF");
+    }
+
+    multicastif = es_ctx->upnp_multicase_if;
+
     devlist = upnpDiscover(2000, multicastif, minissdpdpath, localport, ipv6, ttl, &error);
 
     GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "UPNPC Try to UPNP_GetValidIGD.\n");
 
     if ( NULL == devlist ) {
+        GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "UPNPC upnpDiscover get devlist faile! error=%d .....\n", error);
         return;
     }
 
@@ -184,7 +209,7 @@ next:
 }
 
 
-int gnb_es_natpnpc(gnb_conf_t *conf, gnb_log_ctx_t *log){
+int gnb_es_natpnpc(gnb_es_ctx *es_ctx, gnb_conf_t *conf, gnb_log_ctx_t *log){
 
     int forcegw = 0;
     in_addr_t gateway = 0;
@@ -200,6 +225,22 @@ int gnb_es_natpnpc(gnb_conf_t *conf, gnb_log_ctx_t *log){
     int sav_errno;
 
     int ret = 0;
+
+    if ( NULL != es_ctx->upnp_gateway4 ) {
+
+        inet_pton(AF_INET, es_ctx->upnp_gateway4, &gateway);
+        forcegw = 1;
+
+    } else {
+
+        es_ctx->upnp_gateway4 = getenv("GNB_UPNP_GATEWAY");
+
+        if ( NULL != es_ctx->upnp_gateway4 ) {
+            inet_pton(AF_INET, es_ctx->upnp_gateway4, &gateway);
+            forcegw = 1;
+        }
+
+    }
 
     r = initnatpmp(&natpmp, forcegw, gateway);
 
@@ -292,19 +333,19 @@ finish:
 
 }
 
-void gnb_es_upnp(gnb_conf_t *conf, gnb_log_ctx_t *log){
+void gnb_es_upnp(gnb_es_ctx *es_ctx, gnb_conf_t *conf, gnb_log_ctx_t *log){
 
     int ret;
     
-    ret = gnb_es_natpnpc(conf, log);
+    ret = gnb_es_natpnpc(es_ctx, conf, log);
 
     if ( 0 == ret ) {    
         GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "gnb_es_natpnpc finish upnp\n");
         return;
     }
 
-    GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "gnb_es_natpnpc ret=%d gnb_es_upnp_em\n");
+    GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "gnb_es_natpnpc ret=%d next gnb_es_upnp_em\n", ret);
 
-    gnb_es_upnp_em(conf, log);
+    gnb_es_upnp_em(es_ctx, conf, log);
 
 }

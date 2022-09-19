@@ -3,13 +3,9 @@
 
 *Note: Most of the content of this article is translated by Google translate from the Chinese version of the "OpenGNB User Manual", the content of this article is subject to the Chinese version.*
 
-[OpenGNB](https://github.com/gnbdev/opengnb "OpenGNB") is an open source P2P decentralized VPN with extreme intranet penetration capability.
-> Allows you to combine your company-home network into a direct-access LAN.
+[OpenGNB](https://github.com/gnbdev/opengnb "OpenGNB") is an open source P2P decentralized VPN with extreme intranet penetration capability,Allows you to combine your company-home network into a direct-access LAN.
 
 All code related to the GNB project is released as open source, and the currently released source code supports the following platforms: FreeBSD Linux OpenWRT Raspberrypi OpenBSD macOS
-
-![GNB vs traditional VPN](images/gnb1.png)
-
 
 
 ## GNB Features
@@ -22,6 +18,137 @@ All code related to the GNB project is released as open source, and the currentl
     - Reliable authentication between GNB nodes based on elliptic curve digital signature
 4. Multi-platform support
     - GNB is developed in C language. It does not need to refer to third-party library files when compiling. It can be easily ported to the current popular operating systems. Currently supported operating systems and platforms include Linux_x86_64, Windows10_x86_64, macOS, FreeBSD_AMD64, OpenBSD_AMD64, Raspberry Pi, OpenWRT; as big as server environment, desktop system, as small as OpenWRT router with only 32M memory can run GNB network very well.
+
+
+### Standard VPN payload forwarding
+```mermaid
+flowchart LR
+
+subgraph LAN A
+nodea[VPN clientA]
+end
+
+subgraph WAN
+nodef[VPN server]
+end
+
+subgraph LAN B
+nodeb[VPN clientB]
+end
+
+nodea <-- payload ---> nodef <-- payload ---> nodeb
+
+```
+
+
+### GNB payload standard forwarding
+NAT Traversal point to point
+
+```mermaid
+flowchart LR
+
+subgraph LAN A
+nodeA[gnb nodeA]
+end
+
+subgraph WAN
+index[gnb public index node]
+end
+
+subgraph LAN B
+nodeB[gnb nodeB]
+end
+
+nodeA -. nodeB address .-  index -. nodeA address.- nodeB
+nodeA <-- payload --> nodeB
+
+```
+
+### GNB payload relay forwarding
+```mermaid
+flowchart LR
+
+subgraph LAN A
+nodeA[gnb nodeA]
+end
+
+subgraph WAN
+
+nodeC[nodeC]
+nodeD[nodeD]
+nodeE[nodeE] 
+nodeF[nodeF]
+nodeJ[nodeJ]
+nodeK[nodeK]
+
+nodeG[nodeG]
+nodeH[nodeH]
+nodeI[nodeI]
+
+end
+
+subgraph LAN B
+nodeB[gnb nodeA]
+end
+
+nodeA[nodeA] ---- nodeC[nodeC] ---- nodeD[nodeD] ---- nodeE[nodeE] ---- nodeF[nodeF] ---- nodeB[nodeB]
+nodeA[nodeA] ---- nodeG[nodeG] ---- nodeH[nodeH] ---- nodeI[nodeI] ---- nodeB[nodeB]
+nodeA[nodeA] ---- nodeJ[nodeJ] ---- nodeK[nodeK] ---- nodeB[nodeB]
+
+```
+
+### GNB payload unified forwarding
+
+```mermaid
+flowchart LR
+
+subgraph LAN A
+nodeA[gnb nodeA]
+end
+
+
+subgraph LAN C
+nodeC[gnb nodeC]
+end
+
+subgraph LAN D
+nodeD[gnb nodeD]
+end
+
+subgraph LAN E
+nodeE[gnb nodee]
+end
+
+
+subgraph LAN B
+nodeB[gnb nodeB]
+end
+
+
+nodeA ---- nodeC & nodeD & nodeE ---- nodeB
+
+```
+
+### GNB payload via tcp forwarding
+
+```mermaid
+flowchart LR
+
+subgraph LAN A
+nodeA[gnb nodeA]
+upd_over_tcp_A[upd_over_tcp]
+end
+
+
+subgraph WAN
+upd_over_tcp_B[upd_over_tcp]
+nodeB[gnb nodeB]
+end
+
+nodeA --UDP payload--- upd_over_tcp_A --TCP payload--- upd_over_tcp_B --UDP payload--- nodeB
+
+```
+
 
 
 

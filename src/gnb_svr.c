@@ -469,13 +469,13 @@ gnb_core_t* gnb_core_create(gnb_conf_t *conf){
     gnb_core->ifname = (char *)gnb_core->ctl_block->core_zone->ifname;
     gnb_core->if_device_string = (char *)gnb_core->ctl_block->core_zone->if_device_string;
 
-    gnb_core->uuid_node_map   = gnb_hash32_create(gnb_core->heap, 1024,1024); //以节点的uuid32作为key的 node 表
-    gnb_core->ipv4_node_map   = gnb_hash32_create(gnb_core->heap, 1024,1024);
+    gnb_core->uuid_node_map   = gnb_hash32_create(gnb_core->heap, 1024, 1024); //以节点的uuid32作为key的 node 表
+    gnb_core->ipv4_node_map   = gnb_hash32_create(gnb_core->heap, 1024, 1024);
 
     //以节点的subnet(uint32)作为key的 node 表
-    gnb_core->subneta_node_map = gnb_hash32_create(gnb_core->heap, 1024,1024);
-    gnb_core->subnetb_node_map = gnb_hash32_create(gnb_core->heap, 1024,1024);
-    gnb_core->subnetc_node_map = gnb_hash32_create(gnb_core->heap, 1024,1024);
+    gnb_core->subneta_node_map = gnb_hash32_create(gnb_core->heap, 1024, 1024);
+    gnb_core->subnetb_node_map = gnb_hash32_create(gnb_core->heap, 1024, 1024);
+    gnb_core->subnetc_node_map = gnb_hash32_create(gnb_core->heap, 1024, 1024);
 
     int64_t now_sec = gnb_timestamp_sec();
     gnb_update_time_seed(gnb_core, now_sec);
@@ -944,8 +944,7 @@ static void exec_es(gnb_core_t *gnb_core) {
 #endif
 
 
-
-void exec_loop_script(gnb_core_t *gnb_core, const char *script_file_name){
+static void exec_loop_script(gnb_core_t *gnb_core, const char *script_file_name){
 
     char script_dir[PATH_MAX];
     char script_file[PATH_MAX+NAME_MAX];

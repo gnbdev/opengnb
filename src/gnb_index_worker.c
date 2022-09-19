@@ -563,13 +563,13 @@ static void handle_echo_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *i
     if ( '6' == echo_addr_frame->data.addr_type ) {
         memcpy(&gnb_core->local_node->udp_sockaddr6.sin6_addr, &echo_addr_frame->data.addr, 16);
         gnb_core->local_node->udp_sockaddr6.sin6_port = echo_addr_frame->data.port;
-        GNB_LOG3(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"get echo address %s from index %s\n", GNB_ADDR6STR1(echo_addr_frame->data.addr), GNB_SOCKETADDRSTR2(sockaddress));
+        GNB_LOG3(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"get echo address %s:%d from index %s:%d\n", GNB_ADDR6STR1(echo_addr_frame->data.addr), ntohs(echo_addr_frame->data.port), GNB_SOCKETADDRSTR2(sockaddress), ntohs(sockaddress->addr.in6.sin6_port));
     } else if ( '4' == echo_addr_frame->data.addr_type ) {
         memcpy(&gnb_core->local_node->udp_sockaddr4.sin_addr, &echo_addr_frame->data.addr, 4);
         gnb_core->local_node->udp_sockaddr4.sin_port = echo_addr_frame->data.port;
-        GNB_LOG3(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"get echo address %s from index %s\n", GNB_ADDR4STR1(echo_addr_frame->data.addr), GNB_SOCKETADDRSTR2(sockaddress));
+        GNB_LOG3(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"get echo address %s:%d from index %s:%d\n", GNB_ADDR4STR1(echo_addr_frame->data.addr), ntohs(echo_addr_frame->data.port), GNB_SOCKETADDRSTR2(sockaddress), ntohs(sockaddress->addr.in.sin_port));
     } else {
-        GNB_LOG3(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"handle echo address type error%.*s from %s\n", 80, echo_addr_frame->data.text, GNB_SOCKETADDRSTR2(sockaddress));
+        GNB_LOG3(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"handle echo address type error%.*s from %s:%d\n", 80, echo_addr_frame->data.text, GNB_SOCKETADDRSTR2(sockaddress), ntohs(sockaddress->addr.in.sin_port));
         return;
     }
 

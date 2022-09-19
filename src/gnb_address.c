@@ -545,11 +545,43 @@ char* gnb_hide_adrress_string(char*adrress_string){
 
 }
 
-
 void gnb_address_list3_fifo(gnb_address_list_t *address_list, gnb_address_t *address){
 
-    /*现在没有实现真正的 fifo*/
-    memcpy( &address_list->array[0], address, sizeof(gnb_address_t) );
-    address_list->num = 1;
+    switch (address_list->num) {
+
+    case 3:       
+
+        memcpy( &address_list->array[2], &address_list->array[1], sizeof(gnb_address_t) );
+        memcpy( &address_list->array[1], &address_list->array[0], sizeof(gnb_address_t) );
+        memcpy( &address_list->array[0], address, sizeof(gnb_address_t) );
+
+        break;
+
+    case 2:
+
+        memcpy( &address_list->array[2], &address_list->array[1], sizeof(gnb_address_t) );
+        memcpy( &address_list->array[1], &address_list->array[0], sizeof(gnb_address_t) );
+        memcpy( &address_list->array[0], address, sizeof(gnb_address_t) );        
+        address_list->num = 3;
+
+        break;
+
+    case 1:
+
+        memcpy( &address_list->array[1], &address_list->array[0], sizeof(gnb_address_t) );
+        memcpy( &address_list->array[0], address, sizeof(gnb_address_t) );
+        address_list->num = 2;
+
+        break;
+
+    case 0:
+    default:
+
+        memcpy( &address_list->array[0], address, sizeof(gnb_address_t) );
+        address_list->num = 1;
+
+        break;
+
+    }
 
 }
