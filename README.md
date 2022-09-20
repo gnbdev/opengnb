@@ -120,7 +120,7 @@ nodeD[gnb nodeD]
 end
 
 subgraph LAN E
-nodeE[gnb nodee]
+nodeE[gnb nodeE]
 end
 
 
