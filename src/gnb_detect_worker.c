@@ -56,7 +56,8 @@ typedef struct _detect_worker_ctx_t{
 
 }detect_worker_ctx_t;
 
-#define GNB_DETECT_PUSH_ADDRESS_INTERVAL_SEC   60*10
+#define GNB_DETECT_PUSH_ADDRESS_INTERVAL_SEC   (60 * 10)
+#define GNB_DETECT_INTERVAL_SEC                (60 * 1)
 
 static void detect_node_address(gnb_worker_t *gnb_detect_worker, gnb_node_t *node){
 
@@ -106,7 +107,7 @@ static void detect_node_address(gnb_worker_t *gnb_detect_worker, gnb_node_t *nod
 
     detect_worker_ctx->is_send_detect = 1;
 
-    //GNB_LOG4(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "#detect_node_address [%d]->[%d]%s\n", gnb_core->local_node->uuid32, node->uuid32, GNB_IP_PORT_STR1(&address_st));
+    GNB_LOG4(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "full detect node address [%d]->[%d]%s\n", gnb_core->local_node->uuid32, node->uuid32, GNB_IP_PORT_STR1(&address_st));
 
 }
 
@@ -198,6 +199,11 @@ static void detect_loop(gnb_worker_t *gnb_detect_worker){
         if ( (detect_worker_ctx->now_time_sec - node->last_push_addr_sec) > GNB_DETECT_PUSH_ADDRESS_INTERVAL_SEC ) {
             continue;
         }
+
+        if ( (detect_worker_ctx->now_time_sec - node->last_push_addr_sec) < GNB_DETECT_INTERVAL_SEC ) {
+            continue;
+        }
+
 
         detect_node_set_address(gnb_detect_worker, node);
 
