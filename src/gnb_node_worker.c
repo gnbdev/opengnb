@@ -46,7 +46,7 @@
 #define GNB_NODE_SYNC_INTERVAL_TIME_SEC   10
 
 //对一个node的ping时间间隔
-#define GNB_NODE_PING_INTERVAL_SEC        20
+#define GNB_NODE_PING_INTERVAL_SEC        26
 
 
 #define GNB_UF_NODES_NOTIFY_INTERVAL_SEC  35

@@ -168,7 +168,7 @@ static void send_request_addr_frame(gnb_worker_t *gnb_index_worker, gnb_node_t *
 
     node->last_request_addr_sec = index_worker_ctx->now_time_sec;
 
-    //GNB_DEBUG3(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "SEND REQUEST ADDR lkey[%s] rkey[%s]\n", GNB_HEX1_BYTE128(gnb_core->local_node->key512), GNB_HEX2_BYTE128(node->key512));
+    //GNB_DEBUG4(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "SEND REQUEST ADDR lkey[%s] rkey[%s]\n", GNB_HEX1_BYTE128(gnb_core->local_node->key512), GNB_HEX2_BYTE128(node->key512));
 
 }
 
@@ -329,6 +329,7 @@ static void detect_node_addr(gnb_worker_t *gnb_index_worker, gnb_node_t *node){
 
 }
 
+
 static void handle_push_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *index_worker_in_data){
 
     gnb_address_list_t *push_address_list;
@@ -467,6 +468,7 @@ static void handle_push_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *i
 
 
 }
+
 
 static void sync_index_node(gnb_worker_t *gnb_index_worker){
 
@@ -618,7 +620,6 @@ static void handle_detect_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t 
         return;
     }
 
-
     gnb_address_t *address = alloca(sizeof(gnb_address_t));
 
     memset(address,0,sizeof(gnb_address_t));
@@ -643,7 +644,7 @@ static void handle_detect_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t 
 
         gnb_set_address6(address, &sockaddress->addr.in6);
 
-        GNB_LOG2(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "== RECEIVE_DETECT_ADDR6 node[%u]->[%u] idx[%u]%s[%c] ==\n", src_uuid32, dst_uuid32, src_node->socket6_idx, GNB_IP_PORT_STR1(address),detect_addr_frame->data.arg0);
+        GNB_LOG2(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "<== RECEIVE_DETECT_ADDR6 node[%u]->[%u] idx[%u]%s[%c] ==>\n", src_uuid32, dst_uuid32, src_node->socket6_idx, GNB_IP_PORT_STR1(address),detect_addr_frame->data.arg0);
     }
 
     if (AF_INET == sockaddress->addr_type) {
@@ -663,7 +664,7 @@ static void handle_detect_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t 
 
         gnb_set_address4(address, &sockaddress->addr.in);
 
-        GNB_LOG2(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "== RECEIVE_DETECT_ADDR4 node[%u]->[%u] idx[%u]%s[%c] ==\n", src_uuid32, dst_uuid32, src_node->socket4_idx, GNB_IP_PORT_STR1(address),detect_addr_frame->data.arg0);
+        GNB_LOG2(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "<== RECEIVE_DETECT_ADDR4 node[%u]->[%u] idx[%u]%s[%c] ==>\n", src_uuid32, dst_uuid32, src_node->socket4_idx, GNB_IP_PORT_STR1(address),detect_addr_frame->data.arg0);
     }
 
     address->ts_sec = index_worker_ctx->now_time_sec;
@@ -675,7 +676,6 @@ static void handle_detect_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t 
     }
 
 }
-
 
 
 static void handle_index_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *index_worker_in_data){
@@ -709,6 +709,7 @@ static void handle_index_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *index
     return;
 
 }
+
 
 static void handle_recv_queue(gnb_core_t *gnb_core){
 
@@ -804,12 +805,14 @@ static void init(gnb_worker_t *gnb_worker, void *ctx){
 
 }
 
+
 static void release(gnb_worker_t *gnb_worker){
 
     index_worker_ctx_t *index_worker_ctx =  (index_worker_ctx_t *)gnb_worker->ctx;
     gnb_ring_buffer_release(gnb_worker->ring_buffer);
 
 }
+
 
 static int start(gnb_worker_t *gnb_worker){
 
@@ -821,6 +824,7 @@ static int start(gnb_worker_t *gnb_worker){
 
     return 0;
 }
+
 
 static int stop(gnb_worker_t *gnb_worker){
 
@@ -834,6 +838,7 @@ static int stop(gnb_worker_t *gnb_worker){
 
     return 0;
 }
+
 
 static int notify(gnb_worker_t *gnb_worker){
 

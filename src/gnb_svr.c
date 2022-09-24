@@ -228,7 +228,7 @@ static void setup_log_ctx(gnb_conf_t *conf, gnb_log_ctx_t *log){
     log->config_table[GNB_LOG_ID_INDEX_SERVICE_WORKER].file_level     = GNB_LOG_LEVEL1;
     log->config_table[GNB_LOG_ID_INDEX_SERVICE_WORKER].udp_level      = GNB_LOG_LEVEL1;
 
-    snprintf(log->config_table[GNB_LOG_ID_DETECT_WORKER].log_name, 20, "DETECT");
+    snprintf(log->config_table[GNB_LOG_ID_DETECT_WORKER].log_name, 20, "FULL_DETECT");
     log->config_table[GNB_LOG_ID_DETECT_WORKER].console_level = GNB_LOG_LEVEL1;
     log->config_table[GNB_LOG_ID_DETECT_WORKER].file_level    = GNB_LOG_LEVEL1;
     log->config_table[GNB_LOG_ID_DETECT_WORKER].udp_level     = GNB_LOG_LEVEL1;
@@ -340,17 +340,17 @@ static void setup_log_ctx(gnb_conf_t *conf, gnb_log_ctx_t *log){
 
     if ( GNB_LOG_LEVEL_UNSET != conf->index_log_level ) {
 
-        if ( 0 == conf->lite_mode ){
+        if ( 0 == conf->lite_mode ) {
 
             if ( conf->console_log_level >= conf->index_log_level ) {
                 log->config_table[GNB_LOG_ID_INDEX_WORKER].console_level = conf->index_log_level;
             }
 
-            if ( conf->file_log_level > conf->index_log_level ) {
+            if ( conf->file_log_level >= conf->index_log_level ) {
                 log->config_table[GNB_LOG_ID_INDEX_WORKER].file_level = conf->index_log_level;
             }
 
-            if ( conf->udp_log_level > conf->index_log_level ) {
+            if ( conf->udp_log_level >= conf->index_log_level ) {
                 log->config_table[GNB_LOG_ID_INDEX_WORKER].udp_level = conf->index_log_level;
             }
 
@@ -372,11 +372,11 @@ static void setup_log_ctx(gnb_conf_t *conf, gnb_log_ctx_t *log){
                 log->config_table[GNB_LOG_ID_INDEX_SERVICE_WORKER].console_level = conf->index_service_log_level;
             }
 
-            if ( conf->file_log_level > conf->index_service_log_level ) {
+            if ( conf->file_log_level >= conf->index_service_log_level ) {
                 log->config_table[GNB_LOG_ID_INDEX_SERVICE_WORKER].file_level = conf->index_service_log_level;
             }
 
-            if ( conf->udp_log_level > conf->index_service_log_level ) {
+            if ( conf->udp_log_level >= conf->index_service_log_level ) {
                 log->config_table[GNB_LOG_ID_INDEX_SERVICE_WORKER].udp_level = conf->index_service_log_level;
             }
 
@@ -394,7 +394,7 @@ static void setup_log_ctx(gnb_conf_t *conf, gnb_log_ctx_t *log){
 
         if ( 0 == conf->lite_mode ) {
 
-            if ( conf->console_log_level > conf->detect_log_level ) {
+            if ( conf->console_log_level >= conf->detect_log_level ) {
                 log->config_table[GNB_LOG_ID_DETECT_WORKER].console_level = conf->detect_log_level;
             }
 
