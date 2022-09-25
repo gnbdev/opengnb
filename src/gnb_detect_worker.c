@@ -57,8 +57,8 @@ typedef struct _detect_worker_ctx_t{
 }detect_worker_ctx_t;
 
 
-#define GNB_DETECT_PUSH_ADDRESS_INTERVAL_SEC   (60 * 10)
-#define GNB_DETECT_INTERVAL_SEC                45
+#define GNB_DETECT_PUSH_ADDRESS_INTERVAL_SEC   (60 * 9)
+#define GNB_DETECT_INTERVAL_SEC                3
 
 
 static void detect_node_address(gnb_worker_t *gnb_detect_worker, gnb_node_t *node){
@@ -201,11 +201,11 @@ static void detect_loop(gnb_worker_t *gnb_detect_worker){
 
         time_difference = detect_worker_ctx->now_time_sec - node->last_push_addr_sec;
 
-        if ( time_difference > GNB_DETECT_PUSH_ADDRESS_INTERVAL_SEC ) {           
+        if ( time_difference > GNB_DETECT_PUSH_ADDRESS_INTERVAL_SEC ) {
             continue;
         }
 
-        if ( time_difference < GNB_DETECT_INTERVAL_SEC ) {        
+        if ( time_difference < GNB_DETECT_INTERVAL_SEC ) {
             continue;
         }
 

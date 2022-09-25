@@ -27,8 +27,8 @@
 //向 index  提交节点地址的频率限制 默认为 20秒
 #define GNB_POST_ADDR_LIMIT_SEC        20
 
-//向 index node 请求节点地址时间间隔，默认为 25 秒
-#define GNB_REQUEST_ADDR_INTERVAL_SEC   25
+//向 index node 请求节点地址时间间隔，默认为 27 秒
+#define GNB_REQUEST_ADDR_INTERVAL_SEC   27
 
 //节点向index 节点请求地址的频率限制 默认为 20毫秒
 #define GNB_REQUEST_ADDR_LIMIT_USEC     1000*20

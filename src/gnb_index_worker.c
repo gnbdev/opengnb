@@ -644,7 +644,7 @@ static void handle_detect_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t 
 
         gnb_set_address6(address, &sockaddress->addr.in6);
 
-        GNB_LOG2(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "<== RECEIVE_DETECT_ADDR6 node[%u]->[%u] idx[%u]%s[%c] ==>\n", src_uuid32, dst_uuid32, src_node->socket6_idx, GNB_IP_PORT_STR1(address),detect_addr_frame->data.arg0);
+        GNB_LOG2(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "==###== RECEIVE_DETECT_ADDR6 node[%u]->[%u] idx[%u]%s[%c] ==###==\n", src_uuid32, dst_uuid32, src_node->socket6_idx, GNB_IP_PORT_STR1(address), detect_addr_frame->data.arg0);
     }
 
     if (AF_INET == sockaddress->addr_type) {
@@ -664,7 +664,7 @@ static void handle_detect_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t 
 
         gnb_set_address4(address, &sockaddress->addr.in);
 
-        GNB_LOG2(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "<== RECEIVE_DETECT_ADDR4 node[%u]->[%u] idx[%u]%s[%c] ==>\n", src_uuid32, dst_uuid32, src_node->socket4_idx, GNB_IP_PORT_STR1(address),detect_addr_frame->data.arg0);
+        GNB_LOG2(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "==###== RECEIVE_DETECT_ADDR4 node[%u]->[%u] idx[%u]%s[%c] ==###==\n", src_uuid32, dst_uuid32, src_node->socket4_idx, GNB_IP_PORT_STR1(address), detect_addr_frame->data.arg0);
     }
 
     address->ts_sec = index_worker_ctx->now_time_sec;
