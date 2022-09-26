@@ -57,7 +57,7 @@ typedef struct _detect_worker_ctx_t{
 }detect_worker_ctx_t;
 
 
-#define GNB_DETECT_PUSH_ADDRESS_INTERVAL_SEC   (60 * 9)
+#define GNB_DETECT_PUSH_ADDRESS_INTERVAL_SEC   145
 #define GNB_DETECT_INTERVAL_SEC                3
 
 
