@@ -184,6 +184,12 @@ On the basis of asymmetric encryption, nodes under the same GNB network can also
 For information about GNB communication keys, please refer to the description of `--crypto` `--crypto-key-update-interval` `--passcode`.
 
 
+## GNB payload forwarding
+   - **Direct Forwarding** P2P communication between nodes; under normal circumstances, nodes located on the WAN must be able to establish P2P communication with other nodes, and nodes located in the LAN to establish P2P communication with nodes in other LANs must go through NAT penetration;
+   - **Unified Forwarding** automatically forwards IP packets through nodes that have established P2P communication, and multiple nodes retransmit IP packets;
+   - **Relay Forwarding** highly custom relay routing, IP packets will be encrypted before being sent to the next relay point, the relevant settings are in `route.conf`;
+   - **Standard Forwarding** Nodes that cannot establish P2P communication after exhausting all strategies can relay IP packets through forward nodes located on the public network
+
 
 ### node.conf configuration file
 
@@ -225,39 +231,11 @@ ifname nodeid listen listen6 listen4 ctl-block multi-socket disabled-direct-forw
 ```
 
 
-
-### route.conf configuration file
+### route.conf  file
 
 The data packet communicated between GNB nodes is called **gnb payload**, a routing table shared by all nodes in the network, the configuration file is `route.conf`, its role is to tell the GNB core how to "route" these Contains the **gnb payload** of the IP packet.
 
 Each routing configuration item occupies one line. There are two types of routing configuration items, **forward** and **relay**, which are used to set the way that the payload of the local node reaches the peer node.
-
-
-
-#### The difference between forward and relay:
-
-**forward** By default, GNB determines to send to the specified GNB node according to the configuration items in `route.conf` and the destination address of the IP packet.
-
-For example there is a line in `route.conf`
-```
-1001|10.1.0.1|255.255.255.0
-```
-
-When GNB processes an IP packet whose destination address is 10.1.0.1, it determines that this IP packet needs to be encrypted and encapsulated with the communication key of the node whose **nodeid** is 1001, and sent to the node 1001 as **gnb payload** , this process we call **direct forwarding**.
-
-When the two nodes do not establish P2P communication, if there is a node with the f attribute defined in `address.conf`, the current node will forward the **gnb payload** through this node called **forward node** to the destination node.
-
-**relay** relays the **gnb payload** through a clear custom relay path, and the **gnb payload** will be encrypted again by the relay node during the relay process.
-
-The route between nodes can be **forward** or **relay**, or a combination of **forward** and **relay**.
-
-Due to end-to-end encryption, the **forward node** and **relay node** nodes cannot obtain the plaintext of the IP packets in the **gnb payload** at both ends of the communication.
-
-
-
-#### route type forward
-
-The communication between nodes is point-to-point by default. If there is a forward node in the configuration, the communication between nodes will be forwarded through the forward node in the case of unsuccessful point-to-point or forced forward;
 
 The following is an example of `route.conf` type forward:
 ```
@@ -274,11 +252,39 @@ $nodeid|$tun_ipv4|$tun_netmask
 The meaning of each configuration item is as follows:
 `$nodeid` UUID of the node
 `$tun_ipv4` IPV4 address of the virtual network card
-`$tun_netmask` The subnet mask of the IPV4 address of the virtual network card
+`$tun_netmask` The subnet mask of the IPV4 address of the virtual network interface
 
 
+#### Direct forwarding 
 
-#### route type relay
+The default communication between nodes is point-to-point, which is called **Direct forwarding**, that is, IP packets are sent directly to the IP address and port of the peer node.
+
+For example, in `route.conf` there is a line
+```
+1001|10.1.0.1|255.255.255.0
+```
+
+When GNB processes an IP packet whose destination address is 10.1.0.1, it determines that this IP packet needs to be encrypted and encapsulated with the communication key of the node whose **nodeid** is 1001, and sent to the node 1001 as **gnb payload** , this process we call **Direct forwarding**.
+
+
+#### Standard Forwarding
+
+If there is no P2P communication between nodes, the **gnb payload** can be forwarded through the **forward** node with the **f** attribute defined in `address.conf`. This communication method is called * *Standard Forwarding**
+
+example:
+`address.conf`
+```
+if|1001|x.x.x.x|9001
+```
+
+The 1001 node in the above example is an **idnex** node and also a **forward** node.
+
+
+#### Relay Forwarding
+
+**Relay Forwarding** relays the **gnb payload** through a clear custom relay path, and the **gnb payload** will be encrypted again by the relay node during the relaying process.
+
+Due to end-to-end encryption, the **forward node** and **relay node** nodes cannot obtain the plaintext of the IP packets in the **gnb payload** at both ends of the communication.
 
 To set a relay node for the destination node, you can set up to 8 relay routes for a peer node, and each relay route can have up to 5 relay nodes.
 
@@ -324,7 +330,7 @@ The path for the payload of the local node to reach the peer node through the re
 
 
 
-### address.conf configuration file
+### address.conf file
 
 `address.conf` is used to configure the properties of the node and the public IP address and port. The following is an example of `address.conf`:
 
@@ -377,6 +383,27 @@ In `address.conf` there can be multiple index nodes and forward nodes, and can b
 
 Assuming that a GNB node may have multiple NATed IP addresses at the same time after very complex address translation in the LAN, that is, the operator may choose different gateway exits according to the destination address of the host in the LAN accessing the WAN. If `address.conf` has multiple Index nodes, then in NAT traversal, the peer GNB node may know more addresses and ports of the node, thereby increasing the success rate of NAT traversal to establish P2P communication.
 
+
+## GNB Unified Forwarding
+
+Under the complex NAT mechanism, the nodes located in the LAN cannot ensure 100% successful NAT traversal, but there will always be some nodes that can successfully achieve NAT traversal and establish P2P communication. The **GNB Unified Forwarding** mechanism can make The nodes that have established P2P communication forward IP packets to the nodes that have not established P2P communication.
+
+Each node in the GNB network periodically announces the id of the node that has established P2P communication with itself in the network, which enables each node in the network to know which transit nodes are available when sending data to another node.
+
+Take a GNB network with three nodes A, B, and C as an example: A and C, B and C all establish P2P communication, but A and B cannot establish P2P communication due to the complex NAT mechanism, through **GNB Unified Forwarding** mechanism, A and B can forward IP packets through C.
+
+According to the mechanism of **GNB Unified Forwarding**, as long as the number of nodes in the virtual network is more, it is easier to achieve NAT traversal between nodes and establish a virtual link.
+
+The IP packets sent to the target node can be forwarded by multiple transit nodes at the same time. The IP packets that reach the target node first will be written to the virtual network card. GNB maintains a 64-bit timestamp and timestamp queue for each target node to ensure repeated transmission. IP packets are discarded, so the **GNB Unified Forwarding** feature can be used to speed up TCP retransmissions in some cases.
+
+
+### GNB Unified Forwarding Operating mode
+`auto` When the two nodes A and B cannot establish P2P communication, automatically transfer IP packets through the nodes (which can be in LAN) that have established P2P communication with A and B respectively.
+`super` Regardless of whether the two nodes A and B have established P2P communication, in the process of sending ip packets, multiple nodes that have established P2P communication with A and B, respectively, retransmit and transfer TCP type ip packets.
+`hyper` Regardless of whether the two nodes A and B have established P2P communication, in the process of sending ip packets, all types of ip packets are retransmitted and relayed through multiple nodes that have established P2P communication with A and B respectively.
+
+
+To learn more about **Unified Forwarding**, see the `-U, --unified-forwarding` option of `gnb`
 
 
 ### About Discover In Lan
@@ -556,20 +583,23 @@ Since monitoring a UDP port and enabling UPNP can effectively improve the probab
 
 In some network environments, fully understanding the functions of `--es-argv "--upnp"` of `gnb`, `--multi-socket` and `--upnp` of `gnb_es` can be very effective in improving GNB The success rate of the node's NAT penetration.
 
+In some network environments, fully understand `--es-argv "--upnp"` of `gnb`, `--multi-socket`, `--unified-forwarding` and `--upnp` of `gnb_es` The option can effectively improve the success rate of NAT traversal of GNB nodes.
+
 Using the `--dump-address` option of `gnb_es` can make the address information of the nodes that have established P2P communication regularly saved in the specified node cache file, when modifying the configuration file or upgrading the program or restarting the host, you need to restart `gnb `, you can use the `--node-cache-file` option to specify the node cache file to quickly re-establish communication. It should be noted that some nodes may not be successful. For details, you can learn about `--node- of `gnb` The `--dump-address` option of the cache-file` option `gnb_es`.
 
 In addition to finding other nodes through the index node, GNB nodes can also configure the domain name or dynamic domain name of the peer node in `address.conf`. It should be noted that only relying on this method to try NAT penetration is not as effective as using the index node. Good for helping to establish P2P communication.
 
 So far, GNB has done a lot of work for NAT penetration of nodes, and the success rate of NAT penetration has reached an unprecedented height, but this is still not enough.
 
+The **GNB Unified Forwarding** mechanism enables nodes that have established P2P communication to forward IP packets to nodes that have not established P2P communication, and as long as the number of nodes in the virtual network is greater, the easier it is to achieve NAT penetration between nodes. A virtual link is established.
 
-The `--broadcast-address` of `gnb_es` allows the GNB node to spread the address information of the node that has established P2P communication with this node to other nodes, so that these nodes can obtain more address information of other nodes in the GNB network To increase the success rate of NAT penetration.
 
 Through **Discover In Lan**, multiple GNB nodes under the same LAN can realize P2P communication without going through WAN. At the same time, this allows nodes that fail NAT penetration to pass through **relay** The method allows the nodes that have successfully NAT traversed to transfer IP packets to indirectly realize P2P communication.
 
+The `--broadcast-address` of `gnb_es` allows the GNB node to spread the address information of the node that has established P2P communication with this node to other nodes, so that these nodes can obtain more address information of other nodes in the GNB network To increase the success rate of NAT penetration.
+
+
 It has to be emphasized that even if a lot of efforts are made, it is impossible to establish a 100% success rate for P2P communication through NAT penetration. The flexible use of the mechanism provided by GNB can greatly improve the probability of success.
-
-
 
 
 

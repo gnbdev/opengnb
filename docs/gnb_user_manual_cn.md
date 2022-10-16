@@ -886,7 +886,7 @@ the log udp type 'binary' or 'text' default is 'binary'
 
 
 #### --console-log-level
-log console level 0-3
+console log level 0-4
 
 
 #### --file-log-level
@@ -922,7 +922,7 @@ index service log level  0-3
 
 
 #### --node-detect-log-level
-node detect log level    0-3
+node detect log level    0-4
 
 #### --help
 
