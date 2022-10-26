@@ -207,7 +207,7 @@ static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 
     }
 
-    if ( (0 == gnb_core->fwd_node_ring.num ) && ( (pf_ctx->dst_node->udp_addr_status & GNB_NODE_STATUS_IPV6_PING) || (pf_ctx->dst_node->udp_addr_status & GNB_NODE_STATUS_IPV4_PING) ) ) {
+    if ( (0 == gnb_core->fwd_node_ring.num ) && GNB_UNIFIED_FORWARDING_OFF==gnb_core->conf->unified_forwarding && ( (pf_ctx->dst_node->udp_addr_status & GNB_NODE_STATUS_IPV6_PING) || (pf_ctx->dst_node->udp_addr_status & GNB_NODE_STATUS_IPV4_PING) ) ) {
         pf_ctx->fwd_node = pf_ctx->dst_node;
         pf_ctx->direct_forwarding = 1;
         ret = GNB_PF_NEXT;

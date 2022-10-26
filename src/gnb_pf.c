@@ -363,7 +363,7 @@ void gnb_pf_tun(gnb_core_t *gnb_core, gnb_payload16_t *payload){
 
         ret = gnb_unified_forwarding_tun(gnb_core, &pf_ctx_st);
 
-        if ( 0 == ret ) {
+        if ( ret > 0 ) {
             pf_ctx_st.unified_forwarding = 1;
         } else {
             pf_ctx_st.unified_forwarding = 0;
@@ -379,7 +379,7 @@ void gnb_pf_tun(gnb_core_t *gnb_core, gnb_payload16_t *payload){
 
         ret = gnb_unified_forwarding_tun(gnb_core, &pf_ctx_st);
 
-        if ( 0 == ret ) {
+        if ( ret > 0 ) {
             pf_ctx_st.unified_forwarding = 1;
         } else {
             pf_ctx_st.unified_forwarding = 0;

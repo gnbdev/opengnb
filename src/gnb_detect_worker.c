@@ -58,8 +58,8 @@ typedef struct _detect_worker_ctx_t{
 
 
 #define GNB_DETECT_PUSH_ADDRESS_INTERVAL_SEC   145
-#define GNB_DETECT_INTERVAL_SEC                3
 
+#define GNB_FULL_DETECT_INTERVAL_SEC           145
 
 static void detect_node_address(gnb_worker_t *gnb_detect_worker, gnb_node_t *node){
 
@@ -104,7 +104,7 @@ static void detect_node_address(gnb_worker_t *gnb_detect_worker, gnb_node_t *nod
 
     detect_worker_ctx->is_send_detect = 1;
 
-    GNB_LOG4(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "Try node address [%d]->[%d]%s\n", gnb_core->local_node->uuid32, node->uuid32, GNB_IP_PORT_STR1(&address_st));
+    GNB_LOG4(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "Try node address [%d]->[%d]%s status=%d\n", gnb_core->local_node->uuid32, node->uuid32, GNB_IP_PORT_STR1(&address_st), node->udp_addr_status);
 
 }
 
@@ -165,6 +165,7 @@ static void detect_loop(gnb_worker_t *gnb_detect_worker){
     gnb_node_t *node;
 
     uint64_t time_difference;
+    uint64_t full_detect_time_difference;
 
     size_t num = gnb_core->ctl_block->node_zone->node_num;
 
@@ -182,30 +183,30 @@ static void detect_loop(gnb_worker_t *gnb_detect_worker){
             continue;
         }
 
-        if ( node->type & GNB_NODE_TYPE_SLIENCE ) {
-            continue;
-        }
-
         //如果本地节点带有 GNB_NODE_TYPE_SLIENCE 属性 将只探测带有 GNB_NODE_TYPE_FWD 属性的节点的地址
         if ( (gnb_core->local_node->type & GNB_NODE_TYPE_SLIENCE) && !(node->type & GNB_NODE_TYPE_FWD) ) {
+            GNB_LOG5(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "Skip Detect [%d]->[%d] node type is SLIENCE and not FWD\n", gnb_core->local_node->uuid32, node->uuid32);
             continue;
         }
 
-        if ( (GNB_NODE_STATUS_IPV6_PONG|GNB_NODE_STATUS_IPV4_PONG) & node->udp_addr_status ) {
-            continue;
-        }
-
-        if ( 0 == node->last_push_addr_sec ) {
+        if ( ( GNB_NODE_STATUS_IPV6_PONG | GNB_NODE_STATUS_IPV4_PONG) & node->udp_addr_status ) {
+            GNB_LOG5(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "Skip Detect [%d]->[%d] already P2P status=%d\n", gnb_core->local_node->uuid32, node->uuid32, node->udp_addr_status);
             continue;
         }
 
         time_difference = detect_worker_ctx->now_time_sec - node->last_push_addr_sec;
 
         if ( time_difference > GNB_DETECT_PUSH_ADDRESS_INTERVAL_SEC ) {
+            GNB_LOG5(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "Skip Detect [%d]->[%d] status=%d time_difference(%"PRIu64") > GNB_DETECT_PUSH_ADDRESS_INTERVAL_SEC(%"PRIu64") last_push_addr_sec=%"PRIu64"\n", 
+                     gnb_core->local_node->uuid32, node->uuid32, node->udp_addr_status, time_difference, GNB_DETECT_PUSH_ADDRESS_INTERVAL_SEC, node->last_push_addr_sec);
             continue;
         }
 
-        if ( time_difference < GNB_DETECT_INTERVAL_SEC ) {
+        full_detect_time_difference = detect_worker_ctx->now_time_sec - node->last_full_detect_sec;
+
+        if ( full_detect_time_difference < GNB_FULL_DETECT_INTERVAL_SEC ) {
+            GNB_LOG4(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "Skip Detect [%d]->[%d] status=%d full_detect_time_difference(%"PRIu64") < GNB_FULL_DETECT_INTERVAL_SEC(%"PRIu64") last_full_detect_sec=%"PRIu64"\n", 
+                     gnb_core->local_node->uuid32, node->uuid32, node->udp_addr_status, full_detect_time_difference, GNB_FULL_DETECT_INTERVAL_SEC, node->last_full_detect_sec);
             continue;
         }
 
@@ -218,6 +219,7 @@ static void detect_loop(gnb_worker_t *gnb_detect_worker){
         detect_node_address(gnb_detect_worker, node);
 
         if ( gnb_core->conf->port_detect_end == node->detect_port4 ) {
+            node->last_full_detect_sec = detect_worker_ctx->now_time_sec;
             GNB_LOG3(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "#END FULL DECETE node[%d] idx[%d]\n", node->uuid32, node->detect_address4_idx);
         }
 
@@ -255,7 +257,7 @@ static void* thread_worker_func( void *data ) {
         detect_worker_ctx->is_send_detect = 0;
         detect_loop(gnb_detect_worker);
 
-        if (detect_worker_ctx->is_send_detect) {
+        if ( detect_worker_ctx->is_send_detect ) {
             GNB_SLEEP_MILLISECOND(10);
         } else {
             GNB_SLEEP_MILLISECOND(100);
@@ -300,6 +302,7 @@ static int start(gnb_worker_t *gnb_worker){
     pthread_detach(detect_worker_ctx->thread_worker);
 
     return 0;
+
 }
 
 
@@ -311,6 +314,7 @@ static int stop(gnb_worker_t *gnb_worker){
     gnb_detect_worker->thread_worker_flag = 0;
 
     return 0;
+
 }
 
 

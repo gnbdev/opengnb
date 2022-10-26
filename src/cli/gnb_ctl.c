@@ -41,7 +41,7 @@ void gnb_ctl_dump_node_wan_address(gnb_ctl_block_t *ctl_block);
 
 static void show_useage(int argc,char *argv[]){
 
-    printf("GNB Ctl version 1.3.0.0  protocol version 1.2.0\n");
+    printf("GNB Ctl version 1.3.0.b protocol version 1.2.0\n");
     printf("Build[%s %s]\n", __DATE__, __TIME__);
 
     printf("Copyright (C) 2019 gnbdev\n");
@@ -161,15 +161,15 @@ int main (int argc,char *argv[]){
 #endif
 
 
-    if (core_opt){
+    if (core_opt) {
         gnb_ctl_dump_status(ctl_block,reachabl_opt);
     }
 
-    if (address_opt){
+    if (address_opt) {
         gnb_ctl_dump_address_list(ctl_block,reachabl_opt);
     }
 
-    if (wan_address_opt){
+    if (wan_address_opt) {
         gnb_ctl_dump_node_wan_address(ctl_block);
     }
 

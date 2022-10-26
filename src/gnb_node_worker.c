@@ -46,13 +46,14 @@
 #define GNB_NODE_SYNC_INTERVAL_TIME_SEC   10
 
 //对一个node的ping时间间隔
-#define GNB_NODE_PING_INTERVAL_SEC        27
+#define GNB_NODE_PING_INTERVAL_SEC        37
+
+//对于一个节点必须收到的 ping 或 pong 的时间间隔
+#define GNB_NODE_UPDATE_INTERVAL_SEC      (GNB_NODE_PING_INTERVAL_SEC * 2 + 1)
 
 
 #define GNB_UF_NODES_NOTIFY_INTERVAL_SEC  35
 
-//对于一个节点必须收到的 ping或 pong 的时间间隔
-#define GNB_NODE_UPDATE_INTERVAL_SEC      55
 
 typedef struct _node_worker_ctx_t {
 

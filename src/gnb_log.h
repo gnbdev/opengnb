@@ -38,6 +38,7 @@ gnb_log_ctx_t* gnb_log_ctx_create();
 #define GNB_LOG_LEVEL2          2
 #define GNB_LOG_LEVEL3          3
 #define GNB_LOG_LEVEL4          4
+#define GNB_LOG_LEVEL5          5
 
 /*
 level 控制 console file udp 的输出
@@ -110,6 +111,17 @@ int gnb_log_udp_set_addr4_string(gnb_log_ctx_t *log, char *sockaddress4_string);
         }while(0);
 
 
+#define GNB_LOG5(log,log_id,format,...)                                                          \
+        do{                                                                                      \
+			if ( NULL != log && GNB_LOG_OUTPUT_NONE != log->output_type &&                       \
+				 (log->config_table[log_id].console_level >= GNB_LOG_LEVEL5 ||                   \
+                  log->config_table[log_id].file_level    >= GNB_LOG_LEVEL5 ||                   \
+				  log->config_table[log_id].udp_level     >= GNB_LOG_LEVEL5)                     \
+                ){                                                                               \
+				gnb_logf(log, GNB_LOG_TYPE_STD, log_id, GNB_LOG_LEVEL5, format, ##__VA_ARGS__);  \
+			}                                                                                    \
+        }while(0);
+
 
 #define GNB_DEBUG1(log,log_id,format,...)                                                         \
         do{                                                                                       \
@@ -159,6 +171,17 @@ int gnb_log_udp_set_addr4_string(gnb_log_ctx_t *log, char *sockaddress4_string);
         }while(0);
 
 
+#define GNB_DEBUG5(log,log_id,format,...)                                                         \
+        do{                                                                                       \
+			if ( NULL != log && GNB_LOG_OUTPUT_NONE != log->output_type &&                        \
+				 (log->config_table[log_id].console_level >= GNB_LOG_LEVEL5 ||                    \
+                  log->config_table[log_id].file_level    >= GNB_LOG_LEVEL5 ||                    \
+				  log->config_table[log_id].udp_level     >= GNB_LOG_LEVEL5)                      \
+                ){                                                                                \
+				gnb_logf(log, GNB_LOG_TYPE_DEBUG, log_id, GNB_LOG_LEVEL5, format, ##__VA_ARGS__); \
+			}                                                                                     \
+        }while(0);
+
 
 #define GNB_ERROR1(log,log_id,format,...)                                                         \
         do{                                                                                       \
@@ -183,6 +206,7 @@ int gnb_log_udp_set_addr4_string(gnb_log_ctx_t *log, char *sockaddress4_string);
 			}                                                                                     \
         }while(0);
 
+
 #define GNB_ERROR3(log,log_id,format,...)                                                         \
         do{                                                                                       \
 			if ( NULL != log && GNB_LOG_OUTPUT_NONE != log->output_type &&                        \
@@ -194,6 +218,7 @@ int gnb_log_udp_set_addr4_string(gnb_log_ctx_t *log, char *sockaddress4_string);
 			}                                                                                     \
         }while(0);
 
+
 #define GNB_ERROR4(log,log_id,format,...)                                                         \
         do{                                                                                       \
 			if ( NULL != log && GNB_LOG_OUTPUT_NONE != log->output_type &&                        \
@@ -202,6 +227,18 @@ int gnb_log_udp_set_addr4_string(gnb_log_ctx_t *log, char *sockaddress4_string);
 				  log->config_table[log_id].udp_level     >= GNB_LOG_LEVEL4)                      \
                 ){                                                                                \
 				gnb_logf(log, GNB_LOG_TYPE_ERROR, log_id, GNB_LOG_LEVEL4, format, ##__VA_ARGS__); \
+			}                                                                                     \
+        }while(0);
+
+
+#define GNB_ERROR5(log,log_id,format,...)                                                         \
+        do{                                                                                       \
+			if ( NULL != log && GNB_LOG_OUTPUT_NONE != log->output_type &&                        \
+				 (log->config_table[log_id].console_level >= GNB_LOG_LEVEL5 ||                    \
+                  log->config_table[log_id].file_level    >= GNB_LOG_LEVEL5 ||                    \
+				  log->config_table[log_id].udp_level     >= GNB_LOG_LEVEL5)                      \
+                ){                                                                                \
+				gnb_logf(log, GNB_LOG_TYPE_ERROR, log_id, GNB_LOG_LEVEL5, format, ##__VA_ARGS__); \
 			}                                                                                     \
         }while(0);
 

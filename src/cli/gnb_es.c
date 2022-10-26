@@ -67,7 +67,7 @@ void gnb_start_environment_service(gnb_es_ctx *es_ctx);
 
 static void show_useage(int argc,char *argv[]){
 
-    printf("GNB Environment Service version 1.1.0 protocol version 1.1.3\n");
+    printf("GNB Environment Service version 1.3.0.b protocol version 1.1.3\n");
 
     printf("Build[%s %s]\n", __DATE__, __TIME__);
 
