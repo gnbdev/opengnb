@@ -818,6 +818,18 @@ void local_node_file_config(gnb_core_t *gnb_core){
         }
 
 
+        if ( !strncmp(line_buffer, "full-detect-interval-usec", sizeof("full-detect-interval-usec")-1) ) {
+
+            num = sscanf(line_buffer, "%32[^ ] %u", field, &gnb_core->conf->full_detect_interval_usec);
+
+            if ( 2 != num ) {
+                printf("config %s error in [%s]\n", "full-detect-interval-usec", node_conf_file);
+                exit(1);
+            }
+
+        }
+
+
         if ( !strncmp(line_buffer, "log-file-path", sizeof("log-file-path")-1) && 0 == gnb_core->conf->systemd_daemon ) {
 
             num = sscanf(line_buffer, "%32[^ ] %s", field, gnb_core->conf->log_path);

@@ -166,7 +166,11 @@ typedef struct _gnb_node_t{
 
 	uint64_t last_detect_sec;
 
+    uint64_t last_send_detect_usec;
+
 	uint64_t last_full_detect_sec;
+    
+	
 
 }gnb_node_t;
 

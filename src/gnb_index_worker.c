@@ -655,7 +655,7 @@ static void handle_detect_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t 
 
         if ( 'e' == detect_addr_frame->data.arg0 ) {
             src_node->udp_addr_status |= GNB_NODE_STATUS_IPV4_PONG;
-            src_node->addr6_update_ts_sec = index_worker_ctx->now_time_sec;
+            src_node->addr4_update_ts_sec = index_worker_ctx->now_time_sec;
         } else {
             src_node->udp_addr_status |= GNB_NODE_STATUS_IPV4_PING;
         }

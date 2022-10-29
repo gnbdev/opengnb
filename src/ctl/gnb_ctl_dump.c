@@ -53,6 +53,9 @@ void gnb_ctl_dump_status(gnb_ctl_block_t *ctl_block, int reachabl_opt){
 
     char shared_secret_sha512[64];
 
+    char  in_bytes_string[128];
+    char out_bytes_string[128];
+
     conf = &ctl_block->conf_zone->conf_st;
 
     printf("conf->conf_dir[%s]\n",conf->conf_dir);
@@ -97,6 +100,31 @@ void gnb_ctl_dump_status(gnb_ctl_block_t *ctl_block, int reachabl_opt){
         printf("tun_ipv4 %s\n",GNB_ADDR4STR1(&node->tun_addr4));
 
         printf("tun_ipv6 %s\n",GNB_ADDR6STR1(&node->tun_ipv6_addr));
+
+
+        if ( (node->in_bytes > 1024) && (node->in_bytes < 1024*1024) ) {
+            snprintf(in_bytes_string, 128, "%.3fK bytes", ((float)node->in_bytes/1024));
+        } else if ( (node->in_bytes > 1024) && (node->in_bytes < 1024*1024*1024) ) {
+            snprintf(in_bytes_string, 128, "%.3fM bytes", ((float)node->in_bytes/(1024*1024)));
+        } else if ( (node->in_bytes >= 1024*1024*1024) ) {
+            snprintf(in_bytes_string, 128, "%.3fG bytes", ((float)node->in_bytes/(1024*1024*1024)));
+        } else {
+            snprintf(in_bytes_string, 128, "%"PRIu64" bytes", node->in_bytes);
+        }
+
+        if ( (node->out_bytes > 1024) && (node->out_bytes < 1024*1024) ) {
+            snprintf(out_bytes_string, 128, "%.3fK bytes", ((float)node->out_bytes/1024));
+        } else if ( (node->out_bytes > 1024) && (node->out_bytes < 1024*1024*1024) ) {
+            snprintf(out_bytes_string, 128, "%.3fM bytes", ((float)node->out_bytes/(1024*1024)));
+        } else if ( (node->out_bytes >= 1024*1024*1024) ) {
+            snprintf(out_bytes_string, 128, "%.3fG bytes", ((float)node->out_bytes/(1024*1024*1024)));
+        } else {
+            snprintf(out_bytes_string, 128, "%"PRIu64" bytes", node->out_bytes);
+        }
+
+        printf("in  %"PRIu64" (%s)\n", node->in_bytes,  in_bytes_string);
+        printf("out %"PRIu64" (%s)\n", node->out_bytes, out_bytes_string);
+
 
         printf("public_key %s\n",GNB_HEX1_BYTE64(node->public_key));
 

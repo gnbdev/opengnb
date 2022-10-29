@@ -152,6 +152,8 @@ typedef struct _gnb_conf_t {
 	uint16_t port_detect_end;
 	uint16_t port_detect_range;
 
+    uint32_t full_detect_interval_usec;
+
 	uint8_t addr_secure;
 
 	uint8_t daemon;

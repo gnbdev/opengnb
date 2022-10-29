@@ -109,6 +109,10 @@ void gnb_setup_es_argv(char *es_argv_string);
 
 #define SET_IF_DRV                     (GNB_OPT_INIT + 46)
 
+#define SET_FULL_DETECT_INTERVAL_USEC  (GNB_OPT_INIT + 47)
+
+
+
 gnb_arg_list_t *gnb_es_arg_list;
 
 int is_self_test = 0;
@@ -201,6 +205,8 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
     conf->port_detect_start = DETECT_PORT_START;
     conf->port_detect_end   = DETECT_PORT_END;
     conf->port_detect_range = DETECT_PORT_RANGE;
+
+    conf->full_detect_interval_usec = 1600;
 
     conf->daemon = 0;
     conf->systemd_daemon = 0;
@@ -304,6 +310,8 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
       { "port-detect-start",         required_argument,  0, SET_PORT_DETECT_START },
       { "port-detect-end",           required_argument,  0, SET_PORT_DETECT_END },
       { "port-detect-range",         required_argument,  0, SET_PORT_DETECT_RANGE },
+
+      { "full-detect-interval-usec", required_argument,  0, SET_FULL_DETECT_INTERVAL_USEC },
 
       { "set-tun",                   required_argument,  0, SET_TUN },
       { "index-worker",              required_argument,  0, SET_INDEX_WORKER },
@@ -476,6 +484,10 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
         case SET_PORT_DETECT_END:
             conf->port_detect_end = (uint16_t)strtoul(optarg, NULL, 10);
+            break;
+
+        case SET_FULL_DETECT_INTERVAL_USEC:
+            conf->full_detect_interval_usec = (uint32_t)strtoul(optarg, NULL, 10);
             break;
 
         case SET_PORT_DETECT_RANGE:
@@ -963,6 +975,7 @@ static void show_useage(int argc,char *argv[]){
     printf("      --port-detect-start          port detect start\n");
     printf("      --port-detect-end            port detect end\n");
     printf("      --port-detect-range          port detect range\n");
+    printf("      --full-detect-interval-usec  full detect interval usec\n");
 
     printf("      --mtu                        TUN Device MTU ipv4:532~1500,ipv6:1280~1500\n");
     printf("      --crypto                     ip frame crypto \"xor\",\"arc4\",\"none\" default:\"xor\"\n");
