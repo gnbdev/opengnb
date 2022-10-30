@@ -448,9 +448,9 @@ pf_tun_fwd:
     gnb_core->local_node->out_bytes  += pf_ctx_st.ip_frame_size;
 
     if ( pf_ctx_st.dst_uuid32 == pf_ctx_st.fwd_node->uuid32 ) {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, ">>> tun payload forward src=%u dst=%u >>>\n", pf_ctx_st.src_uuid32, pf_ctx_st.fwd_node->uuid32);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, ">>> tun payload forward to inet src=%u dst=%u >>>\n", pf_ctx_st.src_uuid32, pf_ctx_st.fwd_node->uuid32);
     } else {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "*>> tun payload forward src=%u dst=%u fwd=%u *>>\n", pf_ctx_st.src_uuid32, pf_ctx_st.dst_uuid32, pf_ctx_st.fwd_node->uuid32);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "*>> tun payload forward to inet src=%u dst=%u fwd=%u *>>\n", pf_ctx_st.src_uuid32, pf_ctx_st.dst_uuid32, pf_ctx_st.fwd_node->uuid32);
     }
 
 
@@ -645,6 +645,8 @@ void gnb_pf_inet(gnb_core_t *gnb_core, gnb_payload16_t *payload, gnb_sockaddress
         gnb_core->local_node->in_bytes += pf_ctx_st.ip_frame_size;
         pf_ctx_st.src_node->out_bytes  += pf_ctx_st.ip_frame_size;
 
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "<<< int payload forward to tun src=%u dst=%u <<<\n", pf_ctx_st.src_uuid32, pf_ctx_st.dst_uuid32);
+
         goto pf_inet_finish;
 
     }
@@ -657,6 +659,8 @@ void gnb_pf_inet(gnb_core_t *gnb_core, gnb_payload16_t *payload, gnb_sockaddress
 
         gnb_core->local_node->out_bytes += pf_ctx_st.ip_frame_size;
         pf_ctx_st.fwd_node->in_bytes    += pf_ctx_st.ip_frame_size;
+
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "<*< int payload forward to inet src=%u dst=%u fwd=%u >*>\n", pf_ctx_st.src_uuid32, pf_ctx_st.dst_uuid32, fwd_uuid32);
 
     }
 
