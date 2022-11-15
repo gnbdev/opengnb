@@ -284,7 +284,7 @@ GNB supports the OpenWRT platform and needs to be compiled by the user.
 
 ## GNB on Linux distributions
 
-The ["Copper Pea Linux"](https://www.atzlinux.com) project made a deb format package under Linux for the GNB project. For details, please visit [Copper Pea Software Source](https://www. atzlinux.com/allpackages.htm).
+The ["atzinux"](https://www.atzlinux.com) project made a deb format package under Linux for the GNB project. For details, please visit [atzlinux apt Software Source](https://www. atzlinux.com/allpackages.htm).
 
 The systemd script was made by [Jin Buguo](https://github.com/jinbuguo) for the GNB project
 
