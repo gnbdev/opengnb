@@ -288,6 +288,27 @@ The ["atzinux"](https://www.atzlinux.com) project made a deb format package unde
 
 The systemd script was made by [Jin Buguo](https://github.com/jinbuguo) for the GNB project
 
+* Debian
+On July 2022, the deb package of opengnb had contributed to [Debian official package](https://tracker.debian.org/news/1343607/accepted-opengnb-1290-1-source-amd64-into-unstable-unstable/) by the atzlinux project.
+
+You may install opengnb on Debian 12 (bookworm) :
+
+```bash
+apt install opengnb
+```
+The documents of start opengnb use systemd is：
+
+/usr/share/doc/opengnb/README.Debian
+
+* Ubuntu
+From 22.10 (kinetic) on, you may install on Ubuntu：
+
+```bash
+apt install opengnb
+```
+
+- Arch Linux
+
 The AUR package of Arch Linux was made by [taotieren](https://github.com/taotieren) for the GNB project. The installation method is as follows
 ```bash
 # install distribution
