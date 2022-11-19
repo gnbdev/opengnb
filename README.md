@@ -4,7 +4,7 @@ version 1.3.0.0  protocol version 1.2.0
 
 [Chinese](/README.md)  [English](/README_EN.md)  [Russian](/README_RU.md)
 
-[OpenGNB](https://github.com/gnbdev/opengnb "OpenGNB") 是一个开源的 P2P 去中心化的具有极致的内网穿透能力的软件自定义虚拟网络(SDVN),可以让你把公司-家庭网络组成直接访问的局域网。
+[OpenGNB](https://github.com/gnbdev/opengnb "OpenGNB") 是一个开源的 P2P 去中心化的具有极致的内网穿透能力的软件自定义虚拟网络(Software Defined Virtual Network),可以让你把公司-家庭网络组成直接访问的局域网。
 
 ## GNB 特点
 
