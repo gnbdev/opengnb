@@ -286,7 +286,7 @@ GNB 支持 OpenWRT 平台,需要用户自行编译。
 
 [金步国](https://github.com/jinbuguo) 为 GNB 项目制作了 systemd 的脚本
 
-[《铜豌豆 Linux》](https://www.atzlinux.com)项目为 GNB 项目制做了 Linux 下的 deb 格式软件包，将其贡献成为 Debian 官方软件包.
+[铜豌豆 Linux](https://www.atzlinux.com)项目为 GNB 项目制做了 Linux 下的 deb 格式软件包，将其贡献成为 Debian 官方软件包.
 
 可以在 Debian 12 (bookworm) 下直接安装：
 
