@@ -283,21 +283,18 @@ i|0|47.93.29.76|9001
 GNB supports the OpenWRT platform and needs to be compiled by the user.
 
 
-
 ## GNB on Linux distributions
-
-The ["atzinux"](https://www.atzlinux.com) project made a deb format package under Linux for the GNB project. For details, please visit [atzlinux apt Software Source](https://www. atzlinux.com/allpackages.htm).
 
 The systemd script was made by [Jin Buguo](https://github.com/jinbuguo) for the GNB project
 
-* Debian
-[atzlinux](https://www.atzlinux.com) project has made a deb format software package under Linux for the GNB project, and contributed it to become the official Debian software package.
+The [atzlinux](https://www.atzlinux.com) project has made a deb format software package under Linux for the GNB project, and contributed it to become the official Debian software package.
 
 You may install opengnb on Debian 12 (bookworm) :
 
 ```bash
 apt install opengnb
 ```
+
 
 - Arch Linux
 
