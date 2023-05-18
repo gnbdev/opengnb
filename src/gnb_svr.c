@@ -1026,7 +1026,7 @@ void primary_process_loop( gnb_core_t *gnb_core ){
             #endif
 
             #if defined(__OpenBSD__)
-            exec_loop_script(gnb_core,"if_loop_linux.sh");
+            exec_loop_script(gnb_core,"if_loop_openbsd.sh");
             #endif
 
             #if defined(__linux__)
