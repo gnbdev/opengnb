@@ -1,6 +1,6 @@
 # OpenGNB
 
-[English](/README.md) [Chinese](/README_CN.md)
+[Chinese](/README_CN.md) [English](/README.md)
 
 *Note: Most of the content of this article is translated by Google translate from the Chinese version of the "OpenGNB User Manual", the content of this article is subject to the Chinese version.*
 
