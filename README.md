@@ -264,6 +264,7 @@ Here are the available `index` nodes provided by volunteers
 i|0|110.238.106.225|9001
 i|0|101.32.178.3|9001
 i|0|47.93.29.76|9001
+i|0|usa.homedns.net|9001
 ```
 
 
