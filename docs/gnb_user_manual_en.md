@@ -227,7 +227,7 @@ After `multi-socket` is set to on, 4 additional random UDP ports will be opened 
 
 The configuration items supported by `node.conf` correspond to the gnb command line parameters one by one. The currently supported configuration items are:
 ```
-ifname nodeid listen listen6 listen4 ctl-block multi-socket disabled-direct-forward ipv4-only ipv6-only passcode quiet daemon mtu set-tun address-secure node-worker index-worker index-service-worker node-detect-worker port-detect-range port-detect-start port-detect-end pid-file node-cache-file log-file-path log-udp4 log-udp-type console-log-level file-log-level udp-log-level core-log-level pf-log-level main-log-level node-log-level index-log-level detect-log-level es-argv
+ifname nodeid listen listen6 listen4 ctl-block multi-socket direct-forwarding unified-forwarding ipv4-only ipv6-only passcode crypto crypto-key-update-interval quiet daemon mtu set-tun address-secure node-worker index-worker index-service-worker node-detect-worker port-detect-range port-detect-start port-detect-end pid-file node-cache-file log-file-path log-udp4 log-udp-type console-log-level file-log-level udp-log-level core-log-level pf-log-level main-log-level node-log-level index-log-level detect-log-level es-argv
 ```
 
 
