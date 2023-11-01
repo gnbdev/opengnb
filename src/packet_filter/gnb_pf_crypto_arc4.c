@@ -166,7 +166,7 @@ static int pf_tun_fwd_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
         struct arc4_sbox *sbox_init = (struct arc4_sbox *)GNB_HASH32_UINT32_GET_PTR(ctx->arc4_ctx_map, pf_ctx->fwd_node->uuid32 );
 
         if (NULL==sbox_init) {
-            GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "gnb_pf_crypto_arc4 tun_frame node[%u] miss key\n", pf_ctx->dst_node->uuid32);
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "gnb_pf_crypto_arc4 pf_tun_fwd_cb node[%u] miss key\n", pf_ctx->fwd_node->uuid32);
             return GNB_PF_ERROR;
         }
 

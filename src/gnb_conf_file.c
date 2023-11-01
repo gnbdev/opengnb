@@ -377,7 +377,7 @@ void local_node_file_config(gnb_core_t *gnb_core){
 
         if ( !strncmp(line_buffer, "if-drv", sizeof("if-drv")-1) ) {
 
-            num = sscanf(line_buffer, "%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer, "%32[^ ] %20s", field, value);
 
             if ( 2 != num ) {
                 printf("config if-drv error in [%s]\n", node_conf_file);
@@ -546,9 +546,9 @@ void local_node_file_config(gnb_core_t *gnb_core){
             }
 
             if ( !strncmp(value, "on", sizeof("on")-1) ) {
-                gnb_core->conf->direct_forwarding = 0;
-            } else {
                 gnb_core->conf->direct_forwarding = 1;
+            } else {
+                gnb_core->conf->direct_forwarding = 0;
             }
 
         }
@@ -625,6 +625,49 @@ void local_node_file_config(gnb_core_t *gnb_core){
 
         }
 
+        if ( !strncmp(line_buffer, "crypto ", sizeof("crypto ")-1) ) {
+
+            num = sscanf(line_buffer, "%32[^ ] %5s", field, value);
+
+            if ( 2 != num ) {
+                printf("config %s error in [%s]\n", "crypto", node_conf_file);
+                exit(1);
+            }
+
+            if ( !strncmp(value, "none", sizeof("none")-1) ) {
+                gnb_core->conf->crypto_type = GNB_PF_TYPE_CRYPTO_NONE;
+            } else if ( !strncmp(value, "xor", sizeof("xor")-1) ) {
+                gnb_core->conf->crypto_type = GNB_PF_TYPE_CRYPTO_XOR;
+            } else if ( !strncmp(value, "arc4", sizeof("arc4")-1) ) {
+                gnb_core->conf->crypto_type = GNB_PF_TYPE_CRYPTO_ARC4;
+            // } else if ( !strncmp(value, "aes", sizeof("aes")-1) ) {
+            //     gnb_core->conf->crypto_type = GNB_PF_TYPE_CRYPTO_AES;
+            } else {
+                gnb_core->conf->crypto_type = GNB_PF_TYPE_CRYPTO_XOR;
+            }
+
+        }
+
+        if ( !strncmp(line_buffer, "crypto-key-update-interval", sizeof("crypto-key-update-interval")-1) ) {
+
+            num = sscanf(line_buffer, "%32[^ ] %7s", field, value);
+
+            if ( 2 != num ) {
+                printf("config %s error in [%s]\n", "crypto", node_conf_file);
+                exit(1);
+            }
+
+            if ( !strncmp(value, "hour", sizeof("hour")-1 ) ) {
+                gnb_core->conf->crypto_key_update_interval  = GNB_CRYPTO_KEY_UPDATE_INTERVAL_HOUR;
+            } else if ( !strncmp(value, "minute", sizeof("minute")-1) ) {
+                gnb_core->conf->crypto_key_update_interval = GNB_CRYPTO_KEY_UPDATE_INTERVAL_MINUTE;
+            } else if ( !strncmp(value, "none", sizeof("none")-1) ) {
+                gnb_core->conf->crypto_key_update_interval = GNB_CRYPTO_KEY_UPDATE_INTERVAL_NONE;
+            } else {
+                gnb_core->conf->crypto_key_update_interval = GNB_CRYPTO_KEY_UPDATE_INTERVAL_NONE;
+            }
+
+        }
 
         if ( !strncmp(line_buffer, "quiet", sizeof("quiet")-1) ) {
 

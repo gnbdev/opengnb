@@ -576,16 +576,16 @@ gnb_core_t* gnb_core_create(gnb_conf_t *conf){
 
     gnb_pf_install(gnb_core->pf_array, pf);
 
-    if ( GNB_PF_TYPE_CRYPTO_NONE == conf->crypto_type ) {
+    if ( GNB_PF_TYPE_CRYPTO_NONE == gnb_core->conf->crypto_type ) {
         goto skip_crypto;
     }
 
-    if ( conf->crypto_type & GNB_PF_TYPE_CRYPTO_XOR ) {
+    if ( gnb_core->conf->crypto_type == GNB_PF_TYPE_CRYPTO_XOR ) {
         pf = gnb_find_pf_mod_by_name("gnb_pf_crypto_xor");
         gnb_pf_install(gnb_core->pf_array, pf);
     }
 
-    if ( conf->crypto_type & GNB_PF_TYPE_CRYPTO_ARC4 ) {
+    if ( gnb_core->conf->crypto_type == GNB_PF_TYPE_CRYPTO_ARC4 ) {
         pf = gnb_find_pf_mod_by_name("gnb_pf_crypto_arc4");
         gnb_pf_install(gnb_core->pf_array, pf);
     }
@@ -628,9 +628,9 @@ skip_crypto:
 
 #if defined(_WIN32)
 
-    if ( GNB_IF_DRV_TYPE_TAP_WINDOWS == conf->if_drv ) {
+    if ( GNB_IF_DRV_TYPE_TAP_WINDOWS == gnb_core->conf->if_drv ) {
         gnb_core->drv = &gnb_tun_drv_win32;
-    } else if ( GNB_IF_DRV_TYPE_TAP_WINTUN == conf->if_drv ) {
+    } else if ( GNB_IF_DRV_TYPE_TAP_WINTUN == gnb_core->conf->if_drv ) {
         gnb_core->drv = &gnb_tun_drv_wintun;
     } else {
         gnb_core->drv = &gnb_tun_drv_win32;
