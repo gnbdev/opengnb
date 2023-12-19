@@ -18,6 +18,10 @@
 #ifndef GNB_WORKER_TYPE_H
 #define GNB_WORKER_TYPE_H
 
+#include <stdint.h>
+#include "gnb_ring_buffer_fixed.h"
+
+
 typedef struct _gnb_worker_t gnb_worker_t;
 
 typedef struct _gnb_ring_buffer_t gnb_ring_buffer_t;
@@ -36,7 +40,7 @@ typedef int(*gnb_worker_notify_func_t)(gnb_worker_t *gnb_worker);
 
 typedef struct _gnb_worker_t {
 
-	const char *name;
+	char *name;
 
 	gnb_worker_init_func_t      init;
 
@@ -48,7 +52,8 @@ typedef struct _gnb_worker_t {
 
 	gnb_worker_notify_func_t    notify;
 
-	gnb_ring_buffer_t *ring_buffer;
+	gnb_ring_buffer_fixed_t *ring_buffer_in;
+	gnb_ring_buffer_fixed_t *ring_buffer_out;
 
 	volatile int thread_worker_flag;
 
@@ -60,6 +65,14 @@ typedef struct _gnb_worker_t {
 
 }gnb_worker_t;
 
+
+typedef struct _gnb_worker_ring_t {
+
+	uint8_t size;
+	uint8_t cur_idx;
+	gnb_worker_t *worker[0];
+
+}gnb_worker_ring_t;
 
 #endif
 

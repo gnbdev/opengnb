@@ -54,7 +54,8 @@
 #include <pthread.h>
 
 #include "gnb_node.h"
-#include "gnb_ring_buffer.h"
+
+#include "gnb_ring_buffer_fixed.h"
 #include "gnb_worker_queue_data.h"
 #include "gnb_ur1_frame_type.h"
 
@@ -65,10 +66,13 @@
 void bind_socket_if(gnb_core_t *gnb_core);
 #endif
 
+gnb_pf_t* gnb_find_pf_mod_by_name(const char *name);
 
-typedef struct _main_worker_ctx_t{
+typedef struct _primary_worker_ctx_t{
 
     gnb_core_t *gnb_core;
+
+    gnb_pf_array_t     *pf_array;
 
 #ifdef __UNIX_LIKE_OS__
     pthread_t tun_udp_loop_thread;
@@ -79,8 +83,7 @@ typedef struct _main_worker_ctx_t{
     pthread_t udp_loop_thread;
 #endif
 
-
-}main_worker_ctx_t;
+}primary_worker_ctx_t;
 
 
 #pragma pack(push, 1)
@@ -96,6 +99,22 @@ typedef struct _gnb_ur0_frame_head_t {
 
 #pragma pack(pop)
 
+
+gnb_worker_t * select_pf_worker(gnb_core_t *gnb_core){
+
+    gnb_worker_t *pf_worker = NULL;
+
+    pf_worker = gnb_core->pf_worker_ring->worker[ gnb_core->pf_worker_ring->cur_idx ];
+
+    gnb_core->pf_worker_ring->cur_idx++;
+
+    if ( gnb_core->pf_worker_ring->cur_idx >= gnb_core->pf_worker_ring->size ) {
+        gnb_core->pf_worker_ring->cur_idx = 0;
+    }
+
+    return pf_worker;
+
+}
 
 
 void gnb_send_ur0_frame(gnb_core_t *gnb_core, gnb_node_t *dst_node, gnb_payload16_t *payload){
@@ -234,17 +253,11 @@ static void handle_ur1_frame(gnb_core_t *gnb_core, gnb_payload16_t *payload){
 
 static gnb_worker_queue_data_t* make_worker_receive_queue_data(gnb_worker_t *worker, gnb_sockaddress_t *node_addr, uint8_t socket_idx, gnb_payload16_t *payload){
 
-    gnb_worker_queue_data_t *receive_queue_data;
+    gnb_worker_queue_data_t *receive_queue_data = (gnb_worker_queue_data_t *)gnb_ring_buffer_fixed_push(worker->ring_buffer_in);
 
-    gnb_ring_node_t *ring_node = gnb_ring_buffer_push(worker->ring_buffer);
-
-    if ( NULL == ring_node ) {
+    if ( NULL == receive_queue_data ) {
         return NULL;
     }
-
-    receive_queue_data = (gnb_worker_queue_data_t *)ring_node->data;
-
-    ring_node->size = worker->ring_buffer->block_size;
 
     receive_queue_data->type = GNB_WORKER_QUEUE_DATA_TYPE_NODE_IN;
 
@@ -259,11 +272,55 @@ static gnb_worker_queue_data_t* make_worker_receive_queue_data(gnb_worker_t *wor
 }
 
 
-static void handle_udp(gnb_core_t *gnb_core, uint8_t socket_idx, int af){
+static gnb_worker_queue_data_t* make_worker_send_queue_data(gnb_worker_t *worker, gnb_payload16_t *payload){
+
+    gnb_worker_queue_data_t *send_queue_data = (gnb_worker_queue_data_t *)gnb_ring_buffer_fixed_push(worker->ring_buffer_out);
+
+    if ( NULL == send_queue_data ) {
+        return NULL;
+    }
+
+    send_queue_data->type = GNB_WORKER_QUEUE_DATA_TYPE_NODE_OUT;
+
+    memcpy(&send_queue_data->data.node_in.payload_st, payload, gnb_payload16_size(payload));
+
+    return send_queue_data;
+
+}
+
+
+static void handle_udp(gnb_core_t *gnb_core, gnb_pf_array_t *pf_array, uint8_t socket_idx, int af){
 
     ssize_t n_recv;
-
     gnb_sockaddress_t node_addr_st;
+    gnb_worker_t *pf_worker;
+    gnb_worker_queue_data_t *receive_queue_data;
+    gnb_payload16_t *inet_payload;
+
+    if ( !gnb_core->conf->activate_tun ) {
+        inet_payload = gnb_core->inet_payload;
+        goto skip_tun;
+    }
+
+    if ( gnb_core->pf_worker_ring->size == 0 ) {
+
+        inet_payload = gnb_core->inet_payload;
+
+    } else {
+
+        pf_worker = select_pf_worker(gnb_core);
+
+        receive_queue_data = (gnb_worker_queue_data_t *)gnb_ring_buffer_fixed_push(pf_worker->ring_buffer_in);
+        
+        if ( NULL == receive_queue_data ) {
+            return;
+        }
+
+        inet_payload = &receive_queue_data->data.node_in.payload_st;
+
+    }
+
+skip_tun:
 
     switch (af) {
 
@@ -271,7 +328,7 @@ static void handle_udp(gnb_core_t *gnb_core, uint8_t socket_idx, int af){
 
             node_addr_st.socklen = sizeof(struct sockaddr_in6);
 
-            n_recv = recvfrom(gnb_core->udp_ipv6_sockets[socket_idx], (void *)gnb_core->inet_payload, GNB_INET_PAYLOAD_BLOCK_SIZE, 0, (struct sockaddr *)&node_addr_st.addr.in6, &node_addr_st.socklen);
+            n_recv = recvfrom(gnb_core->udp_ipv6_sockets[socket_idx], (void *)inet_payload, gnb_core->conf->payload_block_size, 0, (struct sockaddr *)&node_addr_st.addr.in6, &node_addr_st.socklen);
             node_addr_st.addr_type = AF_INET6;
 
             break;
@@ -280,7 +337,7 @@ static void handle_udp(gnb_core_t *gnb_core, uint8_t socket_idx, int af){
 
             node_addr_st.socklen = sizeof(struct sockaddr_in);
 
-            n_recv = recvfrom(gnb_core->udp_ipv4_sockets[socket_idx], (void *)gnb_core->inet_payload, GNB_INET_PAYLOAD_BLOCK_SIZE, 0, (struct sockaddr *)&node_addr_st.addr.in, &node_addr_st.socklen);
+            n_recv = recvfrom(gnb_core->udp_ipv4_sockets[socket_idx], (void *)inet_payload, gnb_core->conf->payload_block_size, 0, (struct sockaddr *)&node_addr_st.addr.in, &node_addr_st.socklen);
             node_addr_st.addr_type = AF_INET;
 
             break;
@@ -297,24 +354,39 @@ static void handle_udp(gnb_core_t *gnb_core, uint8_t socket_idx, int af){
 
     node_addr_st.protocol = SOCK_DGRAM;
 
-    uint16_t payload_size = gnb_payload16_size(gnb_core->inet_payload);
+    uint16_t payload_size = gnb_payload16_size(inet_payload);
 
     if ( payload_size != n_recv ) {
-        GNB_LOG3(gnb_core->log,GNB_LOG_ID_MAIN_WORKER, "handle_udp payload_size != n_recv n_recv[%lu] payload_size[%u]\n", n_recv, payload_size);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_MAIN_WORKER, "handle_udp payload_size != n_recv n_recv[%lu] payload_size[%u]\n", n_recv, payload_size);
         goto finish;
     }
 
-    if ( 1 == gnb_core->conf->activate_tun && GNB_PAYLOAD_TYPE_IPFRAME == gnb_core->inet_payload->type ) {
-        gnb_pf_inet(gnb_core, gnb_core->inet_payload, &node_addr_st);
+
+    if ( 1 == gnb_core->conf->activate_tun && GNB_PAYLOAD_TYPE_IPFRAME == inet_payload->type ) {
+
+        if ( gnb_core->pf_worker_ring->size == 0 ) {
+
+            gnb_pf_inet(gnb_core, pf_array, inet_payload, &node_addr_st);
+
+        } else {
+
+        receive_queue_data->type = GNB_WORKER_QUEUE_DATA_TYPE_NODE_IN;
+        memcpy(&receive_queue_data->data.node_in.node_addr_st, &node_addr_st, sizeof(gnb_sockaddress_t));
+        receive_queue_data->data.node_in.socket_idx = socket_idx;
+        gnb_ring_buffer_fixed_push_submit(pf_worker->ring_buffer_in);
+        pf_worker->notify(pf_worker);
+
+        }
+
         goto finish;
+
     }
 
-    gnb_worker_queue_data_t *receive_queue_data;
 
     //收到 index 类型的paload 就放到 index_worker 或 index_service_worker queue 中
-    if( GNB_PAYLOAD_TYPE_INDEX == gnb_core->inet_payload->type ) {
+    if( GNB_PAYLOAD_TYPE_INDEX == inet_payload->type ) {
 
-        switch ( gnb_core->inet_payload->sub_type ) {
+        switch ( inet_payload->sub_type ) {
 
         case PAYLOAD_SUB_TYPE_POST_ADDR    :
         case PAYLOAD_SUB_TYPE_REQUEST_ADDR :
@@ -323,13 +395,14 @@ static void handle_udp(gnb_core_t *gnb_core, uint8_t socket_idx, int af){
                     goto finish;
                 }
 
-                receive_queue_data = make_worker_receive_queue_data(gnb_core->index_service_worker, &node_addr_st, socket_idx, gnb_core->inet_payload);
+                receive_queue_data = make_worker_receive_queue_data(gnb_core->index_service_worker, &node_addr_st, socket_idx, inet_payload);
 
                 if ( NULL == receive_queue_data ) {
+                    //ringbuffer is full
                     goto finish;
                 }
 
-                gnb_ring_buffer_push_submit(gnb_core->index_service_worker->ring_buffer);
+                gnb_ring_buffer_fixed_push_submit(gnb_core->index_service_worker->ring_buffer_in);
 
                 gnb_core->index_service_worker->notify(gnb_core->index_service_worker);
 
@@ -343,13 +416,16 @@ static void handle_udp(gnb_core_t *gnb_core, uint8_t socket_idx, int af){
                     goto finish;
                 }
 
-                receive_queue_data = make_worker_receive_queue_data(gnb_core->index_worker, &node_addr_st, socket_idx, gnb_core->inet_payload);
+
+                receive_queue_data = make_worker_receive_queue_data(gnb_core->index_worker, &node_addr_st, socket_idx, inet_payload);
+
 
                 if ( NULL == receive_queue_data ) {
+                    //ringbuffer is full
                     goto finish;
                 }
 
-                gnb_ring_buffer_push_submit(gnb_core->index_worker->ring_buffer);
+                gnb_ring_buffer_fixed_push_submit(gnb_core->index_worker->ring_buffer_in);
 
                 gnb_core->index_worker->notify(gnb_core->index_worker);
 
@@ -366,20 +442,20 @@ static void handle_udp(gnb_core_t *gnb_core, uint8_t socket_idx, int af){
     }
 
     //收到 node 类型的paload 就放到 node_worker queue 中
-    if ( GNB_PAYLOAD_TYPE_NODE == gnb_core->inet_payload->type ) {
+    if ( GNB_PAYLOAD_TYPE_NODE == inet_payload->type ) {
 
         if ( 0 == gnb_core->conf->activate_node_worker ) {
             goto finish;
         }
 
-        receive_queue_data = make_worker_receive_queue_data(gnb_core->node_worker, &node_addr_st, socket_idx, gnb_core->inet_payload);
+        receive_queue_data = make_worker_receive_queue_data(gnb_core->node_worker, &node_addr_st, socket_idx, inet_payload);
 
         if ( NULL == receive_queue_data ) {
-            //queue is FULL
+            //ringbuffer is full        
             goto finish;
         }
 
-        gnb_ring_buffer_push_submit(gnb_core->node_worker->ring_buffer);
+        gnb_ring_buffer_fixed_push_submit(gnb_core->node_worker->ring_buffer_in);
         gnb_core->node_worker->notify(gnb_core->node_worker);
 
         goto finish;
@@ -387,14 +463,14 @@ static void handle_udp(gnb_core_t *gnb_core, uint8_t socket_idx, int af){
     }
 
 
-    if ( GNB_PAYLOAD_TYPE_UR1 == gnb_core->inet_payload->type ) {
-        handle_ur1_frame(gnb_core, gnb_core->inet_payload);
+    if ( GNB_PAYLOAD_TYPE_UR1 == inet_payload->type ) {
+        handle_ur1_frame(gnb_core, inet_payload);
         goto finish;
     }
 
 
-    if ( 1 == gnb_core->conf->universal_relay0 && GNB_PAYLOAD_TYPE_UR0 == gnb_core->inet_payload->type ) {
-        handle_ur0_frame(gnb_core, gnb_core->inet_payload, &node_addr_st);
+    if ( 1 == gnb_core->conf->universal_relay0 && GNB_PAYLOAD_TYPE_UR0 == inet_payload->type ) {
+        handle_ur0_frame(gnb_core, inet_payload, &node_addr_st);
         goto finish;
     }
 
@@ -405,12 +481,15 @@ finish:
 }
 
 
-static int handle_tun(gnb_core_t *gnb_core){
+static int handle_tun(gnb_core_t *gnb_core, gnb_pf_array_t *pf_array){
 
     ssize_t rlen;
 
+    gnb_worker_t *pf_worker;
+    gnb_worker_queue_data_t *send_queue_data;
+
     //tun模式下这里得到的payload是ip分组, tap模式下是以太网分组,现在都是tun模式
-    rlen = gnb_core->drv->read_tun(gnb_core, gnb_core->tun_payload->data + gnb_core->tun_payload_offset, GNB_TUN_PAYLOAD_BLOCK_SIZE);
+    rlen = gnb_core->drv->read_tun(gnb_core, gnb_core->tun_payload->data + gnb_core->tun_payload_offset, gnb_core->conf->payload_block_size);
 
     if ( rlen<=0 ) {
         goto finish;
@@ -418,7 +497,26 @@ static int handle_tun(gnb_core_t *gnb_core){
 
     gnb_payload16_set_size(gnb_core->tun_payload, GNB_PAYLOAD16_HEAD_SIZE + gnb_core->tun_payload_offset + rlen);
 
-    gnb_pf_tun(gnb_core,gnb_core->tun_payload);
+    if ( gnb_core->pf_worker_ring->size == 0 ) {
+
+        gnb_pf_tun(gnb_core, pf_array, gnb_core->tun_payload);
+
+    } else {
+
+        pf_worker = select_pf_worker(gnb_core);
+
+        send_queue_data = make_worker_send_queue_data(pf_worker, gnb_core->tun_payload);
+
+        if ( NULL == send_queue_data ) {
+            //ringbuffer is full            
+            goto finish;
+        }
+
+        gnb_ring_buffer_fixed_push_submit(pf_worker->ring_buffer_out);
+
+        pf_worker->notify(pf_worker);
+
+    }
 
 finish:
 
@@ -427,16 +525,14 @@ finish:
 }
 
 
-
 #ifdef _WIN32
 
 static void* tun_loop_thread_func( void *data ) {
 
     gnb_worker_t *gnb_worker = (gnb_worker_t *)data;
-
-    main_worker_ctx_t *main_worker_ctx = gnb_worker->ctx;
-
-    gnb_core_t *gnb_core = main_worker_ctx->gnb_core;
+    primary_worker_ctx_t *primary_worker_ctx = gnb_worker->ctx;
+    gnb_core_t *gnb_core = primary_worker_ctx->gnb_core;
+    gnb_pf_array_t *pf_array = primary_worker_ctx->pf_array;
 
     ssize_t rlen;
 
@@ -444,15 +540,15 @@ static void* tun_loop_thread_func( void *data ) {
 
     while ( gnb_core->loop_flag ) {
 
-        rlen = gnb_core->drv->read_tun(gnb_core, gnb_core->tun_payload->data + gnb_core->tun_payload_offset, GNB_TUN_PAYLOAD_BLOCK_SIZE);
+        rlen = gnb_core->drv->read_tun(gnb_core, gnb_core->tun_payload->data + gnb_core->tun_payload_offset, gnb_core->conf->payload_block_size);
 
-        if (rlen<=0){
+        if ( rlen<=0 ) {
             continue;
         }
 
         gnb_payload16_set_size(gnb_core->tun_payload, GNB_PAYLOAD16_HEAD_SIZE + gnb_core->tun_payload_offset + rlen);
 
-        gnb_pf_tun(gnb_core,gnb_core->tun_payload);
+        gnb_pf_tun(gnb_core, pf_array, gnb_core->tun_payload);
 
     }
 
@@ -464,10 +560,9 @@ static void* tun_loop_thread_func( void *data ) {
 static void* udp_loop_thread_func( void *data ) {
 
     gnb_worker_t *gnb_worker = (gnb_worker_t *)data;
-
-    main_worker_ctx_t *main_worker_ctx = gnb_worker->ctx;
-
-    gnb_core_t *gnb_core = main_worker_ctx->gnb_core;
+    primary_worker_ctx_t *primary_worker_ctx = gnb_worker->ctx;
+    gnb_core_t *gnb_core = primary_worker_ctx->gnb_core;
+    gnb_pf_array_t *pf_array = primary_worker_ctx->pf_array;
 
     int n_ready;
 
@@ -509,7 +604,6 @@ static void* udp_loop_thread_func( void *data ) {
 
         }
 
-
     }
 
     int ret = 0;
@@ -544,7 +638,7 @@ static void* udp_loop_thread_func( void *data ) {
             for ( i=0; i<gnb_core->conf->udp6_socket_num; i++ ) {
 
                 if ( FD_ISSET( gnb_core->udp_ipv6_sockets[i], &readfds ) ) {
-                    handle_udp(gnb_core, i, AF_INET6);
+                    handle_udp(gnb_core, pf_array, i, AF_INET6);
                 }
 
             }
@@ -556,7 +650,7 @@ static void* udp_loop_thread_func( void *data ) {
             for ( i=0; i<gnb_core->conf->udp4_socket_num; i++ ) {
 
                 if ( FD_ISSET( gnb_core->udp_ipv4_sockets[i], &readfds ) ) {
-                    handle_udp(gnb_core, i, AF_INET);
+                    handle_udp(gnb_core, pf_array, i, AF_INET);
                 }
 
             }
@@ -592,8 +686,9 @@ static void* udp_loop_thread_func( void *data ) {
 static void* tun_udp_loop_thread_func(void *data){
 
     gnb_worker_t *gnb_worker = (gnb_worker_t *)data;
-    main_worker_ctx_t *main_worker_ctx = gnb_worker->ctx;
-    gnb_core_t *gnb_core = main_worker_ctx->gnb_core;
+    primary_worker_ctx_t *primary_worker_ctx = gnb_worker->ctx;
+    gnb_core_t *gnb_core = primary_worker_ctx->gnb_core;
+    gnb_pf_array_t *pf_array = primary_worker_ctx->pf_array;
 
     int n_ready;
     struct timeval timeout;
@@ -676,6 +771,7 @@ static void* tun_udp_loop_thread_func(void *data){
             } else {
                 break;
             }
+
         }
 
         if ( gnb_core->conf->udp_socket_type & GNB_ADDR_TYPE_IPV6 ) {
@@ -683,7 +779,7 @@ static void* tun_udp_loop_thread_func(void *data){
             for ( i=0; i < gnb_core->conf->udp6_socket_num; i++ ) {
 
                 if ( FD_ISSET( gnb_core->udp_ipv6_sockets[i], &readfds ) ) {
-                    handle_udp(gnb_core, i, AF_INET6);
+                    handle_udp(gnb_core, pf_array, i, AF_INET6);
                 }
 
             }
@@ -695,7 +791,7 @@ static void* tun_udp_loop_thread_func(void *data){
             for ( i=0; i < gnb_core->conf->udp4_socket_num; i++ ) {
 
                 if ( FD_ISSET( gnb_core->udp_ipv4_sockets[i], &readfds ) ) {
-                    handle_udp(gnb_core, i, AF_INET);
+                    handle_udp(gnb_core, pf_array, i, AF_INET);
                 }
 
             }
@@ -705,11 +801,10 @@ static void* tun_udp_loop_thread_func(void *data){
         if ( gnb_core->conf->activate_tun ) {
 
             if ( FD_ISSET( gnb_core->tun_fd, &readfds ) ) {
-                handle_tun(gnb_core);
+                handle_tun(gnb_core, pf_array);
             }
 
         }
-
 
     }//while()
 
@@ -743,35 +838,92 @@ static void init(gnb_worker_t *gnb_worker, void *ctx){
 
     gnb_core_t *gnb_core = (gnb_core_t *)ctx;
 
-    main_worker_ctx_t *main_worker_ctx =  (main_worker_ctx_t *)gnb_heap_alloc(gnb_core->heap, sizeof(main_worker_ctx_t));
+    primary_worker_ctx_t *primary_worker_ctx = (primary_worker_ctx_t *)gnb_heap_alloc(gnb_core->heap, sizeof(primary_worker_ctx_t));
 
-    memset(main_worker_ctx, 0, sizeof(main_worker_ctx_t));
+    memset(primary_worker_ctx, 0, sizeof(primary_worker_ctx_t));
 
     //没有线程需要投递数据到这个线程
-    gnb_worker->ring_buffer = NULL;
+    gnb_worker->ring_buffer_in = NULL;
+    gnb_worker->ring_buffer_out = NULL;
 
-    main_worker_ctx->gnb_core = (gnb_core_t *)ctx;
+    primary_worker_ctx->gnb_core = (gnb_core_t *)ctx;
 
-    gnb_worker->ctx = main_worker_ctx;
+    gnb_worker->ctx = primary_worker_ctx;
+
+    primary_worker_ctx->pf_array = gnb_pf_array_init(gnb_core->heap, 32);
+
+    gnb_pf_t *pf;
+
+    if ( 1==gnb_core->conf->if_dump ) {
+        pf = gnb_find_pf_mod_by_name("gnb_pf_dump");
+        gnb_pf_install(primary_worker_ctx->pf_array, pf);
+    }
+
+    pf = gnb_find_pf_mod_by_name(gnb_core->conf->pf_route);
+
+    if ( NULL== pf ) {
+        GNB_ERROR1(gnb_core->log, GNB_LOG_ID_CORE, "pf_route '%s' not exist\n", gnb_core->conf->pf_route);
+        return;
+    }
+
+    gnb_pf_install(primary_worker_ctx->pf_array, pf);
+
+    if ( !(GNB_PF_BITS_CRYPTO_XOR & gnb_core->conf->pf_bits) && !(GNB_PF_BITS_CRYPTO_ARC4 & gnb_core->conf->pf_bits) ) {
+        goto skip_crypto;
+    }
+
+    if ( gnb_core->conf->pf_bits & GNB_PF_BITS_CRYPTO_XOR ) {
+        pf = gnb_find_pf_mod_by_name("gnb_pf_crypto_xor");
+        gnb_pf_install(primary_worker_ctx->pf_array, pf);
+    }
+
+    if ( gnb_core->conf->pf_bits & GNB_PF_BITS_CRYPTO_ARC4 ) {
+        pf = gnb_find_pf_mod_by_name("gnb_pf_crypto_arc4");
+        gnb_pf_install(primary_worker_ctx->pf_array, pf);
+    }
+
+
+skip_crypto:
+
+
+    if ( 0==gnb_core->conf->zip_level ) {
+        goto skip_zip;
+    }
+
+    pf = gnb_find_pf_mod_by_name("gnb_pf_zip");
+    gnb_pf_install(primary_worker_ctx->pf_array, pf);
+
+
+skip_zip:
+
+
+    gnb_pf_init(gnb_core, primary_worker_ctx->pf_array);
+
+    gnb_pf_conf(gnb_core, primary_worker_ctx->pf_array);
 
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_MAIN_WORKER, "%s init finish\n", gnb_worker->name);
+
 }
 
 
 static void release(gnb_worker_t *gnb_worker){
 
-    main_worker_ctx_t *main_worker_ctx = (main_worker_ctx_t *)gnb_worker->ctx;
+    primary_worker_ctx_t *primary_worker_ctx = (primary_worker_ctx_t *)gnb_worker->ctx;
 
-    gnb_core_t *gnb_core = main_worker_ctx->gnb_core;
+    gnb_core_t *gnb_core = primary_worker_ctx->gnb_core;
+
+    gnb_pf_array_t *pf_array = primary_worker_ctx->pf_array;
+
+    gnb_pf_release(gnb_core,pf_array);
 
 }
 
 
 static int start(gnb_worker_t *gnb_worker){
 
-    main_worker_ctx_t *main_worker_ctx = gnb_worker->ctx;
+    primary_worker_ctx_t *primary_worker_ctx = gnb_worker->ctx;
 
-    gnb_core_t *gnb_core = main_worker_ctx->gnb_core;
+    gnb_core_t *gnb_core = primary_worker_ctx->gnb_core;
 
     int i;
 
@@ -826,21 +978,21 @@ static int start(gnb_worker_t *gnb_worker){
     //尝试绑定网卡
     bind_socket_if(gnb_core);
 
-    pthread_create(&main_worker_ctx->tun_udp_loop_thread, NULL, tun_udp_loop_thread_func, gnb_worker);
-    pthread_detach(main_worker_ctx->tun_udp_loop_thread);
+    pthread_create(&primary_worker_ctx->tun_udp_loop_thread, NULL, tun_udp_loop_thread_func, gnb_worker);
+    pthread_detach(primary_worker_ctx->tun_udp_loop_thread);
 
 #endif
 
 #ifdef _WIN32
-    pthread_create(&main_worker_ctx->udp_loop_thread, NULL, udp_loop_thread_func, gnb_worker);
-    pthread_detach(main_worker_ctx->udp_loop_thread);
+    pthread_create(&primary_worker_ctx->udp_loop_thread, NULL, udp_loop_thread_func, gnb_worker);
+    pthread_detach(primary_worker_ctx->udp_loop_thread);
 
     if ( !gnb_core->conf->activate_tun ) {
         return 0;
     }
 
-    pthread_create(&main_worker_ctx->tun_loop_thread, NULL, tun_loop_thread_func, gnb_worker);
-    pthread_detach(main_worker_ctx->tun_loop_thread);
+    pthread_create(&primary_worker_ctx->tun_loop_thread, NULL, tun_loop_thread_func, gnb_worker);
+    pthread_detach(primary_worker_ctx->tun_loop_thread);
 
     /*在Windows下如果执行 pthread_detach， pthread_kill 会返回 ESRCH
      * 事实上，在Windows下执行pthread_kill没发现可以发送信号到线程
@@ -854,7 +1006,7 @@ static int start(gnb_worker_t *gnb_worker){
 
 static int stop(gnb_worker_t *gnb_worker){
 
-    main_worker_ctx_t *main_worker_ctx = gnb_worker->ctx;
+    primary_worker_ctx_t *primary_worker_ctx = gnb_worker->ctx;
 
     return 0;
 }
@@ -864,22 +1016,23 @@ static int notify(gnb_worker_t *gnb_worker){
 
     int ret;
 
-    main_worker_ctx_t *main_worker_ctx = gnb_worker->ctx;
+    primary_worker_ctx_t *primary_worker_ctx = gnb_worker->ctx;
 
 #ifdef __UNIX_LIKE_OS__
-    ret = pthread_kill(main_worker_ctx->tun_udp_loop_thread,SIGALRM);
+    ret = pthread_kill(primary_worker_ctx->tun_udp_loop_thread,SIGALRM);
 #endif
 
 #ifdef _WIN32
-    ret = pthread_kill(main_worker_ctx->udp_loop_thread,SIGHUP);
+    ret = pthread_kill(primary_worker_ctx->udp_loop_thread,SIGHUP);
 #endif
 
     return 0;
 
 }
 
-gnb_worker_t gnb_main_worker_mod = {
-    .name      = "gnb_main_worker",
+
+gnb_worker_t gnb_primary_worker_mod = {
+    .name      = "gnb_primary_worker",
     .init      = init,
     .release   = release,
     .start     = start,

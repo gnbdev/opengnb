@@ -40,20 +40,21 @@ typedef struct _gnb_node_worker_in_data_t {
 
 typedef struct _gnb_worker_queue_data_t {
 
-#define GNB_WORKER_QUEUE_DATA_TYPE_NODE_IN   0x1
-#define GNB_WORKER_QUEUE_DATA_TYPE_NODE_OUT  0x2
-
+  #define GNB_WORKER_QUEUE_DATA_TYPE_NODE_IN   0x1
+  #define GNB_WORKER_QUEUE_DATA_TYPE_NODE_OUT  0x2
 	int  type;
 
-    union worker_data {
-		gnb_worker_in_data_t    node_in;
-    }data;
+  union worker_data {
+	  gnb_worker_in_data_t    node_in;
+  }data;
 
-    //这里可以定义宏方便操作union
+  //这里可以定义宏方便操作union
 
 }gnb_worker_queue_data_t;
 
 //这个块不能太大，在嵌入设备上，这里是占用内存的大头
-#define GNB_WORKER_QUEUE_BLOCK_SIZE  720
+#define GNB_NODE_WORKER_QUEUE_BLOCK_SIZE          720
+#define GNB_INDEX_WORKER_QUEUE_BLOCK_SIZE         720
+#define GNB_INDEX_SERVICE_WORKER_QUEUE_BLOCK_SIZE 720
 
 #endif

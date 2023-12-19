@@ -117,9 +117,6 @@ typedef struct _gnb_core_t{
 
 	gnb_tun_drv_t *drv;
 
-	gnb_pf_array_t     *pf_array;
-	gnb_pf_ctx_array_t *pf_ctx_array;
-
 	gnb_payload16_t     *inet_payload0;
 	gnb_payload16_t     *tun_payload0;
 
@@ -128,7 +125,7 @@ typedef struct _gnb_core_t{
 
 	void *platform_ctx;
 
-	gnb_worker_t   *main_worker;
+	gnb_worker_t   *primary_worker;
 
 	gnb_worker_t   *node_worker;
 
@@ -140,10 +137,7 @@ typedef struct _gnb_core_t{
 
 	gnb_worker_t   *upnp_worker;
 
-#if 0
-	//暂未使用
-	gnb_worker_array_t *worker_array;
-#endif
+	gnb_worker_ring_t *pf_worker_ring;
 
 	struct timeval now_timeval;
 	uint64_t now_time_sec;
@@ -175,7 +169,7 @@ typedef struct _gnb_core_t{
 #define GNB_LOG_ID_INDEX_SERVICE_WORKER  5
 #define GNB_LOG_ID_DETECT_WORKER         6
 
-#define GNB_VERSION_STRING    "GNB version 1.3.0.c protocol version 1.2.0"
+#define GNB_VERSION_STRING    "GNB version 1.4.5.a protocol version 1.4.5"
 #define GNB_COPYRIGHT_STRING  "Copyright (C) 2019 gnbdev<gnbdev@qq.com>"
 #define GNB_URL_STRING        "https://github.com/gnbdev/opengnb"
 

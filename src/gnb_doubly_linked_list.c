@@ -193,7 +193,6 @@ int gnb_doubly_linked_list_move_head(gnb_doubly_linked_list_t *doubly_linked_lis
 
 int gnb_doubly_linked_list_pop(gnb_doubly_linked_list_t *doubly_linked_list, gnb_doubly_linked_list_node_t *dl_node){
 
-    
     if ( 0==doubly_linked_list->num ) {
         return 0;
     }

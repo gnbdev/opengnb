@@ -25,12 +25,10 @@ static const char *bin2hex_convtab_up_case   = "0123456789ABCDEF";
 char *gnb_bin2hex_case_string(void *bin, size_t bin_size, char *hex_string,  int letter_case) {
     
     int i;
-    
     char *p;
-    
     const char *convtab;
 
-    if ( FE_BIN2HEX_LOWERCASE == letter_case) {
+    if ( FE_BIN2HEX_LOWERCASE == letter_case ) {
         convtab = bin2hex_convtab_down_case;
     } else {
         convtab = bin2hex_convtab_up_case;
@@ -50,12 +48,11 @@ char *gnb_bin2hex_case_string(void *bin, size_t bin_size, char *hex_string,  int
     
 }
 
+
 char *gnb_bin2hex_string(void *bin, size_t bin_size, char *hex_string) {
 
     int i;
-
     char *p;
-
     const char *convtab;
 
     convtab = bin2hex_convtab_down_case;
@@ -78,12 +75,10 @@ char *gnb_bin2hex_string(void *bin, size_t bin_size, char *hex_string) {
 char *gnb_bin2hex_case(void *bin, size_t bin_size, char *hex_string,  int letter_case) {
 
     int i;
-
     char *p;
-
     const char *convtab;
 
-    if ( FE_BIN2HEX_LOWERCASE == letter_case) {
+    if ( FE_BIN2HEX_LOWERCASE == letter_case ) {
         convtab = bin2hex_convtab_down_case;
     } else {
         convtab = bin2hex_convtab_up_case;
@@ -133,19 +128,19 @@ void *gnb_hex2bin(char *hex_string, void *bin, size_t bin_size){
     int l;
     int i;
 
-    for (i = 0; i < bin_size; i++) {
+    for ( i = 0; i < bin_size; i++ ) {
 
-        if (!isxdigit(hex_string[i * 2]) || !isxdigit(hex_string[i * 2 + 1])) {
+        if ( !isxdigit(hex_string[i * 2]) || !isxdigit(hex_string[i * 2 + 1]) ) {
             return NULL;
         }
 
-        if ( isdigit( hex_string[i * 2] )) {
+        if ( isdigit( hex_string[i * 2] ) ) {
             h = hex_string[i * 2] - '0';
         } else {
             h = toupper(hex_string[i * 2]) - 'A' + 10;
         }
 
-        if ( isdigit( hex_string[i * 2 + 1] )) {
+        if ( isdigit( hex_string[i * 2 + 1] ) ) {
             l = hex_string[i * 2 + 1] - '0';
         } else {
             l = toupper(hex_string[i * 2 + 1]) - 'A' + 10;
@@ -216,3 +211,13 @@ char * gnb_get_hex_string128(void *byte64, char *dest){
 
 }
 
+
+char * gnb_get_hex_string256(void *byte128, char *dest){
+
+    gnb_bin2hex(byte128, 128, dest);
+
+    dest[256] = '\0';
+
+    return dest;
+
+}

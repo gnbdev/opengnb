@@ -64,7 +64,6 @@ gnb_doubly_linked_list_node_t* gnb_doubly_linked_list_pop_tail(gnb_doubly_linked
 
 
 int gnb_doubly_linked_list_pop(gnb_doubly_linked_list_t *doubly_linked_list, gnb_doubly_linked_list_node_t *dl_node);
-
 int gnb_doubly_linked_list_move_head(gnb_doubly_linked_list_t *doubly_linked_list, gnb_doubly_linked_list_node_t *dl_node);
 
 #endif

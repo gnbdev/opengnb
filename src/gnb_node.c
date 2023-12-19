@@ -41,12 +41,9 @@
 #include "gnb_keys.h"
 #include "gnb_time.h"
 #include "gnb_udp.h"
-
 #include "ed25519/ed25519.h"
 #include "ed25519/sha512.h"
-
 #include "gnb_binary.h"
-
 
 
 gnb_node_t * gnb_node_init(gnb_core_t *gnb_core, uint32_t uuid32){
@@ -150,7 +147,7 @@ void gnb_init_node_key512(gnb_core_t *gnb_core){
 
         node = &gnb_core->ctl_block->node_zone->node[i];
 
-        if (NULL==node) {
+        if ( NULL==node ) {
             continue;
         }
 
@@ -483,11 +480,11 @@ gnb_address_t* gnb_select_available_address4(gnb_core_t *gnb_core, gnb_node_t *n
 
     for ( i=0; i<address_list->num; i++ ) {
 
-        if (AF_INET != address_list->array[i].type) {
+        if ( AF_INET != address_list->array[i].type ) {
             continue;
         }
 
-        if ( 0 == address_list->array[i].port) {
+        if ( 0 == address_list->array[i].port ) {
             continue;
         }
 
@@ -512,11 +509,11 @@ gnb_address_t* gnb_select_available_address4(gnb_core_t *gnb_core, gnb_node_t *n
 
     for ( i=0; i<address_list->num; i++ ) {
 
-        if (AF_INET != address_list->array[i].type) {
+        if ( AF_INET != address_list->array[i].type ) {
             continue;
         }
 
-        if ( 0 == address_list->array[i].port) {
+        if ( 0 == address_list->array[i].port ) {
             continue;
         }
 
@@ -541,11 +538,11 @@ gnb_address_t* gnb_select_available_address4(gnb_core_t *gnb_core, gnb_node_t *n
 
     for ( i=0; i<address_list->num; i++ ) {
 
-        if (AF_INET != address_list->array[i].type) {
+        if ( AF_INET != address_list->array[i].type ) {
             continue;
         }
 
-        if ( 0 == address_list->array[i].port) {
+        if ( 0 == address_list->array[i].port ) {
             continue;
         }
 
@@ -570,11 +567,11 @@ gnb_address_t* gnb_select_available_address4(gnb_core_t *gnb_core, gnb_node_t *n
 
     for ( i=0; i<address_list->num; i++ ) {
 
-        if (AF_INET != address_list->array[i].type) {
+        if ( AF_INET != address_list->array[i].type ) {
             continue;
         }
 
-        if ( 0 == address_list->array[i].port) {
+        if ( 0 == address_list->array[i].port ) {
             continue;
         }
 
@@ -607,7 +604,7 @@ int gnb_send_to_node(gnb_core_t *gnb_core, gnb_node_t *node, gnb_payload16_t *pa
 
     }
 
-    if (GNB_ADDR_TYPE_IPV4 == gnb_core->conf->udp_socket_type) {
+    if ( GNB_ADDR_TYPE_IPV4 == gnb_core->conf->udp_socket_type ) {
         goto finish;
     }
 
@@ -637,8 +634,6 @@ int gnb_forward_payload_to_node(gnb_core_t *gnb_core, gnb_node_t *node, gnb_payl
     } else if ( GNB_ADDR_TYPE_IPV6 == gnb_core->conf->udp_socket_type ) {
         goto send_by_ipv6;
     }
-
-    unsigned char send;
 
     if ( (node->udp_addr_status & GNB_NODE_STATUS_IPV6_PONG) && (node->udp_addr_status & GNB_NODE_STATUS_IPV4_PONG) ) {
 
@@ -677,4 +672,3 @@ finish:
     return 0;
 
 }
-

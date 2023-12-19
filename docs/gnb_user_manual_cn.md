@@ -420,6 +420,30 @@ gnb_es -s -L -b gnb/conf/1002/gnb.map
 要了解更多 **Discover In Lan** 的信息，可以参考 `gnb` 的 `-b, --ctl-block`，以及  `gnb_es` 的 `-s, --service` `-d, --daemon` `-L, --discover-in-lan` 选项。
 
 
+## 用 zip 压缩数据分组
+    `--zip`
+    auto    当数据压缩后比原始数据大将发送原始数据
+    force   当数据压缩后比原始数据大将发送压缩后的数据
+
+    `--zip-level`
+    0 不压缩 1~9 压缩率 1 最低压缩率， 9是最高压缩率
+
+    node.conf 支持该选项
+
+## 利用多核CPU加速数据分组处理
+
+    `--pf-worker`
+    默认是0,即使用单个线程处理ip数据分组
+    最大不超过128个线程
+
+    node.conf 支持该选项
+
+## 内存规模
+    `--memory`
+    可选项有 tiny,small,large,huge，默认是:"tiny"
+
+    node.conf 支持该选项
+
 ## 关于 net to net
 
 一般而言，VPN通过建立虚拟链路的方式可以把几台计算机组成一个网络，也可以让一台计算机通过虚拟链路接入一个网络，还可以通过虚拟链路把两个或者更多的计算机网络组成一个大的虚拟网络，使得分散在各自不同网络里的计算机可以互相访问。

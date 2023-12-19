@@ -93,6 +93,8 @@ typedef struct _gnb_node_t{
 	//handle_push_addr_frame时更新, 及在启动时加载自文件缓存
 	unsigned char push_address_block[sizeof(gnb_address_list_t) + sizeof(gnb_address_t)*GNB_NODE_PUSH_ADDRESS_NUM];
 
+	unsigned char available_address6_list3_block[sizeof(gnb_address_list_t) + sizeof(gnb_address_t)*3];
+    unsigned char available_address4_list3_block[sizeof(gnb_address_list_t) + sizeof(gnb_address_t)*3];
 
 	unsigned char   detect_address4_block[sizeof(gnb_address_list_t) + sizeof(gnb_address_t)*3];
 	uint8_t         detect_address4_idx;
@@ -161,16 +163,10 @@ typedef struct _gnb_node_t{
 
 	//上次向 index 节点查询的时间戳
 	uint64_t last_request_addr_sec;
-
 	uint64_t last_push_addr_sec;
-
 	uint64_t last_detect_sec;
-
     uint64_t last_send_detect_usec;
-
 	uint64_t last_full_detect_sec;
-    
-	
 
 }gnb_node_t;
 

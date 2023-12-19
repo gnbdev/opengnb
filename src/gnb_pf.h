@@ -18,6 +18,51 @@
 #ifndef GNB_PF_H
 #define GNB_PF_H
 
+
+/*
+
+packet filter call_back order
+
+pf install 0 ~ n gnb_pf_dump -> gnb_pf_route_xx -> gnb_pf_crypto_xx -> gnb_pf_zip
+
+gnb_pf_tun:
+
+ pf_tun_frame    gnb_pf_dump[+] -> gnb_pf_route_xx [-] -> gnb_pf_crypto_xx[-] ->  gnb_pf_zip[-]
+ pf_tun_route    gnb_pf_dump[-] -> gnb_pf_route_xx [+] -> gnb_pf_crypto_xx[+] ->  gnb_pf_zip[+]
+ pf_tun_fwd       gnb_pf_zip[-] -> gnb_pf_crypto_xx[+] ->  gnb_pf_route_xx[-] -> gnb_pf_dump[+]
+
+gnb_pf_inet:
+
+ pf_inet_frame    gnb_pf_zip[-] -> gnb_pf_crypto_xx[+] -> gnb_pf_route_xx [+] -> gnb_pf_dump[-]
+ pf_inet_route   gnb_pf_dump[-] ->  gnb_pf_route_xx[+] -> gnb_pf_crypto_xx[+] ->  gnb_pf_zip[+]
+ pf_inet_fwd     gnb_pf_dump[+] ->  gnb_pf_route_xx[-] -> gnb_pf_crypto_xx[+] ->  gnb_pf_zip[-]
+
+
+
+┌──────────────────────────┬────────────────────────────────────────────────────────────┐
+│  gnb payload header      │                      gnb payload data                      │
+├────────┬────────┬────────┼────────────────────────┬─────────────────┬─────────────────┤
+│  size  │  type  │sub type│ gnb route frame header │     ip frame    │  relay node id  │
+├────────┼────────┼────────┼────────────────────────┼─────────────────┼─────────────────┤
+│ 2 byte │ 1 byte │ 1 byte │                        │                 │ variable-length │
+└────────┴────────┴────────┴────────────────────────┴─────────────────┴─────────────────┘
+
+
+┌──────────────────────────┬──────────────────────────────────────────────────────────────────┐
+│  gnb payload header      │                      gnb payload data                            │
+├────────┬────────┬────────┼────────────────────────┬─────────────────────┬───────────────────┤
+│  size  │  type  │sub type│ gnb route frame header │       ip frame      │   relay node id   │
+├────────┼────────┼────────┼────────────────────────┼─────────────────────┼───────────────────┤
+│ 2 byte │ 1 byte │ 1 byte │                        │                     │  variable-length  │
+├────────┴────────┴────────┼────────────────────────┼─────────────────────┼──────────┬────────┤
+│                          │                        ├──  crypto segment  ─┤          │ 4 byte │
+│                          ├─────────────────────    relay crypto segment    ────────┤        │
+│                          ├──────────────────      deflate/inflate segment     ──────────────┤
+
+
+*/
+
+
 #include <stdio.h>
 #include <stdint.h>
 
@@ -88,26 +133,62 @@ typedef struct _gnb_pf_ctx_t {
 #define GNB_PF_FWD_TUN  0x1
 #define GNB_PF_FWD_INET 0x2
 
-typedef void(*gnb_pf_init_cb_t)(gnb_core_t *gnb_core);
+typedef struct _gnb_pf_t gnb_pf_t;
 
-typedef void(*gnb_pf_conf_cb_t)(gnb_core_t *gnb_core);
+typedef void(*gnb_pf_init_cb_t)(gnb_core_t *gnb_core, gnb_pf_t *pf);
 
-typedef int(*gnb_pf_tun_frame_cb_t)(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx);
-typedef int(*gnb_pf_tun_route_cb_t)(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx);
-typedef int(*gnb_pf_tun_fwd_cb_t)(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx);
+typedef void(*gnb_pf_conf_cb_t)(gnb_core_t *gnb_core, gnb_pf_t *pf);
 
-typedef int(*gnb_pf_inet_frame_cb_t)(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx);
-typedef int(*gnb_pf_inet_route_cb_t)(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx);
-typedef int(*gnb_pf_inet_fwd_cb_t)(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx);
+/*
+  tun packet filter step 1:
+  pf_ctx->fwd_payload->data 中存放的是 从tun设备中得到的数据分组,
+  尽可能不在此 call back 中改变 pf_ctx->fwd_payload->data 的内容使得后面调用的 pf 的处理过程能够访问到原始的来自tun的数据分组
+*/
+typedef int(*gnb_pf_tun_frame_cb_t)(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx);
 
-typedef void(*gnb_pf_release_cb_t)(gnb_core_t *gnb_core);
+/*
+  tun packet filter step 2:
+  在此 call back 中可以确定 payload 的目的节点，对数据分组进行加密，修改 pf_ctx->fwd_payload 的长度
+*/
+typedef int(*gnb_pf_tun_route_cb_t)(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx);
+
+
+/*
+  tun packet filter step 3:
+  如果下一跳是 realy 节点，可以在这里做一次加密
+*/
+typedef int(*gnb_pf_tun_fwd_cb_t)(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx);
+
+
+/*
+  inet packet filter step 1:
+
+*/
+typedef int(*gnb_pf_inet_frame_cb_t)(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx);
+
+
+/*
+  inet packet filter step 2:
+
+*/
+typedef int(*gnb_pf_inet_route_cb_t)(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx);
+
+
+/*
+  inet packet filter step 3:
+  对来自其他节点的 payload 进行中继时可以在此 call back 中对中转的 payload 加密
+*/
+typedef int(*gnb_pf_inet_fwd_cb_t)(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx);
+
+
+typedef void(*gnb_pf_release_cb_t)(gnb_core_t *gnb_core, gnb_pf_t *pf);
 
 
 typedef struct _gnb_pf_t {
 
-	uint32_t ctx_idx;
-
 	const char *name;
+
+	void *private_ctx;
 
 	gnb_pf_init_cb_t    pf_init;
 	gnb_pf_conf_cb_t    pf_conf;
@@ -125,16 +206,6 @@ typedef struct _gnb_pf_t {
 }gnb_pf_t;
 
 
-void gnb_pf_init(gnb_core_t *gnb_core);
-
-void gnb_pf_conf(gnb_core_t *gnb_core);
-
-void gnb_pf_tun(gnb_core_t *gnb_core, gnb_payload16_t *payload);
-
-void gnb_pf_inet(gnb_core_t *gnb_core, gnb_payload16_t *payload, gnb_sockaddress_t *source_node_addr);
-
-void gnb_pf_release(gnb_core_t *gnb_core);
-
 typedef struct _gnb_pf_array_t {
 
 	size_t size;
@@ -143,22 +214,21 @@ typedef struct _gnb_pf_array_t {
 
 }gnb_pf_array_t;
 
-typedef struct _gnb_pf_ctx_array_t {
 
-	size_t size;
-	size_t last;
-	void *ctx[0];
+void gnb_pf_init(gnb_core_t *gnb_core, gnb_pf_array_t *pf_array);
 
-}gnb_pf_ctx_array_t;
+void gnb_pf_conf(gnb_core_t *gnb_core, gnb_pf_array_t *pf_array);
+
+void gnb_pf_tun(gnb_core_t *gnb_core, gnb_pf_array_t *pf_array, gnb_payload16_t *payload);
+
+void gnb_pf_inet(gnb_core_t *gnb_core, gnb_pf_array_t *pf_array, gnb_payload16_t *payload, gnb_sockaddress_t *source_node_addr);
+
+void gnb_pf_release(gnb_core_t *gnb_core, gnb_pf_array_t *pf_array);
+
+void gnb_pf_status_strings_init();
 
 gnb_pf_array_t * gnb_pf_array_init(gnb_heap_t *heap, int size);
 
 int gnb_pf_install(gnb_pf_array_t *pf_array, gnb_pf_t *pf);
-
-gnb_pf_ctx_array_t * gnb_pf_ctx_array_init(gnb_heap_t *heap, int size);
-
-#define GNB_PF_GET_CTX(gnb_core,gnb_pf) gnb_core->pf_ctx_array->ctx[gnb_pf.ctx_idx]
-
-#define GNB_PF_SET_CTX(gnb_core,gnb_pf,ctx) gnb_core->pf_ctx_array->ctx[gnb_pf.ctx_idx]=ctx
 
 #endif

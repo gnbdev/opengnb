@@ -1,4 +1,5 @@
-CFLAGS=-O2 -I./src -I/usr/x86_64-w64-mingw32/include -I./libs -I./libs/wintun -I./libs/miniupnpc -I./libs/libnatpmp -DMINIUPNP_STATICLIB -DNATPMP_STATICLIB
+CFLAGS=-O2 -I./src -I/usr/x86_64-w64-mingw32/include -I./libs -I./libs/wintun -I./libs/miniupnpc -I./libs/libnatpmp -I./libs/zlib -D NO_GZIP=1 -DMINIUPNP_STATICLIB -DNATPMP_STATICLIB
+
 CLI_LDFLAGS=-s -static -L/usr/x86_64-w64-mingw32/lib/ -lwsock32 -lws2_32 -liphlpapi -lpthread -lmingwex
 GNB_ES_LDFLAGS=-s -static -L/usr/x86_64-w64-mingw32/lib/ -lwsock32 -lws2_32 -liphlpapi -lpthread -lmingwex
 
@@ -15,7 +16,7 @@ include Makefile.inc
 GNB_CLI_OBJS =                             \
        ./src/cli/gnb.o                     \
        ./src/gnb_argv.o                    \
-       ./src/gnb_res.o                     \
+       ./src/mingw/gnb_res.o               \
        ./src/mingw/windows_platform.o      \
        ./src/mingw/gnb_drv_win32.o         \
        ./src/mingw/gnb_drv_wintun.o
@@ -25,27 +26,27 @@ GNB_ES_OBJS += ./src/mingw/windows_platform.o
 all:${GNB_CLI} ${GNB_CRYPTO} ${GNB_ES} ${GNB_CTL}
 
 
-${GNB_CTL}: ${GNB_CTL_OBJS} ./src/gnb_res.o
-	${CC} -o ${GNB_CTL} ${GNB_CTL_OBJS} ./src/gnb_res.o ${CLI_LDFLAGS}
+${GNB_CTL}: ${GNB_CTL_OBJS} ./src/mingw/gnb_res.o
+	${CC} -o ${GNB_CTL} ${GNB_CTL_OBJS} ./src/mingw/gnb_res.o ${CLI_LDFLAGS}
 
 
 ${GNB_ES}: ${GNB_ES_OBJS} ${CRYPTO_OBJS} ${MINIUPNP_OBJS} ${LIBNATPMP_OBJS}
-	${CC} -o ${GNB_ES} ${GNB_ES_OBJS} ${CRYPTO_OBJS} ${MINIUPNP_OBJS} ${LIBNATPMP_OBJS} ./src/gnb_res.o ${GNB_ES_LDFLAGS}
+	${CC} -o ${GNB_ES} ${GNB_ES_OBJS} ${CRYPTO_OBJS} ${MINIUPNP_OBJS} ${LIBNATPMP_OBJS} ./src/mingw/gnb_res.o ${GNB_ES_LDFLAGS}
 
 
 $(GNB_CRYPTO): $(CRYPTO_OBJS) ./src/gnb_crypto.o
 	${CC} -o ${GNB_CRYPTO} ./src/gnb_crypto.o ${CRYPTO_OBJS} ${CLI_LDFLAGS}
 
 
-${GNB_CLI}: ${GNB_OBJS} ${GNB_CLI_OBJS} ${GNB_PF_OBJS} ${CRYPTO_OBJS}
-	${CC} -o ${GNB_CLI} ${GNB_OBJS} ${GNB_CLI_OBJS} ${GNB_PF_OBJS} ${CRYPTO_OBJS} ${CLI_LDFLAGS}
+${GNB_CLI}: ${GNB_OBJS} ${GNB_CLI_OBJS} ${GNB_PF_OBJS} ${CRYPTO_OBJS} ${ZLIB_OBJS}
+	${CC} -o ${GNB_CLI} ${GNB_OBJS} ${GNB_CLI_OBJS} ${GNB_PF_OBJS} ${CRYPTO_OBJS} ${ZLIB_OBJS} ${CLI_LDFLAGS}
 
 
 %.o:%.c
 	${CC} ${CFLAGS} -c -o $@ $<
 
-./src/gnb_res.o: ./src/gnb_res.rc
-	${WINDRES} ./src/gnb_res.rc -o ./src/gnb_res.o
+./src/mingw/gnb_res.o: ./src/mingw/gnb_res.rc
+	${WINDRES} ./src/mingw/gnb_res.rc -o ./src/mingw/gnb_res.o
 
 
 install:${GNB_CLI} ${GNB_CRYPTO} ${GNB_ES} ${GNB_CTL}

@@ -15,8 +15,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef GNB_SVR_H
-#define GNB_SVR_H
+#ifndef GNB_CORE_H
+#define GNB_CORE_H
 
 #include "gnb.h"
 

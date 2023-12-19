@@ -55,7 +55,7 @@ gnb_fixed_pool_t* gnb_fixed_pool_create(gnb_heap_t *heap, uint32_t array_len, ui
 
     p = fixed_pool->block;
     
-    for (i=0; i<array_len; i++) {
+    for ( i=0; i<array_len; i++ ) {
         fixed_pool->array[i] = p;
         p += bsize;
     }

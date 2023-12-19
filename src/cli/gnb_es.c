@@ -226,7 +226,7 @@ int main (int argc,char *argv[]){
 
         opt = getopt_long (argc, argv, "b:46dsLh",long_options, &option_index);
 
-        if (opt == -1) {
+        if ( opt == -1 ) {
             break;
         }
 
@@ -344,12 +344,12 @@ int main (int argc,char *argv[]){
 
 
 #ifdef __UNIX_LIKE_OS__
-    if (daemon) {
+    if ( daemon ) {
         gnb_daemon();
     }
 #endif
 
-    if (daemon) {
+    if ( daemon ) {
         service_opt = 1;
     }
 

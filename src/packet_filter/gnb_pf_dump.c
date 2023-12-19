@@ -42,16 +42,16 @@
 
 gnb_pf_t gnb_pf_dump;
 
-static void pf_init_cb(gnb_core_t *gnb_core){
+static void pf_init_cb(gnb_core_t *gnb_core, gnb_pf_t *pf){
 
 }
 
-static void pf_conf_cb(gnb_core_t *gnb_core){
+static void pf_conf_cb(gnb_core_t *gnb_core, gnb_pf_t *pf){
 
 }
 
 
-static int pf_tun_frame_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
+static int pf_tun_frame_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
 
     char src_ipv4_string[INET_ADDRSTRLEN];
     char dst_ipv4_string[INET_ADDRSTRLEN];
@@ -109,28 +109,27 @@ static int pf_tun_frame_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 }
 
 
-static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
+static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
     return pf_ctx->pf_status;
 }
 
 
-static int pf_tun_fwd_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
-
+static int pf_tun_fwd_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
     return pf_ctx->pf_status;;
 }
 
 
-static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
+static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
     return pf_ctx->pf_status;
 }
 
 
-static int pf_inet_route_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
+static int pf_inet_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
     return pf_ctx->pf_status;
 }
 
 
-static int pf_inet_fwd_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
+static int pf_inet_fwd_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
 
     char src_ipv4_string[INET_ADDRSTRLEN];
     char dst_ipv4_string[INET_ADDRSTRLEN];
@@ -186,14 +185,14 @@ static int pf_inet_fwd_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 }
 
 
-static void pf_release_cb(gnb_core_t *gnb_core){
+static void pf_release_cb(gnb_core_t *gnb_core, gnb_pf_t *pf){
 
 
 }
 
 gnb_pf_t gnb_pf_dump = {
-    0,
     "gnb_pf_dump",
+    NULL,
     pf_init_cb,
     pf_conf_cb,
     pf_tun_frame_cb,
@@ -204,5 +203,3 @@ gnb_pf_t gnb_pf_dump = {
     pf_inet_fwd_cb,
     pf_release_cb
 };
-
-

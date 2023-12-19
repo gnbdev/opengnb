@@ -47,8 +47,8 @@
 #include "gnb_time.h"
 #include "gnb_payload16.h"
 
-
 #define GNB_LOG_LINE_MAX 1024*4
+
 
 static void open_log_file(gnb_log_ctx_t *log){
 
@@ -263,7 +263,7 @@ void gnb_logf(gnb_log_ctx_t *log, uint8_t log_type, uint8_t log_id, uint8_t leve
 
     if ( log->output_type & GNB_LOG_OUTPUT_UDP ) {
 
-        if (GNB_LOG_UDP_TYPE_BINARY == log->log_udp_type) {
+        if ( GNB_LOG_UDP_TYPE_BINARY == log->log_udp_type ) {
             log_udp_binary_output(log, log_type, log_id, log_string_buffer, log_string_len);
         } else {
             log_udp_output(log, log_type, log_string, log_string_len);
@@ -345,7 +345,7 @@ int gnb_log_udp_set_addr4_string(gnb_log_ctx_t *log, char *sockaddress4_string){
 
     int sockaddress4_string_len = strlen(sockaddress4_string);
 
-    if (sockaddress4_string_len > MAX_SOCKADDRESS_STRING ) {
+    if ( sockaddress4_string_len > MAX_SOCKADDRESS_STRING ) {
         return -1;
     }
 

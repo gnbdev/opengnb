@@ -52,13 +52,13 @@
 struct iphdr {
 
 #if __BYTE_ORDER__==__ORDER_LITTLE_ENDIAN__
-	u_char	ihl:4,		   /* header length */
-       version:4;	           /* version */
+	u_char	ihl:4,		    /* header length */
+        version:4;	        /* version */
 #endif
 
 #if __BYTE_ORDER__==__ORDER_BIG_ENDIAN__
-	u_char	version:4,	  /* version */
-    ihl:4;		          /* header length */
+	u_char	version:4,	    /* version */
+    ihl:4;		            /* header length */
 #endif
 
     u_char  tos;            /* type of service */
@@ -76,30 +76,35 @@ struct iphdr {
 
 #pragma pack(push, 1)
 
-struct gnb_in6_addr
-  {
-    union
-      {
-	uint8_t  __u6_addr8[16];
-	uint16_t __u6_addr16[8];
-	uint32_t __u6_addr32[4];
-      } __in6_u;
+struct gnb_in6_addr {
 
-  }__attribute__ ((__packed__));
+    union {
+	  uint8_t  __u6_addr8[16];
+	  uint16_t __u6_addr16[8];
+	  uint32_t __u6_addr32[4];
+    } __in6_u;
 
-  struct ip6_hdr {
+}__attribute__ ((__packed__));
+
+struct ip6_hdr {
+
   	union {
+
   		struct ip6_hdrctl {
   			uint32_t ip6_un1_flow;	/* 20 bits of flow-ID */
   			uint16_t ip6_un1_plen;	/* payload length */
   			uint8_t  ip6_un1_nxt;	/* next header */
   			uint8_t  ip6_un1_hlim;	/* hop limit */
   		} ip6_un1;
-  		uint8_t ip6_un2_vfc;	/* 4 bits version, top 4 bits class */
+
+  		uint8_t ip6_un2_vfc;	    /* 4 bits version, top 4 bits class */
+
   	} ip6_ctlun;
+
   	struct gnb_in6_addr ip6_src;	/* source address */
   	struct gnb_in6_addr ip6_dst;	/* destination address */
-  } __attribute__ ((__packed__));
+
+} __attribute__ ((__packed__));
 
 #pragma pack(pop)
 

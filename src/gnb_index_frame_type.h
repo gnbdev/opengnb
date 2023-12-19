@@ -60,11 +60,11 @@ typedef struct _post_addr_frame_t {
 		uint64_t src_ts_usec;            //发送方的时间戳,可选
 
 		//源节点对自身探测的wan地址
-		uint8_t  wan_addr6[16];
-		uint16_t port6;
+		uint8_t  wan6_addr[16];
+		uint16_t wan6_port;
 
-		uint8_t  wan_addr4[4];
-		uint16_t port4;
+		uint8_t  wan4_addr[4];
+		uint16_t wan4_port;
 
 		/* 节点提交地址时生成一组随机数，然后对这组随机数进行数字签名
 		 * index 节点会保存最后收到的 node_random_sequence，node_random_sequence_sign

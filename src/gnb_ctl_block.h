@@ -26,8 +26,8 @@
 #include "gnb_node_type.h"
 #include "gnb_log_type.h"
 
-#define GNB_TUN_PAYLOAD_BLOCK_SIZE  1024*4
-#define GNB_INET_PAYLOAD_BLOCK_SIZE 1024*4
+
+#define GNB_MAX_PAYLOAD_BLOCK_SIZE 1024*64
 
 #define GNB_PAYLOAD_BUFFER_PADDING_SIZE 1024
 
@@ -62,11 +62,11 @@ typedef struct _gnb_ctl_core_zone_t {
 	unsigned char ifname[256];
 	unsigned char if_device_string[256];
 
-	unsigned char wan_addr6[16];
-	uint16_t wan_port6;   //网络字节序
+	unsigned char wan6_addr[16];
+	uint16_t wan6_port;   //网络字节序
 
-	unsigned char wan_addr4[4];
-	uint16_t wan_port4;   //网络字节序
+	unsigned char wan4_addr[4];
+	uint16_t wan4_port;   //网络字节序
 
 	gnb_log_ctx_t log_ctx_st;
 
@@ -74,8 +74,10 @@ typedef struct _gnb_ctl_core_zone_t {
 
 	unsigned char ufwd_address_block[ sizeof(gnb_address_list_t) + sizeof(gnb_address_t) * 16 ];
 
-	unsigned char  tun_payload_block[ GNB_PAYLOAD_BUFFER_PADDING_SIZE + sizeof(gnb_payload16_t) + GNB_TUN_PAYLOAD_BLOCK_SIZE];
-	unsigned char inet_payload_block[ GNB_PAYLOAD_BUFFER_PADDING_SIZE + sizeof(gnb_payload16_t) + GNB_INET_PAYLOAD_BLOCK_SIZE];
+	unsigned char  tun_payload_block[ GNB_PAYLOAD_BUFFER_PADDING_SIZE + sizeof(gnb_payload16_t) + GNB_MAX_PAYLOAD_BLOCK_SIZE ];
+	unsigned char inet_payload_block[ GNB_PAYLOAD_BUFFER_PADDING_SIZE + sizeof(gnb_payload16_t) + GNB_MAX_PAYLOAD_BLOCK_SIZE ];
+	
+	unsigned char pf_worker_payload_blocks[0];
 
 }gnb_ctl_core_zone_t;
 
@@ -117,8 +119,8 @@ typedef struct _gnb_ctl_block_t {
 
 ssize_t gnb_ctl_file_size(const char *filename);
 
-gnb_ctl_block_t *gnb_ctl_block_build(void *memory,size_t node_num);
 
+gnb_ctl_block_t *gnb_ctl_block_build(void *memory, uint32_t payload_block_size, size_t node_num, uint8_t pf_worker_num);
 
 void gnb_ctl_block_build_finish(void *memory);
 

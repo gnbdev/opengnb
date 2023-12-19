@@ -20,12 +20,15 @@
 
 #define GNB_PAYLOAD_TYPE_UR0                  (0x3)
 
+
 #define GNB_PAYLOAD_TYPE_IPFRAME              (0x4)
 #define GNB_PAYLOAD_SUB_TYPE_IPFRAME_INIT                (0x0)
 #define GNB_PAYLOAD_SUB_TYPE_IPFRAME_STD                 (0x1)
 #define GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY               (0x1 << 1)
 #define GNB_PAYLOAD_SUB_TYPE_IPFRAME_UNIFIED             (0x1 << 2)
 #define GNB_PAYLOAD_SUB_TYPE_IPFRAME_UNIFIED_MULTI_PATH  (0x1 << 3)
+#define GNB_PAYLOAD_SUB_TYPE_IPFRAME_ZIP                 (0x1 << 4)
+
 
 #define GNB_PAYLOAD_TYPE_INDEX                (0x8)
 #define PAYLOAD_SUB_TYPE_POST_ADDR            (0x1)

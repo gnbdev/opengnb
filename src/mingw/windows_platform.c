@@ -96,12 +96,12 @@ int gnb_exec(char *app_filename, char *current_path, gnb_arg_list_t *gnb_arg_lis
 
     }
 
-    if (pi.hProcess) {
+    if ( pi.hProcess ) {
       CloseHandle(pi.hProcess);
       pi.hProcess = NULL;
     }
 
-    if (pi.hThread) {
+    if ( pi.hThread ) {
        CloseHandle(pi.hThread);
        pi.hThread = NULL;
     }

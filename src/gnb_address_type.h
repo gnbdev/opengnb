@@ -48,9 +48,8 @@ typedef struct _gnb_address_t{
 	//最后更新时间
 	uint64_t ts_sec;
 
-	//延时 可以经过ping pong后算出
-	uint64_t delay_usec;
-
+	//延时,经过 ping pong 后算出
+	uint64_t latency_usec;
 	union{
 		uint8_t  addr4[4];
 		uint8_t  addr6[16];
@@ -64,6 +63,7 @@ typedef struct _gnb_address_t{
 
 }gnb_address_t;
 #pragma pack(pop)
+
 
 typedef struct _gnb_address_list_t{
 
@@ -104,5 +104,5 @@ typedef struct _gnb_sockaddress_t{
 }gnb_sockaddress_t;
 
 
-
 #endif
+

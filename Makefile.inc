@@ -20,6 +20,16 @@ LIBNATPMP_OBJS =                            \
        ./libs/libnatpmp/wingettimeofday.o   \
 
 
+ZLIB_OBJS =                                 \
+       ./libs/zlib/adler32.o                \
+       ./libs/zlib/deflate.o                \
+       ./libs/zlib/inffast.o                \
+       ./libs/zlib/inflate.o                \
+       ./libs/zlib/inftrees.o               \
+       ./libs/zlib/trees.o                  \
+       ./libs/zlib/zutil.o
+
+
 CRYPTO_OBJS =                               \
        ./libs/ed25519/add_scalar.o          \
        ./libs/ed25519/fe.o                  \
@@ -37,12 +47,13 @@ CRYPTO_OBJS =                               \
 
 
 GNB_OBJS =                                 \
-       ./src/gnb_svr.o                     \
+       ./src/gnb_core.o                    \
        ./src/gnb_daemon.o                  \
        ./src/gnb_worker.o                  \
        ./src/gnb_ctl_block.o               \
        ./src/gnb_address.o                 \
-       ./src/gnb_main_worker.o             \
+       ./src/gnb_primary_worker.o          \
+       ./src/gnb_pf_worker.o               \
        ./src/gnb_node_worker.o             \
        ./src/gnb_index_worker.o            \
        ./src/gnb_index_service_worker.o    \
@@ -53,7 +64,7 @@ GNB_OBJS =                                 \
        ./src/gnb_node.o                    \
        ./src/gnb_udp.o                     \
        ./src/gnb_payload16.o               \
-       ./src/gnb_ring_buffer.o             \
+       ./src/gnb_ring_buffer_fixed.o       \
        ./src/gnb_time.o                    \
        ./src/gnb_lru32.o                   \
        ./src/gnb_fixed_pool.o              \
@@ -74,6 +85,7 @@ GNB_PF_OBJS   =                                  \
       ./src/packet_filter/gnb_pf_route.o         \
       ./src/packet_filter/gnb_pf_crypto_xor.o    \
       ./src/packet_filter/gnb_pf_crypto_arc4.o   \
+      ./src/packet_filter/gnb_pf_zip.o           \
       ./src/packet_filter/gnb_pf_dump.o
 
 

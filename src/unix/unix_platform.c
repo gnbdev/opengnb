@@ -17,17 +17,21 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 #include <sys/wait.h>
 #include <signal.h>
 #include <fcntl.h>
+
 
 #include "gnb_exec.h"
 #include "gnb_arg_list.h"
 
 #if defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__)
 extern char **__environ;
+#endif
+
+#if defined(GNB_OPENWRT_BUILD)
+extern char **environ;
 #endif
 
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
@@ -84,7 +88,7 @@ pid_t gnb_exec(char *app_filename, char *current_path, gnb_arg_list_t *arg_list,
 
     ret = chdir(current_path);
 
-    if( 0 != ret ){
+    if ( 0 != ret ) {
         goto finish;
     }
 
@@ -103,14 +107,28 @@ pid_t gnb_exec(char *app_filename, char *current_path, gnb_arg_list_t *arg_list,
 do_exec:
 
     #if defined(__linux__)
+        
+    #if defined(GNB_LINUX_BUILD)
     ret = execve(app_filename, argv, __environ);
     #endif
+
+    #if defined(GNB_OPENWRT_BUILD)
+    
+    ret = execve(app_filename, argv, environ);
+    #endif
+    
+    #if defined(GNB_ANDROID_BUILD)
+    ret = execve(app_filename, argv, environ);
+    #endif
+
+    #endif
+
 
     #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
     ret = execve(app_filename, argv, environ);
     #endif
 
-    if( -1==ret ) {
+    if ( -1==ret ) {
         goto finish;
     }
 

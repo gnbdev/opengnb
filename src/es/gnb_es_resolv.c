@@ -169,17 +169,17 @@ void gnb_resolv_address(gnb_es_ctx *es_ctx){
 
     file = fopen(address_file,"r");
 
-    if (NULL==file){
+    if ( NULL==file ) {
         return;
     }
 
-    char line_buffer[1024];
+    char line_buffer[1024+1];
 
-    char attrib_string[16];
+    char attrib_string[16+1];
 
     uint32_t uuid32;
 
-    char     host_string[INET6_ADDRSTRLEN];
+    char host_string[256+1];
 
     uint16_t port = 0;
 
@@ -259,7 +259,7 @@ void gnb_load_wan_ipv6_address(gnb_es_ctx *es_ctx){
 
     gnb_conf_t *conf = &es_ctx->ctl_block->conf_zone->conf_st;
 
-    char host_string[46];
+    char host_string[46+1];
 
     int num;
 
@@ -267,13 +267,13 @@ void gnb_load_wan_ipv6_address(gnb_es_ctx *es_ctx){
 
     int s;
 
-    s = inet_pton(AF_INET6, host_string, (struct in_addr *)&es_ctx->ctl_block->core_zone->wan_addr6);
+    s = inet_pton(AF_INET6, host_string, (struct in_addr *)&es_ctx->ctl_block->core_zone->wan6_addr);
 
     if (s <= 0) {
-        memset(&es_ctx->ctl_block->core_zone->wan_addr6,0,16);
-        es_ctx->ctl_block->core_zone->wan_port6 = 0;
+        memset(&es_ctx->ctl_block->core_zone->wan6_addr,0,16);
+        es_ctx->ctl_block->core_zone->wan6_port = 0;
     } else {
-        es_ctx->ctl_block->core_zone->wan_port6 = htons(conf->udp6_ports[0]);
+        es_ctx->ctl_block->core_zone->wan6_port = htons(conf->udp6_ports[0]);
         GNB_LOG1(log, GNB_LOG_ID_ES_RESOLV, "load wan address6[%s:%d]\n", host_string, conf->udp6_ports[0]);
     }
 

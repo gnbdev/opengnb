@@ -53,7 +53,7 @@ ssize_t gnb_ctl_file_size(const char *filename) {
 }
 
 
-gnb_ctl_block_t *gnb_ctl_block_build(void *memory, size_t node_num){
+gnb_ctl_block_t *gnb_ctl_block_build(void *memory, uint32_t payload_block_size, size_t node_num, uint8_t pf_worker_num){
 
     uint32_t off_set = sizeof(uint32_t)*256;
 
@@ -67,12 +67,11 @@ gnb_ctl_block_t *gnb_ctl_block_build(void *memory, size_t node_num){
     memset(ctl_block->entry_table256, 0, sizeof(uint32_t)*256);
 
     ctl_block->entry_table256[GNB_CTL_MAGIC_NUMBER] = off_set;
-
     block = memory + ctl_block->entry_table256[GNB_CTL_MAGIC_NUMBER];
     block->size = sizeof(gnb_ctl_magic_number_t);
     ctl_block->magic_number = (gnb_ctl_magic_number_t *)block->data;
     off_set += sizeof(gnb_block32_t) + sizeof(gnb_ctl_magic_number_t);
-    snprintf((char *)ctl_block->magic_number->data, 16, "%s", "GNB Ver1.3.0");
+    snprintf((char *)ctl_block->magic_number->data, 16, "%s", "GNB Ver1.4.5.a");
 
     ctl_block->entry_table256[GNB_CTL_CONF] = off_set;
     block = memory + ctl_block->entry_table256[GNB_CTL_CONF];
@@ -81,31 +80,25 @@ gnb_ctl_block_t *gnb_ctl_block_build(void *memory, size_t node_num){
     off_set += sizeof(gnb_block32_t) + sizeof(gnb_ctl_conf_zone_t);
     snprintf((char *)ctl_block->conf_zone->name,    8, "%s", "CONF");
 
-
     ctl_block->entry_table256[GNB_CTL_CORE] = off_set;
     block = memory + ctl_block->entry_table256[GNB_CTL_CORE];
-    block->size = sizeof(gnb_ctl_core_zone_t);
+    block->size = sizeof(gnb_ctl_core_zone_t) + ( sizeof(gnb_payload16_t) + payload_block_size + sizeof(gnb_payload16_t) + payload_block_size ) * (1+pf_worker_num);
     ctl_block->core_zone = (gnb_ctl_core_zone_t *)block->data;
-    off_set += sizeof(gnb_block32_t) + sizeof(gnb_ctl_core_zone_t);
-
+    off_set += sizeof(gnb_block32_t) + sizeof(gnb_ctl_core_zone_t) + ( sizeof(gnb_payload16_t) + payload_block_size + sizeof(gnb_payload16_t) + payload_block_size ) * (1+pf_worker_num);
 
     ctl_block->entry_table256[GNB_CTL_STATUS] = off_set;
     block = memory + ctl_block->entry_table256[GNB_CTL_STATUS];
+
     block->size = sizeof(gnb_ctl_status_zone_t);
     ctl_block->status_zone = (gnb_ctl_status_zone_t *)block->data;
     off_set += sizeof(gnb_block32_t) + sizeof(gnb_ctl_status_zone_t);
 
 
     ctl_block->entry_table256[GNB_CTL_NODE] = off_set;
-
     block = memory + ctl_block->entry_table256[GNB_CTL_NODE];
-
     block->size = sizeof(gnb_ctl_node_zone_t) + sizeof(gnb_node_t)*node_num;
-
     ctl_block->node_zone = (gnb_ctl_node_zone_t *)block->data;
-
     off_set += sizeof(gnb_block32_t) + sizeof(gnb_ctl_node_zone_t) + sizeof(gnb_node_t)*node_num;
-
     snprintf((char *)ctl_block->node_zone->name,    8, "%s", "NODE");
     ctl_block->node_zone->node_num = node_num;
 
@@ -224,4 +217,3 @@ finish_error:
     return NULL;
 
 }
-

@@ -73,7 +73,7 @@ static void create_keypair(uint32_t uuid32, const char *private_key_file, const 
 
     wlen = write(public_file_fd,hex_string,64);
 
-    if ( -1 == wlen) {
+    if ( -1 == wlen ) {
         perror("write public_file");
     }
 
@@ -89,7 +89,7 @@ static void create_keypair(uint32_t uuid32, const char *private_key_file, const 
 
     wlen = write(private_file_fd,hex_string,128);
 
-    if ( -1 == wlen) {
+    if ( -1 == wlen ) {
         perror("write private_file");
     }
 
@@ -122,7 +122,7 @@ int main (int argc,char *argv[]){
 
         opt = getopt_long (argc, argv, "ck:p:h",long_options, &option_index);
 
-        if (opt == -1) {
+        if ( -1 == opt ) {
             break;
         }
 

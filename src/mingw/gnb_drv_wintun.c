@@ -130,7 +130,7 @@ int init_tun_wintun(gnb_core_t *gnb_core){
 
     tun_wintun_ctx->skip_if_script = 0;
 
-    GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "Notes: gnb_tun_drv_wintun is a Third party module; technical support:  https://www.github.com/wuqiong\n");
+    GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "Notes: gnb_drv_wintun.c is a Third party module; technical support:  https://www.github.com/wuqiong\n");
 
     HMODULE module = InitializeWintun(gnb_core);
 

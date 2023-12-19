@@ -22,26 +22,21 @@
 #include <string.h>
 #include <getopt.h>
 
-
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <windows.h>
 #endif
 
-
 #include "gnb_conf_type.h"
 #include "gnb_ctl_block.h"
 
-
-void gnb_ctl_dump_status(gnb_ctl_block_t *ctl_block,int reachabl_opt);
-void gnb_ctl_dump_address_list(gnb_ctl_block_t *ctl_block,int reachabl_opt);
-void gnb_ctl_dump_node_wan_address(gnb_ctl_block_t *ctl_block);
-
+void gnb_ctl_dump_status(gnb_ctl_block_t *ctl_block, uint32_t in_nodeid, uint8_t online_opt);
+void gnb_ctl_dump_address_list(gnb_ctl_block_t *ctl_block, uint32_t in_nodeid);
 
 static void show_useage(int argc,char *argv[]){
 
-    printf("GNB Ctl version 1.3.0.b protocol version 1.2.0\n");
+    printf("GNB Ctl version 1.4.5.a protocol version 1.2.5\n");
     printf("Build[%s %s]\n", __DATE__, __TIME__);
 
     printf("Copyright (C) 2019 gnbdev\n");
@@ -49,12 +44,11 @@ static void show_useage(int argc,char *argv[]){
     printf("Command Summary:\n");
 
     printf("  -b, --ctl-block           ctl block mapper file\n");
-    printf("  -a, --address             operate address zone\n");
-    printf("  -w, --wan-address         operate wan address zone\n");
     printf("  -c, --core                operate core zone\n");
-    printf("  -r, --reachabl            only output reachabl node\n");
-    printf("  -s, --show                show\n");
-
+    printf("  -a, --address             dunmp address\n");
+    printf("  -s, --status              dunmp node status\n");
+    printf("  -o, --online              dunmp online node\n");
+    printf("  -n, --node                node id\n");
     printf("      --help\n");
 
     printf("example:\n");
@@ -67,30 +61,28 @@ int main (int argc,char *argv[]){
 
     char *ctl_block_file = NULL;
 
-    gnb_ctl_block_t *ctl_block;
+    gnb_ctl_block_t *ctl_block;    
 
-    setvbuf(stdout,NULL,_IOLBF,0);
-
-    int address_opt     = 0;
-    int wan_address_opt = 0;
-    int core_opt        = 0;
-    int show_opt        = 0;
-    int reachabl_opt    = 0;
+    uint8_t  address_opt      = 0;
+    uint8_t  core_opt         = 0;
+    uint8_t  node_status_opt  = 0;
+    uint8_t  online_opt       = 0;
+    uint32_t nodeid = 0;
 
     static struct option long_options[] = {
 
       { "ctl-block",            required_argument, 0, 'b' },
-      { "address",              no_argument, 0, 'a' },
-      { "wan-address",          no_argument, 0, 'w' },
-      { "core",                 no_argument, 0, 'c' },
-      { "show",                 no_argument, 0, 's' },
-      { "reachabl",             no_argument, 0, 'r' },
-      { "help",                 no_argument, 0, 'h' },
-
+      { "node",                 required_argument, 0, 'n' },
+      { "core",                 no_argument,       0, 'c' },
+      { "status",               no_argument,       0, 's' },
+      { "address",              no_argument,       0, 'a' },
+      { "online",               no_argument,       0, 'o' },
+      { "help",                 no_argument,       0, 'h' },
       { 0, 0, 0, 0 }
 
     };
 
+    setvbuf(stdout,NULL,_IOLBF,0);
 
     int opt;
 
@@ -98,9 +90,9 @@ int main (int argc,char *argv[]){
 
         int option_index = 0;
 
-        opt = getopt_long (argc, argv, "b:awcrsh",long_options, &option_index);
+        opt = getopt_long (argc, argv, "b:n:csaoh",long_options, &option_index);
 
-        if (opt == -1) {
+        if ( opt == -1 ) {
             break;
         }
 
@@ -110,24 +102,24 @@ int main (int argc,char *argv[]){
             ctl_block_file = optarg;
             break;
 
-        case 'a':
-            address_opt = 1;
-            break;
-
-        case 'w':
-            wan_address_opt = 1;
+        case 'n':
+            nodeid = (uint32_t)strtoul(optarg, NULL, 10);
             break;
 
         case 'c':
             core_opt = 1;
             break;
 
-        case 'r':
-            reachabl_opt = 1;
+        case 's':
+            node_status_opt = 1;
             break;
 
-        case 's':
-            show_opt = 1;
+        case 'a':
+            address_opt = 1;
+            break;
+
+        case 'o':
+            online_opt = 1;
             break;
 
         case 'h':
@@ -141,14 +133,14 @@ int main (int argc,char *argv[]){
     }
 
 
-    if ( NULL == ctl_block_file ){
+    if ( NULL == ctl_block_file ) {
         show_useage(argc,argv);
         exit(0);
     }
 
     ctl_block = gnb_get_ctl_block(ctl_block_file, 0);
 
-    if ( NULL==ctl_block ){
+    if ( NULL==ctl_block ) {
         printf("open ctl block error [%s]\n",ctl_block_file);
         exit(0);
     }
@@ -161,18 +153,13 @@ int main (int argc,char *argv[]){
 #endif
 
 
-    if (core_opt) {
-        gnb_ctl_dump_status(ctl_block,reachabl_opt);
+    if ( node_status_opt ) {
+        gnb_ctl_dump_status(ctl_block, nodeid, online_opt);
     }
 
-    if (address_opt) {
-        gnb_ctl_dump_address_list(ctl_block,reachabl_opt);
+    if ( address_opt ) {
+        gnb_ctl_dump_address_list(ctl_block, nodeid);
     }
-
-    if (wan_address_opt) {
-        gnb_ctl_dump_node_wan_address(ctl_block);
-    }
-
 
 
 #ifdef _WIN32
@@ -182,3 +169,4 @@ int main (int argc,char *argv[]){
     return 0;
 
 }
+

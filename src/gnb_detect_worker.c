@@ -56,10 +56,7 @@ typedef struct _detect_worker_ctx_t{
 
 }detect_worker_ctx_t;
 
-
 #define GNB_DETECT_PUSH_ADDRESS_INTERVAL_SEC   145
-
-#define GNB_FULL_DETECT_INTERVAL_SEC           145
 
 static void detect_node_address(gnb_worker_t *gnb_detect_worker, gnb_node_t *node){
 
@@ -168,7 +165,6 @@ static void detect_loop(gnb_worker_t *gnb_detect_worker){
 
     uint64_t time_difference;
     uint64_t full_detect_time_difference;
-    uint64_t send_to_node_time_difference;
 
     size_t num = gnb_core->ctl_block->node_zone->node_num;
 
@@ -181,7 +177,6 @@ static void detect_loop(gnb_worker_t *gnb_detect_worker){
     for ( i=0; i<num; i++ ) {
 
         node = &gnb_core->ctl_block->node_zone->node[i];
-
         if ( gnb_core->local_node->uuid32 == node->uuid32 ) {
             continue;
         }
@@ -197,16 +192,7 @@ static void detect_loop(gnb_worker_t *gnb_detect_worker){
             continue;
         }
 
-        send_to_node_time_difference = detect_worker_ctx->now_time_usec - node->last_send_detect_usec;
-
-        if ( send_to_node_time_difference <= gnb_core->conf->full_detect_interval_usec ) {
-            GNB_LOG5(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "Skip Detect [%d]->[%d] last send_detect interval(%"PRIu64")\n", 
-                     gnb_core->local_node->uuid32, node->uuid32, send_to_node_time_difference );
-            continue;
-        }
-
         time_difference = detect_worker_ctx->now_time_sec - node->last_push_addr_sec;
-
         if ( time_difference > GNB_DETECT_PUSH_ADDRESS_INTERVAL_SEC ) {
             GNB_LOG5(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "Skip Detect [%d]->[%d] status=%d time_difference(%"PRIu64") > GNB_DETECT_PUSH_ADDRESS_INTERVAL_SEC(%"PRIu64") last_push_addr_sec=%"PRIu64"\n", 
                      gnb_core->local_node->uuid32, node->uuid32, node->udp_addr_status, time_difference, GNB_DETECT_PUSH_ADDRESS_INTERVAL_SEC, node->last_push_addr_sec);
@@ -214,15 +200,19 @@ static void detect_loop(gnb_worker_t *gnb_detect_worker){
         }
 
         full_detect_time_difference = detect_worker_ctx->now_time_sec - node->last_full_detect_sec;
+        if ( full_detect_time_difference < gnb_core->conf->full_detect_interval_sec ) {
 
-        if ( full_detect_time_difference < GNB_FULL_DETECT_INTERVAL_SEC ) {
-            GNB_LOG5(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "Skip Detect [%d]->[%d] status=%d full_detect_time_difference(%"PRIu64") < GNB_FULL_DETECT_INTERVAL_SEC(%"PRIu64") last_full_detect_sec=%"PRIu64"\n", 
-                     gnb_core->local_node->uuid32, node->uuid32, node->udp_addr_status, full_detect_time_difference, GNB_FULL_DETECT_INTERVAL_SEC, node->last_full_detect_sec);
+            GNB_LOG5(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "Skip Detect [%d]->[%d] status=%d full_detect_time_difference(%"PRIu64") < full_detect_interval_sec(%"PRIu64") last_full_detect_sec=%"PRIu64"\n", 
+                     gnb_core->local_node->uuid32, node->uuid32, node->udp_addr_status, full_detect_time_difference, gnb_core->conf->full_detect_interval_sec, node->last_full_detect_sec);
+
             continue;
         }
 
-        detect_node_set_address(gnb_detect_worker, node);
+        if ( gnb_core->conf->address_detect_interval_usec >0 ) {
+            GNB_SLEEP_MILLISECOND( gnb_core->conf->address_detect_interval_usec/1000 );
+        }
 
+        detect_node_set_address(gnb_detect_worker, node);
         if ( gnb_core->conf->port_detect_start == node->detect_port4 ) {
             GNB_LOG3(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "#START FULL DECETE node[%d] idx[%d]\n", node->uuid32, node->detect_address4_idx);
         }
@@ -252,7 +242,7 @@ static void* thread_worker_func( void *data ) {
     gnb_detect_worker->thread_worker_flag     = 1;
     gnb_detect_worker->thread_worker_run_flag = 1;
 
-    gnb_worker_wait_main_worker_started(gnb_core);
+    gnb_worker_wait_primary_worker_started(gnb_core);
 
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "start %s success!\n", gnb_detect_worker->name);
 
@@ -266,12 +256,13 @@ static void* thread_worker_func( void *data ) {
         }
 
         detect_worker_ctx->is_send_detect = 0;
+
         detect_loop(gnb_detect_worker);
 
         if ( detect_worker_ctx->is_send_detect ) {
             GNB_SLEEP_MILLISECOND(1);
         } else {
-            GNB_SLEEP_MILLISECOND(100);
+            GNB_SLEEP_MILLISECOND(1000);
         }
 
     }while(gnb_detect_worker->thread_worker_flag);

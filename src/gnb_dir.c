@@ -201,11 +201,11 @@ char *gnb_realpath(char *in_path, char *resolved_path){
 
     len++;
 
-    for (i=0; i<NAME_MAX; i++) {
+    for ( i=0; i<NAME_MAX; i++ ) {
 
         resolved_path[len+i] = file_basename[i];
 
-        if ( '\0' == file_basename[i]) {
+        if ( '\0' == file_basename[i] ) {
             break;
         }
 
@@ -303,15 +303,15 @@ int gnb_get_subdirname(char *path, int max_filename_len, char **filename_lst, in
         }
         #endif
 
-        if (strlen(sub_dirent->d_name)>max_filename_len) {
+        if ( strlen(sub_dirent->d_name)>max_filename_len ) {
             continue;
         }
 
-        if (0==strncmp(sub_dirent->d_name,".",max_filename_len)) {
+        if ( 0==strncmp(sub_dirent->d_name,".",max_filename_len) ) {
             continue;
         }
 
-        if (0==strncmp(sub_dirent->d_name,"..",max_filename_len)) {
+        if ( 0==strncmp(sub_dirent->d_name,"..",max_filename_len) ) {
             continue;
         }
 
@@ -379,7 +379,7 @@ int gnb_get_dir_file_names(char *path, gnb_file_info_t **sub_file_info_lst, int 
             continue;
         }
 
-        if (0==strncmp(sub_dirent->d_name,"..",GNB_MAX_FILE_NAME_LEN)) {
+        if ( 0==strncmp(sub_dirent->d_name,"..",GNB_MAX_FILE_NAME_LEN) ) {
             continue;
         }
 
@@ -513,7 +513,7 @@ char *gnb_file_path_cut(char *filename, size_t len){
         return NULL;
     }
 
-    for (i=(int)len-1; i>=0; i--) {
+    for ( i=(int)len-1; i>=0; i-- ) {
 
         if ( GNB_FILE_SP == filename[i] ) {
             filename[i]='\0';
@@ -530,13 +530,13 @@ char *gnb_file_path_dup(const char *filename, size_t len){
 
     int i;
 
-    if (0==len) {
+    if ( 0==len ) {
         return NULL;
     }
 
     char *path_dup=strdup(filename);
 
-    for (i=(int)len-1; i>=0; i--) {
+    for ( i=(int)len-1; i>=0; i-- ) {
         if ( GNB_FILE_SP == path_dup[i] ) {
             path_dup[i]='\0';
             return path_dup;

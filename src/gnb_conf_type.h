@@ -30,10 +30,12 @@
 #endif
 
 
-#define GNB_PF_TYPE_CRYPTO_NONE    0x0
-#define GNB_PF_TYPE_CRYPTO_XOR     0x01
-#define GNB_PF_TYPE_CRYPTO_ARC4    0x02
-#define GNB_PF_TYPE_CRYPTO_AES     0x03
+#define GNB_PF_BITS_NONE            (0x0)
+#define GNB_PF_BITS_CRYPTO_XOR      (0x1)
+#define GNB_PF_BITS_CRYPTO_ARC4     (0x1 << 1)
+#define GNB_PF_BITS_ZIP             (0x1 << 4)
+#define GNB_PF_BITS_7               (0x1 << 7)
+
 
 #define GNB_CRYPTO_KEY_UPDATE_INTERVAL_NONE    0x0
 #define GNB_CRYPTO_KEY_UPDATE_INTERVAL_MINUTE  0x1
@@ -43,8 +45,15 @@
 #define GNB_MULTI_ADDRESS_TYPE_SIMPLE_LOAD_BALANCE      0x2
 #define GNB_MULTI_ADDRESS_TYPE_FULL                     0x3
 
-#define GNB_WORKER_MIN_QUEUE         16
-#define GNB_WORKER_MAX_QUEUE         4096
+#define GNB_WORKER_MIN_QUEUE         0xF
+#define GNB_WORKER_MAX_QUEUE         0x1FFF
+
+#define DETECT_PORT_START  1024
+#define DETECT_PORT_END   65535
+#define DETECT_PORT_RANGE    25
+
+#define GNB_ADDRESS_DETECT_INTERVAL_USEC       2000
+#define GNB_FULL_DETECT_INTERVAL_SEC            200
 
 typedef struct _gnb_conf_t {
 
@@ -83,14 +92,31 @@ typedef struct _gnb_conf_t {
 
 	char ifname[256];
 
-	//根据 IFNAMSIZ 定义为16
+	//根据 IFNAMSIZ 定义设为16
 	char socket_ifname[16];
 
 	int mtu;
 
-	unsigned char crypto_type;
+	unsigned char pf_bits;
+
 	unsigned char crypto_key_update_interval;
 	unsigned char crypto_passcode[4];
+
+	
+    #define GNB_ZIP_AUTO   0
+    #define GNB_ZIP_FORCE  1
+	int8_t zip;
+
+	int8_t zip_level; // 0:Z_NO_COMPRESSION 9:Z_BEST_COMPRESSION -1 Z_DEFAULT_COMPRESSION
+
+    #define  GNB_MEMORY_SCALE_TINY    (0x1)
+    #define  GNB_MEMORY_SCALE_SMALL   (0x2)
+    #define  GNB_MEMORY_SCALE_LARGE   (0x3)
+    #define  GNB_MEMORY_SCALE_HUGE    (0x4)
+    unsigned char memory;
+
+    uint32_t payload_block_size;
+    uint32_t max_heap_fragment;
 
 	unsigned char multi_index_type;
 	unsigned char multi_forward_type;
@@ -125,6 +151,8 @@ typedef struct _gnb_conf_t {
 	uint8_t activate_index_service_worker;
 	uint8_t activate_detect_worker;
 
+	uint8_t pf_worker_num;
+
 	uint8_t universal_relay0;
 
 	char listen_address6_string[46 + 2 + 1 + sizeof("65535") + 1];
@@ -143,16 +171,18 @@ typedef struct _gnb_conf_t {
 	uint8_t udp6_socket_num;
 	uint8_t udp4_socket_num;
 
+	uint16_t pf_woker_in_queue_length;
+	uint16_t pf_woker_out_queue_length;
 	uint16_t node_woker_queue_length;
-
 	uint16_t index_woker_queue_length;
 	uint16_t index_service_woker_queue_length;
 
+	uint16_t port_detect_range;
 	uint16_t port_detect_start;
 	uint16_t port_detect_end;
-	uint16_t port_detect_range;
 
-    uint32_t full_detect_interval_usec;
+	uint32_t address_detect_interval_usec;
+    uint32_t full_detect_interval_sec;
 
 	uint8_t addr_secure;
 

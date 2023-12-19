@@ -92,7 +92,7 @@ int gnb_unified_forwarding_tun(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
     unified_forwarding_node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, dst_node->unified_forwarding_nodeid);
 
     if ( NULL == unified_forwarding_node ) {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "unified forwarding from tun fwd %u not found dst=%u\n", dst_node->unified_forwarding_nodeid, dst_node->uuid32);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "Unified Forwarding from tun fwd %u not found dst=%u\n", dst_node->unified_forwarding_nodeid, dst_node->uuid32);
         return -2;
     }
 
@@ -119,7 +119,7 @@ int gnb_unified_forwarding_tun(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
     gnb_forward_payload_to_node(gnb_core, unified_forwarding_node, payload);
     dst_node->unified_forwarding_node_ts_sec = gnb_core->now_time_sec;
 
-    GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "*>> unified forwarding from tun %u=>%u=>%u seq=%"PRIu64" *>>\n", gnb_core->local_node->uuid32, dst_node->unified_forwarding_nodeid, dst_node->uuid32,  dst_node->unified_forwarding_send_seq);
+    GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "*>> Unified Forwarding from tun %u=>%u=>%u seq=%"PRIu64" *>>\n", gnb_core->local_node->uuid32, dst_node->unified_forwarding_nodeid, dst_node->uuid32,  dst_node->unified_forwarding_send_seq);
 
     return 1;
 
@@ -178,7 +178,7 @@ int gnb_unified_forwarding_with_multi_path_tun(gnb_core_t *gnb_core, gnb_pf_ctx_
     if ( NULL != pf_ctx->dst_node ) {
         // 先发送到目的地，然后是 unified forwarding  节点
         gnb_forward_payload_to_node(gnb_core, pf_ctx->dst_node, payload);
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "*>> unified forwarding with multi-path to tun local %u=>%u seq=%"PRIu64" *>>\n", gnb_core->local_node->uuid32, dst_node->uuid32, dst_node->unified_forwarding_send_seq);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "*>> Unified Forwarding with Multi-Path to tun local %u=>%u seq=%"PRIu64" *>>\n", gnb_core->local_node->uuid32, dst_node->uuid32, dst_node->unified_forwarding_send_seq);
 
     }
 
@@ -198,8 +198,9 @@ int gnb_unified_forwarding_with_multi_path_tun(gnb_core_t *gnb_core, gnb_pf_ctx_
         unified_forwarding_frame_foot->unified_forwarding_nodeid = htonl(dst_node->unified_forwarding_nodeid);
         gnb_forward_payload_to_node(gnb_core, unified_forwarding_node, payload);
 
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "*>> unified forwarding with multi-path to tun %u=>%u=>%u seq=%"PRIu64" *>>\n", gnb_core->local_node->uuid32, dst_node->uuid32, dst_node->unified_forwarding_nodeid, dst_node->unified_forwarding_send_seq);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "*>> Unified Forwarding with Multi-Path to tun %u=>%u=>%u seq=%"PRIu64" *>>\n", gnb_core->local_node->uuid32, dst_node->uuid32, dst_node->unified_forwarding_nodeid, dst_node->unified_forwarding_send_seq);
 
+        //最多转发5个节点
         if ( c >= 5 ) {
             break;
         }
@@ -234,7 +235,7 @@ int gnb_unified_forwarding_inet(gnb_core_t *gnb_core, gnb_payload16_t *payload){
     in_payload_size = gnb_payload16_size(payload);
 
     if ( in_payload_size <= sizeof(gnb_unified_forwarding_frame_foot_t) ) {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "unified forwarding inet frame error size=%u\n", in_payload_size);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "Unified Forwarding inet frame error size=%u\n", in_payload_size);
         return UNIFIED_FORWARDING_ERROR;
     }
 
@@ -244,7 +245,7 @@ int gnb_unified_forwarding_inet(gnb_core_t *gnb_core, gnb_payload16_t *payload){
     src_node   = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, src_nodeid);
 
     if ( NULL == src_node ) {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "unified forwarding inet src node %u not found!\n", src_nodeid);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "Unified Forwarding inet src node %u not found!\n", src_nodeid);
         return UNIFIED_FORWARDING_ERROR;
     }
 
@@ -254,7 +255,7 @@ int gnb_unified_forwarding_inet(gnb_core_t *gnb_core, gnb_payload16_t *payload){
     unified_forwarding_nodeid = ntohl(unified_forwarding_frame_foot->unified_forwarding_nodeid);
 
     if ( NULL == dst_node ) {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "unified forwarding inet dst node %u not found!\n", dst_nodeid);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "Unified Forwarding inet dst node %u not found!\n", dst_nodeid);
         return UNIFIED_FORWARDING_ERROR;
     }
 
@@ -269,7 +270,7 @@ int gnb_unified_forwarding_inet(gnb_core_t *gnb_core, gnb_payload16_t *payload){
 
         gnb_forward_payload_to_node(gnb_core, dst_node, payload);
 
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, ">*> unified forwarding to inet %u=>%u=>%u seq=%"PRIu64" >*>\n", src_nodeid, unified_forwarding_nodeid, dst_nodeid, unified_forwarding_seq);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, ">*> Unified Forwarding to inet %u=>%u=>%u seq=%"PRIu64" >*>\n", src_nodeid, unified_forwarding_nodeid, dst_nodeid, unified_forwarding_seq);
 
         return UNIFIED_FORWARDING_TO_INET;
 
@@ -281,7 +282,7 @@ int gnb_unified_forwarding_inet(gnb_core_t *gnb_core, gnb_payload16_t *payload){
 
     gnb_payload16_set_size( payload, in_payload_size - sizeof(gnb_unified_forwarding_frame_foot_t) );
 
-    GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "*<< unified forwarding to tun %u=>%u=>%u seq=%"PRIu64" *<<\n", src_nodeid, unified_forwarding_nodeid, dst_nodeid, unified_forwarding_seq);
+    GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "*<< Unified Forwarding to tun %u=>%u=>%u seq=%"PRIu64" *<<\n", src_nodeid, unified_forwarding_nodeid, dst_nodeid, unified_forwarding_seq);
 
     return UNIFIED_FORWARDING_TO_TUN;
 
@@ -307,7 +308,7 @@ int gnb_unified_forwarding_multi_path_inet(gnb_core_t *gnb_core, gnb_payload16_t
     in_payload_size = gnb_payload16_size(payload);
 
     if ( in_payload_size <= sizeof(gnb_unified_forwarding_frame_foot_t) ) {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "unified forwarding inet frame error size=%u\n", in_payload_size);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "Unified Forwarding inet frame error size=%u\n", in_payload_size);
         return UNIFIED_FORWARDING_ERROR;
     }
 
@@ -317,7 +318,7 @@ int gnb_unified_forwarding_multi_path_inet(gnb_core_t *gnb_core, gnb_payload16_t
     src_node   = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, src_nodeid);
 
     if ( NULL == src_node ) {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "unified forwarding inet src node %u not found!\n", src_nodeid);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "Unified Forwarding inet src node %u not found!\n", src_nodeid);
         return UNIFIED_FORWARDING_ERROR;
     }
 
@@ -327,7 +328,7 @@ int gnb_unified_forwarding_multi_path_inet(gnb_core_t *gnb_core, gnb_payload16_t
     unified_forwarding_nodeid = ntohl(unified_forwarding_frame_foot->unified_forwarding_nodeid);
 
     if ( NULL == dst_node ) {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "unified forwarding inet error dst node %u not found!\n", dst_nodeid);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "Unified Forwarding inet error dst node %u not found!\n", dst_nodeid);
         return UNIFIED_FORWARDING_ERROR;
     }
 
@@ -337,13 +338,13 @@ int gnb_unified_forwarding_multi_path_inet(gnb_core_t *gnb_core, gnb_payload16_t
     if ( gnb_core->local_node->uuid32 != dst_nodeid ) {
 
         if ( gnb_core->local_node->type & GNB_NODE_TYPE_SLIENCE ) {
-            GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, ">*> unified forwarding multi path inet local node is slience dst=%u frame drop! >*>\n", dst_nodeid);
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, ">*> Unified Forwarding Multi Path inet local node is slience dst=%u frame drop! >*>\n", dst_nodeid);
             return UNIFIED_FORWARDING_DROP;
         }
 
         gnb_forward_payload_to_node(gnb_core, dst_node, payload);
 
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, ">*> unified forwarding multi path %u=>%u=>%u seq=%"PRIu64" frame to inet >*>\n", src_nodeid, unified_forwarding_nodeid, dst_nodeid, unified_forwarding_seq);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, ">*> Unified Forwarding Multi Path %u=>%u=>%u seq=%"PRIu64" frame to inet >*>\n", src_nodeid, unified_forwarding_nodeid, dst_nodeid, unified_forwarding_seq);
 
         return UNIFIED_FORWARDING_TO_INET;
 
@@ -358,7 +359,7 @@ int gnb_unified_forwarding_multi_path_inet(gnb_core_t *gnb_core, gnb_payload16_t
 
         if ( unified_forwarding_seq == dst_node->unified_forwarding_recv_seq_array[i] ) {
 
-            GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "*<< unified forwarding multi path inet in_seq=%"PRIu64" == recv_seq[%d]=%"PRIu64" frame drop! *<<\n",
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "*<< Unified Forwarding Multi Path inet in_seq=%"PRIu64" == recv_seq[%d]=%"PRIu64" frame drop! *<<\n",
                     unified_forwarding_seq, i, dst_node->unified_forwarding_recv_seq_array[i]);
 
             return UNIFIED_FORWARDING_DROP;
@@ -378,7 +379,7 @@ int gnb_unified_forwarding_multi_path_inet(gnb_core_t *gnb_core, gnb_payload16_t
 
     if ( unified_forwarding_seq < dst_node->unified_forwarding_recv_seq_array[min_seq_idx] ) {
 
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "*<< unified forwarding multi path inet %u=>%u=>%u in_seq=%"PRIu64" < min_seq=%"PRIu64" frame drop! *<<\n",
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "*<< Unified Forwarding Multi Path inet %u=>%u=>%u in_seq=%"PRIu64" < min_seq=%"PRIu64" frame drop! *<<\n",
                 src_nodeid, unified_forwarding_nodeid, dst_nodeid, unified_forwarding_seq, dst_node->unified_forwarding_recv_seq_array[min_seq_idx]);
 
         return UNIFIED_FORWARDING_DROP;
@@ -388,12 +389,12 @@ int gnb_unified_forwarding_multi_path_inet(gnb_core_t *gnb_core, gnb_payload16_t
 
     if ( unified_forwarding_seq > dst_node->unified_forwarding_recv_seq_array[max_seq_idx] ) {
 
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "*<< unified forwarding multi path inet %u=>%u=>%u in_seq=%"PRIu64" > max_seq=%"PRIu64" frame to tun *<<\n",
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "*<< Unified Forwarding multi path inet %u=>%u=>%u in_seq=%"PRIu64" > max_seq=%"PRIu64" frame to tun *<<\n",
                 src_nodeid, unified_forwarding_nodeid, dst_nodeid, unified_forwarding_seq, dst_node->unified_forwarding_recv_seq_array[max_seq_idx]);
 
     } else {
 
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "*<< unified forwarding multi path inet %u=>%u=>%u in_seq=%"PRIu64" < max_seq=%"PRIu64" frame to tun *<<\n",
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "*<< Unified Forwarding Multi Path inet %u=>%u=>%u in_seq=%"PRIu64" < max_seq=%"PRIu64" frame to tun *<<\n",
                 src_nodeid, unified_forwarding_nodeid, dst_nodeid, unified_forwarding_seq, dst_node->unified_forwarding_recv_seq_array[max_seq_idx]);
 
     }

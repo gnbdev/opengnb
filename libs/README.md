@@ -11,3 +11,6 @@
 [tap-windows6](https://github.com/OpenVPN/tap-windows6 "tap-windows6") 
 
 [nginx](https://github.com/nginx/nginx "nginx") 
+
+[zlib](https://www.zlib.net/ "zlib") 
+

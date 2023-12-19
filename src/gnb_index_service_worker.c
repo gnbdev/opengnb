@@ -35,7 +35,7 @@
 #include "gnb.h"
 #include "gnb_node.h"
 #include "gnb_worker.h"
-#include "gnb_ring_buffer.h"
+#include "gnb_ring_buffer_fixed.h"
 #include "gnb_lru32.h"
 #include "gnb_time.h"
 #include "gnb_binary.h"
@@ -73,17 +73,17 @@ typedef struct _gnb_key_address_t{
     uint64_t last_send_request_addr_usec;
 
     //源节点对自身探测的wan地址
-    uint8_t  wan_addr6[16];
-    uint16_t port6;
+    uint8_t  wan6_addr[16];
+    uint16_t wan6_port;
 
-    uint8_t  wan_addr4[4];
-    uint16_t port4;
+    uint8_t  wan4_addr[4];
+    uint16_t wan4_port;
 
     unsigned char node_random_sequence[NODE_RANDOM_SEQUENCE_SIZE];
     unsigned char node_random_sequence_sign[ED25519_SIGN_SIZE];
 
-    unsigned char address4_list_block4[sizeof(gnb_address_list_t) + sizeof(gnb_address_t)*GNB_KEY_ADDRESS_NUM];
-    unsigned char address6_list_block6[sizeof(gnb_address_list_t) + sizeof(gnb_address_t)*GNB_KEY_ADDRESS_NUM];
+    unsigned char address6_list_block[sizeof(gnb_address_list_t) + sizeof(gnb_address_t)*GNB_KEY_ADDRESS_NUM];
+    unsigned char address4_list_block[sizeof(gnb_address_list_t) + sizeof(gnb_address_t)*GNB_KEY_ADDRESS_NUM];
 
     char attachmenta[INDEX_ATTACHMENT_SIZE];  //保存 PAYLOAD_SUB_TYPE_POST_ADDR 的 attachment
     char attachmentb[INDEX_ATTACHMENT_SIZE];  //保存 PAYLOAD_SUB_TYPE_POST_ADDR 的 attachment
@@ -122,16 +122,16 @@ static void handle_post_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *i
 
         key_address = GNB_LRU32_HASH_GET_VALUE(index_service_worker_ctx->lru, post_addr_frame->data.src_key512, 64);
 
-        address6_list = (gnb_address_list_t *)key_address->address6_list_block6;
+        address6_list = (gnb_address_list_t *)key_address->address6_list_block;
         address6_list->size = GNB_KEY_ADDRESS_NUM;
 
-        address4_list = (gnb_address_list_t *)key_address->address4_list_block4;
+        address4_list = (gnb_address_list_t *)key_address->address4_list_block;
         address4_list->size = GNB_KEY_ADDRESS_NUM;
 
     } else {
 
-        address6_list = (gnb_address_list_t *)key_address->address6_list_block6;
-        address4_list = (gnb_address_list_t *)key_address->address4_list_block4;
+        address6_list = (gnb_address_list_t *)key_address->address6_list_block;
+        address4_list = (gnb_address_list_t *)key_address->address4_list_block;
 
     }
 
@@ -159,7 +159,7 @@ static void handle_post_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *i
 
     if ( AF_INET == sockaddress->addr_type ) {
 
-        if ( index_service_worker_ctx->now_time_sec - key_address->last_post_addr4_sec < GNB_POST_ADDR_LIMIT_SEC ){
+        if ( index_service_worker_ctx->now_time_sec - key_address->last_post_addr4_sec < GNB_POST_ADDR_LIMIT_SEC ) {
             GNB_LOG2(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE POST receive addr=%u now_time_sec=%"PRIu64" last_post_addr4_sec=%"PRIu64" LIMIT\n", key_address->uuid32, index_service_worker_ctx->now_time_sec, key_address->last_post_addr4_sec);
             key_address->last_post_addr4_sec = index_service_worker_ctx->now_time_sec;
             return;
@@ -174,12 +174,12 @@ static void handle_post_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *i
     }
 
 
-    if ( 0 != post_addr_frame->data.port6 ) {
-        memcpy(key_address->wan_addr6,post_addr_frame->data.wan_addr6,16);
-        key_address->port6 = post_addr_frame->data.port6;
+    if ( 0 != post_addr_frame->data.wan6_port ) {
+        memcpy(key_address->wan6_addr,post_addr_frame->data.wan6_addr,16);
+        key_address->wan6_port = post_addr_frame->data.wan6_port;
     }
 
-    if (  'p' == post_addr_frame->data.arg0 ) {
+    if ( 'p' == post_addr_frame->data.arg0 ) {
 
         if ( 'a' == post_addr_frame->data.arg1 ) {
             memcpy(key_address->attachmenta, post_addr_frame->data.attachment, INDEX_ATTACHMENT_SIZE);
@@ -255,8 +255,8 @@ static void send_push_addr_frame(gnb_worker_t *gnb_index_service_worker, unsigne
 
     push_addr_frame->data.node_uuid32 = htonl(src_key_address->uuid32);
 
-    gnb_address_list_t *address6_list = (gnb_address_list_t *)src_key_address->address6_list_block6;
-    gnb_address_list_t *address4_list = (gnb_address_list_t *)src_key_address->address4_list_block4;
+    gnb_address_list_t *address6_list = (gnb_address_list_t *)src_key_address->address6_list_block;
+    gnb_address_list_t *address4_list = (gnb_address_list_t *)src_key_address->address4_list_block;
 
     if ( 0 != address6_list->array[0].port && ( index_service_worker_ctx->now_time_sec - address6_list->array[0].ts_sec < GNB_ADDRESS_LIFE_TIME_TS_SEC) ) {
         memcpy(&push_addr_frame->data.addr6_a, &address6_list->array[0].address, 16);
@@ -290,20 +290,20 @@ static void send_push_addr_frame(gnb_worker_t *gnb_index_service_worker, unsigne
 
     //找一个空闲的位置，把节点自探测的 wan_addr6 写入
     if ( 0 == push_addr_frame->data.port6_a ) {
-        memcpy(&push_addr_frame->data.addr6_a, &src_key_address->wan_addr6, 16);
-        push_addr_frame->data.port6_a = src_key_address->port6;
+        memcpy(&push_addr_frame->data.addr6_a, &src_key_address->wan6_addr, 16);
+        push_addr_frame->data.port6_a = src_key_address->wan6_port;
         goto finish_fill_address;
     }
 
     if ( 0 == push_addr_frame->data.port6_b ) {
-        memcpy(&push_addr_frame->data.addr6_b, &src_key_address->wan_addr6, 16);
-        push_addr_frame->data.port6_b = src_key_address->port6;
+        memcpy(&push_addr_frame->data.addr6_b, &src_key_address->wan6_addr, 16);
+        push_addr_frame->data.port6_b = src_key_address->wan6_port;
         goto finish_fill_address;
     }
 
     if ( 0 == push_addr_frame->data.port6_c ) {
-        memcpy(&push_addr_frame->data.addr6_c, &src_key_address->wan_addr6, 16);
-        push_addr_frame->data.port6_c = src_key_address->port6;
+        memcpy(&push_addr_frame->data.addr6_c, &src_key_address->wan6_addr, 16);
+        push_addr_frame->data.port6_c = src_key_address->wan6_port;
         goto finish_fill_address;
     }
 
@@ -320,8 +320,8 @@ finish_fill_address:
     //debug_text
     snprintf(push_addr_frame->data.text, 32, "INDEX PUSH ADDR[%u]=>[%u]", src_key_address->uuid32, dst_key_address->uuid32);
 
-    gnb_address_list_t *dst_address6_list = (gnb_address_list_t *)dst_key_address->address6_list_block6;
-    gnb_address_list_t *dst_address4_list = (gnb_address_list_t *)dst_key_address->address4_list_block4;
+    gnb_address_list_t *dst_address6_list = (gnb_address_list_t *)dst_key_address->address6_list_block;
+    gnb_address_list_t *dst_address4_list = (gnb_address_list_t *)dst_key_address->address4_list_block;
 
     //发给节点所有的活跃地址
     gnb_send_available_address_list(gnb_core, dst_address6_list, index_service_worker_ctx->index_frame_payload, index_service_worker_ctx->now_time_sec);
@@ -346,7 +346,7 @@ static void handle_request_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t
 
     l_key_address = GNB_LRU32_HASH_GET_VALUE(index_service_worker_ctx->lru, request_addr_frame->data.src_key512, 64);
 
-    if (NULL==l_key_address) {
+    if ( NULL==l_key_address ) {
         GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE REQUEST src[%u] => [%u] l_key_address[%s] is Not Founded\n", src_uuid32, dst_uuid32, GNB_HEX1_BYTE128(request_addr_frame->data.src_key512));
         return;
     }
@@ -370,12 +370,12 @@ static void handle_request_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t
     l_key_address->last_send_request_addr_usec = index_service_worker_ctx->now_time_usec;
 
     r_key_address = GNB_LRU32_HASH_GET_VALUE(index_service_worker_ctx->lru, request_addr_frame->data.dst_key512, 64);
-    if (NULL==r_key_address) {
+    if ( NULL==r_key_address ) {
         GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE REQUEST src[%u] => [%u] r_key_address[%s] is  Not Founded\n", src_uuid32, dst_uuid32, GNB_HEX1_BYTE128(request_addr_frame->data.dst_key512));
         return;
     }
 
-    if ( (index_service_worker_ctx->now_time_sec - r_key_address->last_post_addr6_sec) < GNB_POST_ADDR_INTERVAL_TIME_SEC*2 || (index_service_worker_ctx->now_time_sec - r_key_address->last_post_addr4_sec) < GNB_POST_ADDR_INTERVAL_TIME_SEC*2  ) {
+    if ( (index_service_worker_ctx->now_time_sec - r_key_address->last_post_addr6_sec) < GNB_POST_ADDR_INTERVAL_TIME_SEC*2 || (index_service_worker_ctx->now_time_sec - r_key_address->last_post_addr4_sec) < GNB_POST_ADDR_INTERVAL_TIME_SEC*2 ) {
         // r_key_address 里面的地址未超时，将其移到双向链表的首部
         GNB_LRU32_MOVETOHEAD(index_service_worker_ctx->lru, request_addr_frame->data.dst_key512, 64);
 
@@ -395,8 +395,8 @@ static void handle_request_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t
     }
 
     //即使节点开启了多个 socket ，index server 只存最近一份地址
-    gnb_address_list_t *address6_list = (gnb_address_list_t *)l_key_address->address6_list_block6;
-    gnb_address_list_t *address4_list = (gnb_address_list_t *)l_key_address->address4_list_block4;    
+    gnb_address_list_t *address6_list = (gnb_address_list_t *)l_key_address->address6_list_block;
+    gnb_address_list_t *address4_list = (gnb_address_list_t *)l_key_address->address4_list_block;    
 
     gnb_address_t *address = alloca(sizeof(gnb_address_t));
 
@@ -457,25 +457,22 @@ static void handle_recv_queue(gnb_core_t *gnb_core){
     int i;
 
     index_service_worker_ctx_t *index_service_worker_ctx = gnb_core->index_service_worker->ctx;
-
-    gnb_ring_node_t *ring_node;
+    
     gnb_worker_queue_data_t *receive_queue_data;
 
     int ret;
 
     for ( i=0; i<1024; i++ ) {
 
-        ring_node = gnb_ring_buffer_pop( gnb_core->index_service_worker->ring_buffer );
+        receive_queue_data = (gnb_worker_queue_data_t *)gnb_ring_buffer_fixed_pop( gnb_core->index_service_worker->ring_buffer_in );
 
-        if (NULL==ring_node) {
+        if ( NULL==receive_queue_data ) {
             break;
-        }
-
-        receive_queue_data = (gnb_worker_queue_data_t *)ring_node->data;
+        }        
 
         handle_index_frame(gnb_core, &receive_queue_data->data.node_in);
 
-        gnb_ring_buffer_pop_submit( gnb_core->index_service_worker->ring_buffer );
+        gnb_ring_buffer_fixed_pop_submit( gnb_core->index_service_worker->ring_buffer_in );
 
     }
 
@@ -493,7 +490,7 @@ static void* thread_worker_func( void *data ) {
     gnb_index_service_worker->thread_worker_flag     = 1;
     gnb_index_service_worker->thread_worker_run_flag = 1;
 
-    gnb_worker_wait_main_worker_started(gnb_core);
+    gnb_worker_wait_primary_worker_started(gnb_core);
 
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "start %s success!\n", gnb_index_service_worker->name);
 
@@ -503,7 +500,7 @@ static void* thread_worker_func( void *data ) {
 
         handle_recv_queue(gnb_core);
 
-        GNB_SLEEP_MILLISECOND(100);
+        GNB_SLEEP_MILLISECOND(150);
 
     }while(gnb_index_service_worker->thread_worker_flag);
 
@@ -516,21 +513,21 @@ static void init(gnb_worker_t *gnb_worker, void *ctx){
 
     gnb_core_t *gnb_core = (gnb_core_t *)ctx;
 
+    void *memory;
+    size_t memory_size;
+
     index_service_worker_ctx_t *index_service_worker_ctx = (index_service_worker_ctx_t *)gnb_heap_alloc(gnb_core->heap, sizeof(index_service_worker_ctx_t));
-
     memset(index_service_worker_ctx, 0, sizeof(index_service_worker_ctx_t));
-
     index_service_worker_ctx->gnb_core = gnb_core;
-
-    gnb_worker->ring_buffer = gnb_ring_buffer_init(gnb_core->conf->index_service_woker_queue_length, GNB_WORKER_QUEUE_BLOCK_SIZE);
-
     //可以改小一点
-    index_service_worker_ctx->index_frame_payload = gnb_payload16_init(0,GNB_MAX_PAYLOAD_SIZE);
-
+    index_service_worker_ctx->index_frame_payload = (gnb_payload16_t *)gnb_heap_alloc(gnb_core->heap,GNB_MAX_PAYLOAD_SIZE);
     index_service_worker_ctx->index_frame_payload->type = GNB_PAYLOAD_TYPE_INDEX;
-
     index_service_worker_ctx->lru  = gnb_lru32_create(gnb_core->heap, 4096, sizeof(gnb_key_address_t));
 
+    memory_size = gnb_ring_buffer_fixed_sum_size(GNB_INDEX_SERVICE_WORKER_QUEUE_BLOCK_SIZE, gnb_core->conf->index_service_woker_queue_length);
+    memory = gnb_heap_alloc(gnb_core->heap, memory_size);
+    gnb_worker->ring_buffer_in = gnb_ring_buffer_fixed_init(memory, GNB_INDEX_SERVICE_WORKER_QUEUE_BLOCK_SIZE, gnb_core->conf->index_service_woker_queue_length);
+    gnb_worker->ring_buffer_out = NULL;
     gnb_worker->ctx = index_service_worker_ctx;
 
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "%s init finish\n", gnb_worker->name);
@@ -540,7 +537,6 @@ static void init(gnb_worker_t *gnb_worker, void *ctx){
 static void release(gnb_worker_t *gnb_worker){
 
     index_service_worker_ctx_t *index_service_worker_ctx =  (index_service_worker_ctx_t *)gnb_worker->ctx;
-    gnb_ring_buffer_release(gnb_worker->ring_buffer);
 
 }
 

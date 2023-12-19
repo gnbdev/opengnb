@@ -91,9 +91,9 @@ static void setup_node_address(gnb_core_t *gnb_core, char *node_address_string) 
 
     int num;
 
-    char attrib_string[16];
+    char attrib_string[16+1];
     uint32_t uuid32;
-    char     host_string[INET6_ADDRSTRLEN];
+    char     host_string[INET6_ADDRSTRLEN+1];
     uint16_t port = 0;
 
     int i = 0;
@@ -165,7 +165,7 @@ static void setup_node_address(gnb_core_t *gnb_core, char *node_address_string) 
         resolv_address_list = (gnb_address_list_t *)&node->resolv_address_block;
         push_address_list = (gnb_address_list_t *)&node->push_address_block;
 
-        if ( AF_INET6 == address_st.type) {
+        if ( AF_INET6 == address_st.type ) {
 
             gnb_address_list_update(static_address_list, &address_st);
 
@@ -216,7 +216,7 @@ static void setup_node_route(gnb_core_t *gnb_core, char *node_route_string) {
 
     char *p = node_route_string;
 
-    char line_buffer[1024];
+    char line_buffer[1024+1];
     size_t line_buffer_size;
 
     uint32_t uuid32;
@@ -224,10 +224,9 @@ static void setup_node_route(gnb_core_t *gnb_core, char *node_route_string) {
     uint32_t tun_subnet_addr4;
     uint32_t tun_netmask_addr4;
 
-    char tun_ipv4_string[INET_ADDRSTRLEN];
-    char tun_netmask_string[INET_ADDRSTRLEN];
-
-    char tun_ipv6_string[INET6_ADDRSTRLEN];
+    char tun_ipv4_string[INET_ADDRSTRLEN+1];
+    char tun_netmask_string[INET_ADDRSTRLEN+1];
+    char tun_ipv6_string[INET6_ADDRSTRLEN+1];
 
     int num;
 
@@ -297,15 +296,15 @@ static void setup_node_route(gnb_core_t *gnb_core, char *node_route_string) {
 
             netmask_class = get_netmask_class(tun_netmask_addr4);
 
-            if ('c' == netmask_class ) {
+            if ( 'c' == netmask_class ) {
                 GNB_HASH32_UINT32_SET(gnb_core->subnetc_node_map, tun_subnet_addr4, node);
             }
 
-            if ('b' == netmask_class ) {
+            if ( 'b' == netmask_class ) {
                 GNB_HASH32_UINT32_SET(gnb_core->subnetb_node_map, tun_subnet_addr4, node);
             }
 
-            if ('a' == netmask_class ) {
+            if ( 'a' == netmask_class ) {
                 GNB_HASH32_UINT32_SET(gnb_core->subneta_node_map, tun_subnet_addr4, node);
             }
 
@@ -335,7 +334,7 @@ void gnb_config_lite(gnb_core_t *gnb_core){
 
     gnb_core->local_node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, gnb_core->conf->local_uuid);
 
-    if (NULL==gnb_core->local_node) {
+    if ( NULL==gnb_core->local_node ) {
         printf("miss local_node[%u] is NULL\n", gnb_core->conf->local_uuid);
         exit(1);
     }

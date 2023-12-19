@@ -38,7 +38,7 @@ typedef struct _gnb_route_frame_head_t {
 
     unsigned char magic[2];
 
-    unsigned char pf_type_bits; //可用于加密标识
+    unsigned char pf_type_bits; //用于加密,压缩标识
 
     uint8_t ttl;
 
@@ -54,13 +54,17 @@ typedef struct _gnb_route_frame_head_t {
 
 extern gnb_pf_t gnb_pf_route;
 
-static void pf_init_cb(gnb_core_t *gnb_core){
+static void pf_init_cb(gnb_core_t *gnb_core, gnb_pf_t *pf){
 
-    gnb_route_ctx_t *ctx = (gnb_route_ctx_t*)gnb_heap_alloc(gnb_core->heap,sizeof(gnb_route_ctx_t));
-
-    GNB_PF_SET_CTX(gnb_core,gnb_pf_route,ctx);
+    gnb_route_ctx_t *ctx = (gnb_route_ctx_t*)gnb_heap_alloc(gnb_core->heap,sizeof(gnb_route_ctx_t));    
     ctx->udata = NULL;
-    gnb_core->tun_payload_offset += sizeof(gnb_route_frame_head_t);
+
+    pf->private_ctx = ctx;
+
+    if ( 0 == gnb_core->tun_payload_offset ) {
+        gnb_core->tun_payload_offset = sizeof(gnb_route_frame_head_t);
+    }
+
     gnb_core->route_frame_head_size = sizeof(gnb_route_frame_head_t);
 
     GNB_LOG1(gnb_core->log,GNB_LOG_ID_PF, "%s init\n", gnb_pf_route.name);
@@ -68,9 +72,7 @@ static void pf_init_cb(gnb_core_t *gnb_core){
 }
 
 
-static void pf_conf_cb(gnb_core_t *gnb_core){
-
-    gnb_route_ctx_t *ctx = (gnb_route_ctx_t *)GNB_PF_GET_CTX(gnb_core,gnb_pf_route);
+static void pf_conf_cb(gnb_core_t *gnb_core, gnb_pf_t *pf){
 
 }
 
@@ -78,9 +80,7 @@ static void pf_conf_cb(gnb_core_t *gnb_core){
 /*
  * 创建 route_frame ，填充 ip_frame, 得到dst_node
 */
-static int pf_tun_frame_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
-
-    gnb_route_ctx_t *ctx = (gnb_route_ctx_t *)GNB_PF_GET_CTX(gnb_core,gnb_pf_route);
+static int pf_tun_frame_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
 
     if ( NULL==pf_ctx->fwd_payload ) {
         return GNB_PF_ERROR;
@@ -136,7 +136,7 @@ handle_ip_frame:
     route_frame_head->magic[0] = 'S';
     route_frame_head->magic[1] = 'U';
 
-    route_frame_head->pf_type_bits = gnb_core->conf->crypto_type;
+    route_frame_head->pf_type_bits = gnb_core->conf->pf_bits;
 
     pf_ctx->pf_type_bits = &route_frame_head->pf_type_bits;
 
@@ -165,7 +165,7 @@ handle_ip_frame:
 /*
  * route，得到fwd_node
 */
-static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
+static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
 
     int ret = GNB_PF_NEXT;
 
@@ -179,8 +179,6 @@ static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 
     int relay_nodeid_idx;
     gnb_node_t *last_relay_node;
-
-    gnb_route_ctx_t *ctx = (gnb_route_ctx_t *)GNB_PF_GET_CTX(gnb_core,gnb_pf_route);
 
     gnb_route_frame_head_t *route_frame_head = (gnb_route_frame_head_t *)pf_ctx->fwd_payload->data;
 
@@ -301,7 +299,7 @@ handle_relay:
 
     pf_ctx->relay_forwarding = 1;
 
-    route_frame_head->pf_type_bits = gnb_core->conf->crypto_type;
+    route_frame_head->pf_type_bits = gnb_core->conf->pf_bits;
 
     ret = GNB_PF_NEXT;
 
@@ -357,14 +355,14 @@ finish:
 }
 
 
-static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
+static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
 
     int ret = GNB_PF_NEXT;
 
     uint16_t payload_data_size;
     uint32_t *pre_src_fwd_nodeid_ptr;
 
-    gnb_route_ctx_t *ctx = (gnb_route_ctx_t *)GNB_PF_GET_CTX(gnb_core,gnb_pf_route);
+    //gnb_route_ctx_t *ctx = (gnb_route_ctx_t *)GNB_PF_GET_CTX(gnb_core,gnb_pf_route);
 
     gnb_route_frame_head_t *route_frame_head;
 
@@ -455,9 +453,9 @@ finish:
 }
 
 
-static int pf_inet_route_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
+static int pf_inet_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
 
-    gnb_route_ctx_t *ctx = (gnb_route_ctx_t *)GNB_PF_GET_CTX(gnb_core,gnb_pf_route);
+    //gnb_route_ctx_t *ctx = (gnb_route_ctx_t *)GNB_PF_GET_CTX(gnb_core,gnb_pf_route);
 
     gnb_route_frame_head_t *route_frame_head;
 
@@ -609,23 +607,22 @@ finish:
 }
 
 
-static int pf_inet_fwd_cb(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
+static int pf_inet_fwd_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
 
     return pf_ctx->pf_status;
 
 }
 
 
-static void pf_release_cb(gnb_core_t *gnb_core){
+static void pf_release_cb(gnb_core_t *gnb_core, gnb_pf_t *pf){
 
-    gnb_route_ctx_t *ctx = (gnb_route_ctx_t *)GNB_PF_GET_CTX(gnb_core,gnb_pf_route);
 
 }
 
 
 gnb_pf_t gnb_pf_route = {
-    0,
     "gnb_pf_route",
+    NULL,
     pf_init_cb,
     pf_conf_cb,
 
@@ -635,7 +632,7 @@ gnb_pf_t gnb_pf_route = {
 
     pf_inet_frame_cb,
     pf_inet_route_cb,
-    pf_inet_fwd_cb,
+    NULL,
 
     pf_release_cb
 };

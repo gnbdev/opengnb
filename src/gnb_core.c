@@ -48,7 +48,6 @@
 #include "gnb_mmap.h"
 #include "gnb_time.h"
 
-gnb_pf_t* gnb_find_pf_mod_by_name(const char *name);
 
 void gnb_set_env(const char *name, const char *value);
 
@@ -70,6 +69,7 @@ static void gnb_setup_env(gnb_core_t *gnb_core){
 
 }
 
+
 static void init_ctl_block(gnb_core_t *gnb_core, gnb_conf_t *conf){
 
     gnb_mmap_block_t *mmap_block;
@@ -81,13 +81,34 @@ static void init_ctl_block(gnb_core_t *gnb_core, gnb_conf_t *conf){
     if ( 0 == conf->public_index_service && 0 == conf->lite_mode ) {
         //大致算出 node 的数量
         node_num = gnb_get_node_num_from_file(conf);
-    }
 
-    if ( 0==node_num ) {
+        if ( 0==node_num ) {
+            node_num = 256;
+        }
+
+    } else if ( 1 == conf->public_index_service && 0 == conf->lite_mode ) {
+
+        node_num = 0;
+
+    } else if ( 0 == conf->public_index_service && 1 == conf->lite_mode ) {
+
         node_num = 256;
+
+    } else {
+
+        node_num = 256;
+
     }
 
-    size_t block_size = sizeof(uint32_t)*256 + sizeof(gnb_ctl_magic_number_t) + sizeof(gnb_ctl_conf_zone_t) + sizeof(gnb_ctl_core_zone_t) + sizeof(gnb_ctl_status_zone_t) + sizeof(gnb_ctl_node_zone_t) + sizeof(gnb_node_t)*node_num + sizeof(gnb_block32_t) * 5;
+    /*
+    (1 + conf->pf_worker_num) 是为  gnb_ctl_core_zone_t 中的 pf_worker_payload_blocks 预留 share memory 空间中 (primary_worker + pf_worker) 个 memmory block
+    primary_worker 所使用的是 pf_worker_payload_blocks 第1块,后面的块由 pf_worker 依次占用 
+    sizeof(gnb_block32_t) * 5 是 share memory 中ctl_block 有5个 zone 的 gnb_block32_t 结构占用的空间
+    */
+    size_t block_size = sizeof(uint32_t)*256 + sizeof(gnb_ctl_magic_number_t) + sizeof(gnb_ctl_conf_zone_t) + sizeof(gnb_ctl_core_zone_t) + 
+                        (sizeof(gnb_payload16_t) + conf->payload_block_size + sizeof(gnb_payload16_t) + conf->payload_block_size) * (1 + conf->pf_worker_num) +
+                        sizeof(gnb_ctl_status_zone_t) + sizeof(gnb_ctl_node_zone_t) + sizeof(gnb_node_t)*node_num + sizeof(gnb_block32_t) * 5;
+
 
     unlink(conf->map_file);
 
@@ -99,7 +120,7 @@ static void init_ctl_block(gnb_core_t *gnb_core, gnb_conf_t *conf){
     }
 
     memory = gnb_mmap_get_block(mmap_block);
-    gnb_core->ctl_block = gnb_ctl_block_build(memory, node_num);
+    gnb_core->ctl_block = gnb_ctl_block_build(memory, conf->payload_block_size, node_num, conf->pf_worker_num);
     gnb_core->ctl_block->mmap_block = mmap_block;
 
 }
@@ -133,7 +154,9 @@ static void setup_log_ctx(gnb_conf_t *conf, gnb_log_ctx_t *log){
         log->output_type |= GNB_LOG_OUTPUT_FILE;
 
     } else {
+
         log->log_file_path[0] = '\0';
+
     }
 
     if ( GNB_LOG_LEVEL_UNSET == conf->console_log_level ) {
@@ -438,16 +461,24 @@ gnb_core_t* gnb_core_create(gnb_conf_t *conf){
 
     gnb_heap_t *heap = gnb_heap_create(8192);
 
-    gnb_core = gnb_heap_alloc(heap, sizeof(gnb_core_t));
+    int i;
 
+    gnb_core = gnb_heap_alloc(heap, sizeof(gnb_core_t));
     memset(gnb_core, 0, sizeof(gnb_core_t));
 
     gnb_core->heap = heap;
 
+/*
+    if ( 0 == conf->lite_mode ) {
+        //加载 node.conf
+        local_node_file_config(conf);
+    }
+*/
     init_ctl_block(gnb_core, conf);
 
     gnb_core->conf = &gnb_core->ctl_block->conf_zone->conf_st;
     memcpy(gnb_core->conf, conf, sizeof(gnb_conf_t));
+
 
     gnb_core->log = &gnb_core->ctl_block->core_zone->log_ctx_st;
 
@@ -480,11 +511,9 @@ gnb_core_t* gnb_core_create(gnb_conf_t *conf){
     int64_t now_sec = gnb_timestamp_sec();
     gnb_update_time_seed(gnb_core, now_sec);
 
-
     if ( 0 == gnb_core->conf->lite_mode ) {
 
-        //加载 node.conf
-        local_node_file_config(gnb_core);
+        gnb_core->ctl_block->core_zone->local_uuid = gnb_core->conf->local_uuid;
 
         if ( 0==gnb_core->conf->daemon ) {
 
@@ -513,7 +542,7 @@ gnb_core_t* gnb_core_create(gnb_conf_t *conf){
         }
 
         setup_log_ctx(gnb_core->conf, gnb_core->log);
-        gnb_config_file(gnb_core);
+        gnb_config_safe(gnb_core);
 
     } else {
 
@@ -545,6 +574,7 @@ gnb_core_t* gnb_core_create(gnb_conf_t *conf){
 
         gnb_config_lite(gnb_core);
         setup_log_ctx(gnb_core->conf, gnb_core->log);
+
     }
 
 
@@ -554,48 +584,7 @@ gnb_core_t* gnb_core_create(gnb_conf_t *conf){
 
     gnb_ctl_block_build_finish(memory);
 
-    snprintf(gnb_core->ifname,256,"%s", gnb_core->conf->ifname);
-
-    gnb_core->pf_array = gnb_pf_array_init(gnb_core->heap, 32);
-    gnb_core->pf_ctx_array = gnb_pf_ctx_array_init(gnb_core->heap,32);
-
-    gnb_pf_t *pf;
-
-    pf = gnb_find_pf_mod_by_name("gnb_pf_dump");
-
-    if ( 1==gnb_core->conf->if_dump ) {
-        gnb_pf_install(gnb_core->pf_array, pf);
-    }
-
-    pf = gnb_find_pf_mod_by_name(gnb_core->conf->pf_route);
-
-    if ( NULL== pf ) {
-        GNB_ERROR1(gnb_core->log, GNB_LOG_ID_CORE, "pf_route '%s' not exist\n", gnb_core->conf->pf_route);
-        return NULL;
-    }
-
-    gnb_pf_install(gnb_core->pf_array, pf);
-
-    if ( GNB_PF_TYPE_CRYPTO_NONE == conf->crypto_type ) {
-        goto skip_crypto;
-    }
-
-    if ( conf->crypto_type & GNB_PF_TYPE_CRYPTO_XOR ) {
-        pf = gnb_find_pf_mod_by_name("gnb_pf_crypto_xor");
-        gnb_pf_install(gnb_core->pf_array, pf);
-    }
-
-    if ( conf->crypto_type & GNB_PF_TYPE_CRYPTO_ARC4 ) {
-        pf = gnb_find_pf_mod_by_name("gnb_pf_crypto_arc4");
-        gnb_pf_install(gnb_core->pf_array, pf);
-    }
-
-
-skip_crypto:
-
-    gnb_pf_init(gnb_core);
-
-    gnb_pf_conf(gnb_core);
+    snprintf(gnb_core->ifname, 256, "%s", gnb_core->conf->ifname);
 
     if ( NULL==gnb_core->local_node ) {
         GNB_ERROR1(gnb_core->log, GNB_LOG_ID_CORE, "local node is miss\n");
@@ -604,8 +593,8 @@ skip_crypto:
 
     gnb_core->tun_payload0  = (gnb_payload16_t *)gnb_core->ctl_block->core_zone->tun_payload_block;
     gnb_core->inet_payload0 = (gnb_payload16_t *)gnb_core->ctl_block->core_zone->inet_payload_block;
-    gnb_core->tun_payload  = (void *)gnb_core->tun_payload0  + GNB_PAYLOAD_BUFFER_PADDING_SIZE;
-    gnb_core->inet_payload = (void *)gnb_core->inet_payload0 + GNB_PAYLOAD_BUFFER_PADDING_SIZE;
+    gnb_core->tun_payload   = (void *)gnb_core->tun_payload0  + GNB_PAYLOAD_BUFFER_PADDING_SIZE;
+    gnb_core->inet_payload  = (void *)gnb_core->inet_payload0 + GNB_PAYLOAD_BUFFER_PADDING_SIZE;
 
 #if defined(__FreeBSD__)
     gnb_core->drv = &gnb_tun_drv_freebsd;
@@ -638,6 +627,8 @@ skip_crypto:
 
 #endif
 
+    gnb_pf_status_strings_init();
+
     if ( gnb_core->conf->activate_tun ) {
         gnb_core->drv->init_tun(gnb_core);
     }
@@ -647,7 +638,7 @@ skip_crypto:
     }
 
     if ( gnb_core->conf->activate_index_worker ) {
-        gnb_core->index_worker  = gnb_worker_init("gnb_index_worker",  gnb_core);
+        gnb_core->index_worker  = gnb_worker_init("gnb_index_worker", gnb_core);
     }
 
     if ( gnb_core->conf->activate_detect_worker ) {
@@ -655,10 +646,29 @@ skip_crypto:
     }
 
     if ( gnb_core->conf->activate_index_service_worker ) {
-        gnb_core->index_service_worker  = gnb_worker_init("gnb_index_service_worker",  gnb_core);
+        gnb_core->index_service_worker  = gnb_worker_init("gnb_index_service_worker", gnb_core);
     }
 
-    gnb_core->main_worker = gnb_worker_init("gnb_main_worker", gnb_core);
+
+    if ( gnb_core->conf->pf_worker_num > 0 ) {
+
+        gnb_core->pf_worker_ring = (gnb_worker_ring_t *)gnb_heap_alloc(gnb_core->heap, sizeof(gnb_worker_ring_t) + sizeof(gnb_worker_t)*gnb_core->conf->pf_worker_num);
+        gnb_core->pf_worker_ring->size = gnb_core->conf->pf_worker_num;
+
+        for ( gnb_core->pf_worker_ring->cur_idx=0; gnb_core->pf_worker_ring->cur_idx < gnb_core->pf_worker_ring->size; gnb_core->pf_worker_ring->cur_idx++ ) {
+            gnb_core->pf_worker_ring->worker[gnb_core->pf_worker_ring->cur_idx] = gnb_worker_init("gnb_pf_worker", gnb_core);
+        }
+
+        gnb_core->pf_worker_ring->cur_idx=0;
+
+    } else {
+
+        gnb_core->pf_worker_ring = (gnb_worker_ring_t *)gnb_heap_alloc(gnb_core->heap, sizeof(gnb_worker_ring_t) );
+        gnb_core->pf_worker_ring->size = 0;
+
+    }
+
+    gnb_core->primary_worker = gnb_worker_init("gnb_primary_worker", gnb_core);
 
     return gnb_core;
 
@@ -743,20 +753,19 @@ gnb_core_t* gnb_core_index_service_create(gnb_conf_t *conf){
     gnb_core->inet_payload = gnb_core->inet_payload0 + GNB_PAYLOAD_BUFFER_PADDING_SIZE;
 
     gnb_core->index_service_worker  = gnb_worker_init("gnb_index_service_worker",  gnb_core);
-    gnb_core->main_worker           = gnb_worker_init("gnb_main_worker", gnb_core);
+    gnb_core->primary_worker        = gnb_worker_init("gnb_primary_worker", gnb_core);
 
     return gnb_core;
 
 }
+
 
 void gnb_core_release(gnb_core_t *gnb_core){
 
     //gnb_core 结构体内还有一些成员内存没做释放处理
     if ( gnb_core->conf->public_index_service ) {
         goto PUBLIC_INDEX_RELEASE;
-    }
-
-    gnb_pf_release(gnb_core);
+    }    
 
 PUBLIC_INDEX_RELEASE:
 
@@ -774,8 +783,8 @@ void gnb_core_index_service_start(gnb_core_t *gnb_core){
     gnb_core->index_service_worker->start(gnb_core->index_service_worker);
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"%s start\n", gnb_core->index_service_worker->name);
 
-    gnb_core->main_worker->start(gnb_core->main_worker);
-    GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"%s start\n", gnb_core->main_worker->name);
+    gnb_core->primary_worker->start(gnb_core->primary_worker);
+    GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"%s start\n", gnb_core->primary_worker->name);
 
 }
 
@@ -783,6 +792,7 @@ void gnb_core_index_service_start(gnb_core_t *gnb_core){
 void gnb_core_start(gnb_core_t *gnb_core){
 
     int ret;
+    int i;
 
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "Start.....\n");
 
@@ -806,6 +816,11 @@ void gnb_core_start(gnb_core_t *gnb_core){
         GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"if[%s] opened\n", gnb_core->ifname);
         GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"node[%d] ipv4[%s]\n", gnb_core->local_node->uuid32, GNB_ADDR4STR_PLAINTEXT1(&gnb_core->local_node->tun_addr4));
 
+        for ( i=0; i<gnb_core->pf_worker_ring->size; i++ ) {
+            gnb_core->pf_worker_ring->worker[i]->start(gnb_core->pf_worker_ring->worker[i]);
+            GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "start packet filter worker [%s]\n", gnb_core->pf_worker_ring->worker[i]->name);
+        }
+
     }
 
     if ( gnb_core->conf->activate_index_worker ) {
@@ -828,17 +843,26 @@ void gnb_core_start(gnb_core_t *gnb_core){
         GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"%s start\n", gnb_core->node_worker->name);
     }
 
-    gnb_core->main_worker->start(gnb_core->main_worker);
-    GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"%s start\n", gnb_core->main_worker->name);
+    gnb_core->primary_worker->start(gnb_core->primary_worker);
+    GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"%s start\n", gnb_core->primary_worker->name);
 
 }
 
+
 void gnb_core_stop(gnb_core_t *gnb_core){
 
-    gnb_core->main_worker->stop(gnb_core->main_worker);
+    int i;
+
+    gnb_core->primary_worker->stop(gnb_core->primary_worker);
 
     if ( gnb_core->conf->activate_tun ) {
+
+        for ( i=0; i<gnb_core->pf_worker_ring->size; i++ ) {
+            gnb_core->pf_worker_ring->worker[i]->stop(gnb_core->pf_worker_ring->worker[i]);
+        }
+
         gnb_core->drv->close_tun(gnb_core);
+
     }
 
     if ( gnb_core->conf->activate_index_worker ) {
@@ -859,15 +883,13 @@ void gnb_core_stop(gnb_core_t *gnb_core){
 
     gnb_core->loop_flag = 0;
 
-    int i;
-
 #ifdef __UNIX_LIKE_OS__
 
-    for (i=0; i<gnb_core->conf->udp6_socket_num; i++) {
+    for ( i=0; i<gnb_core->conf->udp6_socket_num; i++ ) {
         close(gnb_core->udp_ipv6_sockets[i]);
     }
 
-    for (i=0; i<gnb_core->conf->udp4_socket_num; i++) {
+    for ( i=0; i<gnb_core->conf->udp4_socket_num; i++ ) {
         close(gnb_core->udp_ipv4_sockets[i]);
     }
 
@@ -875,11 +897,11 @@ void gnb_core_stop(gnb_core_t *gnb_core){
 
 #ifdef _WIN32
 
-    for (i=0; i<gnb_core->conf->udp6_socket_num; i++) {
+    for ( i=0; i<gnb_core->conf->udp6_socket_num; i++ ) {
         closesocket(gnb_core->udp_ipv6_sockets[i]);
     }
 
-    for (i=0; i<gnb_core->conf->udp4_socket_num; i++) {
+    for ( i=0; i<gnb_core->conf->udp4_socket_num; i++ ) {
         closesocket(gnb_core->udp_ipv4_sockets[i]);
     }
 

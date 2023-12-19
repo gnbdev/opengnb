@@ -115,7 +115,6 @@ gnb_address_list_t* gnb_create_address_list(size_t size){
     return address_list;
 
 }
-
 void gnb_address_list_release(gnb_address_list_t *address_list){
     free(address_list);
 }
@@ -128,6 +127,10 @@ int gnb_address_list_find(gnb_address_list_t *address_list, gnb_address_t *addre
     for ( i=0; i < address_list->num; i++ ) {
 
         if ( address->type != address_list->array[i].type ) {
+            continue;
+        }
+
+        if ( address->port != address_list->array[i].port ) {
             continue;
         }
 
@@ -313,7 +316,7 @@ char * gnb_get_socket6string(struct sockaddr_in6 *in6, char *dest, uint8_t addr_
 
     char *p;
 
-    if (addr_secure) {
+    if ( addr_secure ) {
 
         p = dest+1;
 
@@ -367,7 +370,7 @@ char * gnb_get_ip_port_string(gnb_address_t *address, char *dest, uint8_t addr_s
         snprintf(dest, GNB_IP6_PORT_STRING_SIZE,"NONE_ADDRESS");
     }
 
-    if (addr_secure) {
+    if ( addr_secure ) {
 
         while ( '\0' != *p ) {
 
@@ -421,9 +424,9 @@ void gnb_set_sockaddress4(gnb_sockaddress_t *sockaddress, int protocol, const ch
 
     sockaddress->addr_type = AF_INET;
 
-    if (GNB_PROTOCOL_TCP == protocol) {
+    if ( GNB_PROTOCOL_TCP == protocol ) {
         sockaddress->protocol = SOCK_STREAM;
-    } else if (GNB_PROTOCOL_UDP == protocol) {
+    } else if ( GNB_PROTOCOL_UDP == protocol ) {
         sockaddress->protocol = SOCK_DGRAM;
     } else {
         sockaddress->protocol = SOCK_DGRAM;
@@ -450,9 +453,9 @@ void gnb_set_sockaddress6(gnb_sockaddress_t *sockaddress, int protocol, const ch
 
     sockaddress->addr_type = AF_INET6;
 
-    if (GNB_PROTOCOL_TCP == protocol) {
+    if ( GNB_PROTOCOL_TCP == protocol ) {
         sockaddress->protocol = SOCK_STREAM;
-    } else if (GNB_PROTOCOL_UDP == protocol) {
+    } else if ( GNB_PROTOCOL_UDP == protocol ) {
         sockaddress->protocol = SOCK_DGRAM;
     } else {
         sockaddress->protocol = SOCK_DGRAM;
@@ -545,7 +548,22 @@ char* gnb_hide_adrress_string(char*adrress_string){
 
 }
 
+
 void gnb_address_list3_fifo(gnb_address_list_t *address_list, gnb_address_t *address){
+
+    int idx;
+
+    if ( 0 == address_list->num ) {
+        goto update_fifo;
+    }
+
+    idx = gnb_address_list_find(address_list, address);
+
+    if ( idx >= 0 ) {
+        return;
+    }
+
+update_fifo:
 
     switch (address_list->num) {
 
@@ -585,3 +603,4 @@ void gnb_address_list3_fifo(gnb_address_list_t *address_list, gnb_address_t *add
     }
 
 }
+

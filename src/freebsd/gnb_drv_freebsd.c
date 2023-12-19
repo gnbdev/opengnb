@@ -128,7 +128,7 @@ static void set_route4(gnb_core_t *gnb_core){
     
     s = socket(PF_ROUTE, SOCK_RAW, 0);
     
-    if (s < 0) {
+    if ( s < 0 ) {
         printf("error: socket\n");
         return;
     }
@@ -196,7 +196,7 @@ static void setifmtu(char *if_name,int mtu) {
 
     int ret =  ioctl(socket_fd, SIOCSIFMTU, &ifr);
 
-    if (-1==ret) {
+    if ( -1==ret ) {
         perror("ioctl");
     }
 
@@ -234,7 +234,7 @@ static int set_addr4(char *if_name, char *ip, char *netmask) {
     
     int ret = ioctl(socket_fd, SIOCAIFADDR, &in_addreq);
     
-    if (-1==ret) {
+    if ( -1==ret ) {
         perror("ioctl");
     }
     
@@ -294,7 +294,7 @@ static int set_addr6(char *if_name, char *ip, char *netmask) {
 
     int ret = ioctl(socket_fd, SIOCAIFADDR_IN6, &in6_addreq);
 
-    if (-1==ret) {
+    if ( -1==ret ) {
         perror("ioctl");
     }
 

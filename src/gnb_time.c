@@ -34,7 +34,7 @@
 
 #include "gnb_time.h"
 
-/*秒*/
+
 uint64_t gnb_timestamp_sec(){
 
     int ret;
@@ -52,6 +52,7 @@ uint64_t gnb_timestamp_sec(){
     return u64;
 
 }
+
 
 uint64_t gnb_timestamp_usec(){
 
@@ -71,7 +72,6 @@ uint64_t gnb_timestamp_usec(){
 }
 
 
-
 void gnb_now_timef(const char *format, char *buffer, size_t buffer_size){
 
     time_t t;
@@ -87,7 +87,6 @@ void gnb_now_timef(const char *format, char *buffer, size_t buffer_size){
 }
 
 
-
 void gnb_timef(const char *format, time_t t, char *buffer, size_t buffer_size){
 
     struct tm ltm;
@@ -97,7 +96,6 @@ void gnb_timef(const char *format, time_t t, char *buffer, size_t buffer_size){
     strftime (buffer,buffer_size,format,&ltm);
 
 }
-
 
 
 int gnb_now_mday(){
@@ -113,6 +111,7 @@ int gnb_now_mday(){
     return ltm.tm_mday;
     
 }
+
 
 int gnb_now_yday(){
 

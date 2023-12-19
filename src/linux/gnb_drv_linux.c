@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <unistd.h>
 #include <limits.h>
 #include <errno.h>
@@ -130,7 +131,7 @@ static void setifmtu(char *if_name,int mtu) {
 
     int ret = ioctl(socket_fd, SIOCSIFMTU, &ifr);
 
-    if (-1==ret) {
+    if ( -1==ret ) {
         perror("ioctl");
     }
 
@@ -203,7 +204,7 @@ static int set_addr6(char *interface_name, char *ip, char *netmask){
 
     socket_fd = socket(PF_INET6, SOCK_DGRAM, IPPROTO_IP);
 
-    if ( socket_fd < 0) {
+    if ( socket_fd < 0 ) {
         return -1;
     }
 
@@ -211,7 +212,7 @@ static int set_addr6(char *interface_name, char *ip, char *netmask){
 
     ret = ioctl(socket_fd, SIOGIFINDEX, &ifr);
 
-    if ( ret< 0) {
+    if ( ret< 0 ) {
         goto finish;
     }
 
@@ -315,7 +316,7 @@ static int open_tun_linux(gnb_core_t *gnb_core){
 
     set_addr4(gnb_core->ifname, GNB_ADDR4STR_PLAINTEXT1(&gnb_core->local_node->tun_addr4), GNB_ADDR4STR_PLAINTEXT2(&gnb_core->local_node->tun_netmask_addr4));
 
-    if (GNB_ADDR_TYPE_IPV4 != gnb_core->conf->udp_socket_type) {
+    if ( GNB_ADDR_TYPE_IPV4 != gnb_core->conf->udp_socket_type ) {
         set_addr6(gnb_core->ifname, GNB_ADDR6STR_PLAINTEXT1(&gnb_core->local_node->tun_ipv6_addr), "FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:0000:0000");
     }
 

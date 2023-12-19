@@ -1,4 +1,4 @@
-CFLAGS=-O2 -I./src -I./libs -I./libs/miniupnpc -I./libs/libnatpmp
+CFLAGS=-O2 -I./src -I./libs -I./libs/miniupnpc -I./libs/libnatpmp -I./libs/zlib -D NO_GZIP=1
 CLI_LDFLAGS=-s -L/usr/lib -pthread
 GNB_ES_LDFLAGS=-s -L/usr/lib -pthread
 
@@ -34,8 +34,8 @@ $(GNB_CRYPTO): $(CRYPTO_OBJS) ./src/gnb_crypto.o
 	${CC} -o ${GNB_CRYPTO} ./src/gnb_crypto.o ${CRYPTO_OBJS} ${CLI_LDFLAGS}
 
 
-$(GNB_CLI): $(GNB_OBJS) $(GNB_CLI_OBJS) $(GNB_PF_OBJS) ${CRYPTO_OBJS}
-	${CC} -o ${GNB_CLI} ${GNB_OBJS} ${GNB_CLI_OBJS} ${GNB_PF_OBJS} ${CRYPTO_OBJS} ${CLI_LDFLAGS}
+$(GNB_CLI): $(GNB_OBJS) $(GNB_CLI_OBJS) $(GNB_PF_OBJS) ${CRYPTO_OBJS} ${ZLIB_OBJS}
+	${CC} -o ${GNB_CLI} ${GNB_OBJS} ${GNB_CLI_OBJS} ${GNB_PF_OBJS} ${CRYPTO_OBJS} ${ZLIB_OBJS} ${CLI_LDFLAGS}
 
 
 %.o:%.c

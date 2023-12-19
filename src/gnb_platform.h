@@ -22,5 +22,4 @@
 #define __UNIX_LIKE_OS__ 1
 #endif
 
-
 #endif
