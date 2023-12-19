@@ -1082,7 +1082,7 @@ static void show_useage(int argc,char *argv[]){
     printf("  -q, --quiet                      disabled console output\n");
     printf("  -t, --selftest                   self test\n");
     printf("  -p, --passcode                   a hexadecimal string of 32-bit unsigned integer,use to strengthen safety default:0x9d078107\n");
-    printf("  -U, --unified-forwarding         \"off\",\"force\",\"auto\",\"super\",\"hyper\" default:\"auto\"; cannot be used whith --pf-worker\n");
+    printf("  -U, --unified-forwarding         \"off\",\"force\",\"auto\",\"super\",\"hyper\" default:\"auto\"; cannot be used with --pf-worker\n");
 
 
     printf("  -l, --listen                     listen address default:\"0.0.0.0:9001\"\n");
@@ -1132,7 +1132,7 @@ static void show_useage(int argc,char *argv[]){
     printf("      --node-detect-worker         \"on\",\"off\" default:\"on\"\n");
 
     #ifdef __UNIX_LIKE_OS__
-    printf("      --pf-worker                  [0-128] number of the packet filter worker default:0; cannot be used whith --unified-forwarding, only for unix-like os\n");
+    printf("      --pf-worker                  [0-128] number of the packet filter worker default:0; cannot be used with --unified-forwarding, only for unix-like os\n");
     #endif
 
 
