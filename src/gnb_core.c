@@ -468,17 +468,10 @@ gnb_core_t* gnb_core_create(gnb_conf_t *conf){
 
     gnb_core->heap = heap;
 
-/*
-    if ( 0 == conf->lite_mode ) {
-        //加载 node.conf
-        local_node_file_config(conf);
-    }
-*/
     init_ctl_block(gnb_core, conf);
 
     gnb_core->conf = &gnb_core->ctl_block->conf_zone->conf_st;
     memcpy(gnb_core->conf, conf, sizeof(gnb_conf_t));
-
 
     gnb_core->log = &gnb_core->ctl_block->core_zone->log_ctx_st;
 
@@ -576,7 +569,6 @@ gnb_core_t* gnb_core_create(gnb_conf_t *conf){
         setup_log_ctx(gnb_core->conf, gnb_core->log);
 
     }
-
 
     log_out_description(gnb_core->log);
 

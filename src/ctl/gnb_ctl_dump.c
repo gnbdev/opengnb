@@ -93,11 +93,11 @@ void gnb_ctl_dump_status(gnb_ctl_block_t *ctl_block, uint32_t in_nodeid, uint8_t
             continue;
         }
 
-        if ( 0 != online_opt && !((GNB_NODE_STATUS_IPV6_PONG | GNB_NODE_STATUS_IPV4_PONG) & node->udp_addr_status) && node->uuid32 != ctl_block->core_zone->local_uuid ) {
+dump_all_node:
+
+        if ( 0 != online_opt && !((GNB_NODE_STATUS_IPV6_PONG | GNB_NODE_STATUS_IPV4_PONG) & node->udp_addr_status) ) {
             continue;
         }
-
-dump_all_node:
 
         available_address6_list = (gnb_address_list_t *)&node->available_address6_list3_block;
         available_address4_list = (gnb_address_list_t *)&node->available_address4_list3_block;

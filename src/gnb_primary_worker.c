@@ -861,9 +861,9 @@ static void init(gnb_worker_t *gnb_worker, void *ctx){
 
     pf = gnb_find_pf_mod_by_name(gnb_core->conf->pf_route);
 
-    if ( NULL== pf ) {
+    if ( NULL == pf ) {
         GNB_ERROR1(gnb_core->log, GNB_LOG_ID_CORE, "pf_route '%s' not exist\n", gnb_core->conf->pf_route);
-        return;
+        exit(1);
     }
 
     gnb_pf_install(primary_worker_ctx->pf_array, pf);

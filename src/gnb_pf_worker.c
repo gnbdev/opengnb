@@ -191,7 +191,7 @@ static void init(gnb_worker_t *gnb_worker, void *ctx){
 
     if ( NULL == find_pf ) {
         GNB_ERROR1(gnb_core->log, GNB_LOG_ID_PF, "pf_route '%s' not exist\n", gnb_core->conf->pf_route);
-        return;
+        exit(1);
     }
 
     pf = (gnb_pf_t *)gnb_heap_alloc(gnb_core->heap, sizeof(gnb_pf_t));

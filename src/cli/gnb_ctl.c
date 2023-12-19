@@ -36,7 +36,7 @@ void gnb_ctl_dump_address_list(gnb_ctl_block_t *ctl_block, uint32_t in_nodeid);
 
 static void show_useage(int argc,char *argv[]){
 
-    printf("GNB Ctl version 1.4.5.a protocol version 1.2.5\n");
+    printf("GNB Ctl version 1.4.5.a protocol version 1.2.6\n");
     printf("Build[%s %s]\n", __DATE__, __TIME__);
 
     printf("Copyright (C) 2019 gnbdev\n");
@@ -52,7 +52,7 @@ static void show_useage(int argc,char *argv[]){
     printf("      --help\n");
 
     printf("example:\n");
-    printf("%s --ctl-block=./gnb.map\n",argv[0]);
+    printf("%s -b gnb.map -c -s\n",argv[0]);
 
 }
 
