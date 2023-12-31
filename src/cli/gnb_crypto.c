@@ -33,9 +33,17 @@
 #include "crypto/random/gnb_random.h"
 #include "ed25519/ed25519.h"
 
+
+#ifndef GNB_SKIP_BUILD_TIME
+#define GNB_BUILD_STRING  "Build Time ["__DATE__","__TIME__"]"
+#else
+#define GNB_BUILD_STRING  "Build Time [Hidden]"
+#endif
+
+
 static void show_useage(int argc,char *argv[]){
 
-    printf("Build[%s %s]\n", __DATE__, __TIME__);
+    printf("%s\n", GNB_BUILD_STRING);
 
     printf("usage: %s -c -p private_key_file -k public_key_file\n",argv[0]);
     printf("example:\n");
@@ -68,13 +76,14 @@ static void create_keypair(uint32_t uuid32, const char *private_key_file, const 
     public_file_fd = open(public_key_file, O_WRONLY|O_CREAT,S_IRUSR|S_IWUSR);
 
     if ( -1 == public_file_fd ) {
+        perror("create public key file");
         exit(0);
     }
 
     wlen = write(public_file_fd,hex_string,64);
 
     if ( -1 == wlen ) {
-        perror("write public_file");
+        perror("write public key file");
     }
 
     close(public_file_fd);
@@ -84,13 +93,14 @@ static void create_keypair(uint32_t uuid32, const char *private_key_file, const 
     private_file_fd = open(private_key_file, O_WRONLY|O_CREAT,S_IRUSR|S_IWUSR);
 
     if ( -1 == private_file_fd ) {
+        perror("create private key file");
         exit(0);
     }
 
     wlen = write(private_file_fd,hex_string,128);
 
     if ( -1 == wlen ) {
-        perror("write private_file");
+        perror("write private key file");
     }
 
     close(private_file_fd);
@@ -159,7 +169,3 @@ int main (int argc,char *argv[]){
     return 0;
 
 }
-
-/*
-./gnb_crypto -c -p 1010.private -k 1010.public
-*/

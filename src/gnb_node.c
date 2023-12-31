@@ -201,6 +201,10 @@ gnb_node_t* gnb_select_forward_node(gnb_core_t *gnb_core){
         return gnb_core->fwd_node_ring.nodes[0];
     }
 
+    if ( gnb_core->conf->pf_worker_num > 0 ) {
+        return gnb_core->fwd_node_ring.nodes[0];
+    }
+
     if ( GNB_MULTI_ADDRESS_TYPE_SIMPLE_FAULT_TOLERANT == gnb_core->conf->multi_forward_type ) {
         goto SIMPLE_FAULT_TOLERANT;
     }

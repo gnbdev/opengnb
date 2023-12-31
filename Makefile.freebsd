@@ -39,8 +39,8 @@ $(GNB_ES): $(GNB_ES_OBJS) ${CRYPTO_OBJS} ${MINIUPNP_OBJS} ${LIBNATPMP_OBJS}
 	${CC} -o ${GNB_ES} ${GNB_ES_OBJS} ${CRYPTO_OBJS} ${MINIUPNP_OBJS} ${LIBNATPMP_OBJS} ${GNB_ES_LDFLAGS}
 
 
-$(GNB_CRYPTO): $(CRYPTO_OBJS) ./src/gnb_crypto.o
-	${CC} -o ${GNB_CRYPTO} ./src/gnb_crypto.o ${CRYPTO_OBJS} ${CLI_LDFLAGS}
+$(GNB_CRYPTO): $(CRYPTO_OBJS) ./src/cli/gnb_crypto.o
+	${CC} -o ${GNB_CRYPTO} ./src/cli/gnb_crypto.o ${CRYPTO_OBJS} ${CLI_LDFLAGS}
 
 
 $(GNB_CLI): $(GNB_OBJS) $(GNB_CLI_OBJS) $(GNB_PF_OBJS) ${CRYPTO_OBJS} ${ZLIB_OBJS}

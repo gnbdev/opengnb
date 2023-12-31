@@ -33,8 +33,8 @@ ${GNB_ES}: ${GNB_ES_OBJS} ${CRYPTO_OBJS} ${MINIUPNP_OBJS} ${LIBNATPMP_OBJS}
 	strip ${GNB_ES}
 
 
-${GNB_CRYPTO}: ${CRYPTO_OBJS} ./src/gnb_crypto.o
-	${CC} -o ${GNB_CRYPTO}  ./src/gnb_crypto.o ${CRYPTO_OBJS} ${CLI_LDFLAGS}
+${GNB_CRYPTO}: ${CRYPTO_OBJS} ./src/cli/gnb_crypto.o
+	${CC} -o ${GNB_CRYPTO}  ./src/cli/gnb_crypto.o ${CRYPTO_OBJS} ${CLI_LDFLAGS}
 	strip ${GNB_CRYPTO}
 
 

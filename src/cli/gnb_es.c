@@ -37,6 +37,14 @@
 #include "gnb_core_frame_type_defs.h"
 #include "es/gnb_es_type.h"
 
+
+#ifndef GNB_SKIP_BUILD_TIME
+#define GNB_BUILD_STRING  "Build Time ["__DATE__","__TIME__"]"
+#else
+#define GNB_BUILD_STRING  "Build Time [Hidden]"
+#endif
+
+
 gnb_es_ctx* gnb_es_ctx_create(int is_service, char *ctl_block_file,gnb_log_ctx_t *log);
 void gnb_es_ctx_init(gnb_es_ctx *es_ctx);
 
@@ -67,9 +75,9 @@ void gnb_start_environment_service(gnb_es_ctx *es_ctx);
 
 static void show_useage(int argc,char *argv[]){
 
-    printf("GNB Environment Service version 1.3.0.b protocol version 1.1.3\n");
+    printf("GNB Environment Service version 1.4.5.b protocol version 1.4.5\n");
 
-    printf("Build[%s %s]\n", __DATE__, __TIME__);
+    printf("%s\n", GNB_BUILD_STRING);
 
     printf("Copyright (C) 2019 gnbdev<gnbdev@qq.com>\n");
 

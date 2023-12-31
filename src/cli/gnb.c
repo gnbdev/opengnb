@@ -34,7 +34,6 @@
 #endif
 
 
-
 #ifndef GNB_SKIP_BUILD_TIME
 #define GNB_BUILD_STRING  "Build Time ["__DATE__","__TIME__"]"
 #else
