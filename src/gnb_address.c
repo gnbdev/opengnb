@@ -25,15 +25,22 @@
 #ifdef __UNIX_LIKE_OS__
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#define __USE_MISC 1
+#include <netinet/in.h>
+
 #endif
 
 #ifdef _WIN32
 
 #undef _WIN32_WINNT
 #define _WIN32_WINNT 0x0600
-
 #include <winsock2.h>
 #include <ws2tcpip.h>
+
+//#define __USE_MISC 1
+//#include <in.h>
+
+#define in_addr_t uint32_t
 
 #define _POSIX
 #define __USE_MINGW_ALARM
@@ -604,3 +611,44 @@ update_fifo:
 
 }
 
+
+int gnb_determine_subnet6_prefixlen96(struct in6_addr addr6_a, struct in6_addr addr6_b) {
+
+    int ret;
+
+    addr6_a.s6_addr[12] = 0;
+    addr6_a.s6_addr[13] = 0;
+    addr6_a.s6_addr[14] = 0;
+    addr6_a.s6_addr[15] = 0;
+
+    addr6_b.s6_addr[12] = 0;
+    addr6_b.s6_addr[13] = 0;
+    addr6_b.s6_addr[14] = 0;
+    addr6_b.s6_addr[15] = 0;
+
+    /* rfc3542
+    This macro returns non-zero if the addresses are equal; otherwise it
+    returns zero.    
+    */
+    ret = IN6_ARE_ADDR_EQUAL( &addr6_a, &addr6_b );
+
+    return ret;
+
+}
+
+
+int gnb_determine_subnet4(struct in_addr addr4_a, struct in_addr addr4_b, struct in_addr netmask) {
+    
+    in_addr_t ipv4_network_a;
+    in_addr_t ipv4_network_b;
+
+    ipv4_network_a = addr4_a.s_addr & netmask.s_addr;
+    ipv4_network_b = addr4_b.s_addr & netmask.s_addr;
+
+    if ( ipv4_network_a == ipv4_network_b ) {
+        return 1;
+    }
+
+    return 0;
+
+}

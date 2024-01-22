@@ -143,7 +143,7 @@ static void send_request_addr_frame(gnb_worker_t *gnb_index_worker, gnb_node_t *
     //debug_text
     snprintf(request_addr_frame->data.text,32,"%s %u==>%u","REQUEST_ADDR", gnb_core->local_node->uuid32, node->uuid32);
 
-    if (0 == gnb_core->conf->lite_mode) {
+    if ( 0 == gnb_core->conf->lite_mode ) {
         ed25519_sign(request_addr_frame->src_sign, (const unsigned char *)&request_addr_frame->data, sizeof(struct request_addr_frame_data), gnb_core->ed25519_public_key, gnb_core->ed25519_private_key);
     }
 
@@ -417,7 +417,7 @@ static void handle_push_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *i
     }
 
     //just for log
-    for( i=0; i<dst_address6_list->num; i++ ) {
+    for ( i=0; i<dst_address6_list->num; i++ ) {
         GNB_LOG2(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"RECEIVE_PUSH_ADDR node=%d %s text='%.*s' action=%c\n", nodeid, GNB_IP_PORT_STR1(&dst_address6_list->array[i]), 32, push_addr_frame->data.text, push_addr_frame->data.arg0);
     }
 
@@ -553,6 +553,10 @@ static void handle_echo_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *i
         gnb_set_address4(address, &sockaddress->addr.in);
     }
 
+
+    /*
+    如果 index 节点有多个 ipv6 地址,这里得到地址不一定与发送的目的地址相同
+    */
     int idx = gnb_address_list_find(gnb_core->index_address_ring.address_list, address);
 
     if ( -1 == idx ) {
@@ -568,13 +572,13 @@ static void handle_echo_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *i
     if ( '6' == echo_addr_frame->data.addr_type ) {
         memcpy(&gnb_core->local_node->udp_sockaddr6.sin6_addr, &echo_addr_frame->data.addr, 16);
         gnb_core->local_node->udp_sockaddr6.sin6_port = echo_addr_frame->data.port;
-        GNB_LOG3(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"get echo address %s:%d from index %s:%d\n", GNB_ADDR6STR1(echo_addr_frame->data.addr), ntohs(echo_addr_frame->data.port), GNB_SOCKETADDRSTR2(sockaddress), ntohs(sockaddress->addr.in6.sin6_port));
+        GNB_LOG3(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"get echo address %s:%d from index %s\n", GNB_ADDR6STR1(echo_addr_frame->data.addr), ntohs(echo_addr_frame->data.port), GNB_SOCKETADDRSTR2(sockaddress));
     } else if ( '4' == echo_addr_frame->data.addr_type ) {
         memcpy(&gnb_core->local_node->udp_sockaddr4.sin_addr, &echo_addr_frame->data.addr, 4);
         gnb_core->local_node->udp_sockaddr4.sin_port = echo_addr_frame->data.port;
-        GNB_LOG3(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"get echo address %s:%d from index %s:%d\n", GNB_ADDR4STR1(echo_addr_frame->data.addr), ntohs(echo_addr_frame->data.port), GNB_SOCKETADDRSTR2(sockaddress), ntohs(sockaddress->addr.in.sin_port));
+        GNB_LOG3(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"get echo address %s:%d from index %s\n", GNB_ADDR4STR1(echo_addr_frame->data.addr), ntohs(echo_addr_frame->data.port), GNB_SOCKETADDRSTR2(sockaddress));
     } else {
-        GNB_LOG3(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"handle echo address type error%.*s from %s:%d\n", 80, echo_addr_frame->data.text, GNB_SOCKETADDRSTR2(sockaddress), ntohs(sockaddress->addr.in.sin_port));
+        GNB_LOG3(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"handle echo address type error%.*s from %s\n", 80, echo_addr_frame->data.text, GNB_SOCKETADDRSTR2(sockaddress));
         return;
     }
 
@@ -630,7 +634,19 @@ static void handle_detect_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t 
     address->socket_idx = index_worker_in_data->socket_idx;
     address->ts_sec = index_worker_ctx->now_time_usec;
 
-    if (AF_INET6 == sockaddress->addr_type){
+    if ( AF_INET6 == sockaddress->addr_type ) {
+
+        if ( 0 != gnb_determine_subnet6_prefixlen96(sockaddress->addr.in6.sin6_addr, gnb_core->local_node->tun_ipv6_addr ) ) {
+
+            GNB_LOG3(gnb_core->log,GNB_LOG_ID_NODE_WORKER, "handle_detect_addr_frame IPV6 Warning src[%u]->dst[%u] idx=%u %s\n",
+                    src_node->uuid32, dst_uuid32,
+                    index_worker_in_data->socket_idx,
+                    GNB_ADDR6STR1(&sockaddress->addr.in6.sin6_addr)
+            );
+
+            return;
+
+        }
 
         if ( 'e' == detect_addr_frame->data.arg0 ) {
             src_node->udp_addr_status |= GNB_NODE_STATUS_IPV6_PONG;
@@ -651,6 +667,18 @@ static void handle_detect_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t 
     }
 
     if ( AF_INET == sockaddress->addr_type ) {
+
+        if ( 0 != gnb_determine_subnet4(sockaddress->addr.in.sin_addr,  gnb_core->local_node->tun_addr4, gnb_core->local_node->tun_netmask_addr4) ) {
+
+            GNB_LOG3(gnb_core->log,GNB_LOG_ID_NODE_WORKER, "handle_detect_addr_frame IPV4 Warning src[%u]->dst[%u] idx=%u %s\n",
+                    src_node->uuid32, dst_uuid32,
+                    index_worker_in_data->socket_idx,
+                    GNB_ADDR4STR1(&sockaddress->addr.in.sin_addr)
+            );
+            
+            return;
+            
+        }
 
         if ( 'e' == detect_addr_frame->data.arg0 ) {
             src_node->udp_addr_status |= GNB_NODE_STATUS_IPV4_PONG;

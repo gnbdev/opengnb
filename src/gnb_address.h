@@ -88,7 +88,6 @@ char * gnb_get_sockaddress_string(gnb_sockaddress_t *sockaddress, char *dest, ui
 #define GNB_SOCKETADDRSTR2(sockaddress) gnb_get_sockaddress_string(sockaddress,gnb_static_ip_port_string_buffer2,gnb_addr_secure)
 
 
-
 int gnb_cmp_sockaddr_in6(struct sockaddr_in6 *in1, struct sockaddr_in6 *in2);
 int gnb_cmp_sockaddr_in(struct sockaddr_in *in1, struct sockaddr_in *in2);
 
@@ -101,5 +100,13 @@ void gnb_set_sockaddress6(gnb_sockaddress_t *sockaddress, int protocol, const ch
 gnb_address_t gnb_get_address4_from_string(const char *sockaddress4_string);
 
 void gnb_address_list3_fifo(gnb_address_list_t *address_list, gnb_address_t *address);
+
+
+/*
+只判断 prefixlen=96 的子网
+*/
+int gnb_determine_subnet6_prefixlen96(struct in6_addr addr6_a, struct in6_addr addr6_b);
+ 
+int gnb_determine_subnet4(struct in_addr addr4_a, struct in_addr addr4_b, struct in_addr netmask);
 
 #endif

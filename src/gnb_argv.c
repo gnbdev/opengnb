@@ -1018,6 +1018,24 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
         snprintf(conf->map_file,        PATH_MAX+NAME_MAX, "%s",       ctl_block_file);
     }
 
+    char  resolved_path[PATH_MAX+NAME_MAX];
+
+    if ( '\0' != conf->conf_dir[0] && NULL != gnb_realpath(conf->conf_dir,resolved_path) ) {
+        strncpy(conf->conf_dir, resolved_path, PATH_MAX);
+    }
+
+    if ( NULL != gnb_realpath(conf->map_file,resolved_path) ) {
+        strncpy(conf->map_file, resolved_path, PATH_MAX);
+    }
+
+    if ( NULL != gnb_realpath(conf->pid_file,resolved_path) ) {
+        strncpy(conf->pid_file, resolved_path, PATH_MAX);
+    }
+
+    if ( '\0' != conf->node_cache_file[0] && NULL != gnb_realpath(conf->node_cache_file,resolved_path) ) {
+        strncpy(conf->node_cache_file, resolved_path, PATH_MAX);
+    }
+
     #ifdef __UNIX_LIKE_OS__
     gnb_arg_append(gnb_es_arg_list, "-b");
     gnb_arg_append(gnb_es_arg_list, conf->map_file);
@@ -1035,24 +1053,6 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
     if ( 1 == conf->lite_mode ) {
         gnb_arg_append(gnb_es_arg_list, "--upnp");
-    }
-
-    char  resolved_path[PATH_MAX+NAME_MAX];
-
-    if ( '\0' != conf->conf_dir[0] && NULL != gnb_realpath(conf->conf_dir,resolved_path) ) {
-        strncpy(conf->conf_dir, resolved_path, PATH_MAX);
-    }
-
-    if ( NULL != gnb_realpath(conf->map_file,resolved_path) ) {
-        strncpy(conf->map_file, resolved_path, PATH_MAX);
-    }
-
-    if ( NULL != gnb_realpath(conf->pid_file,resolved_path) ) {
-        strncpy(conf->pid_file, resolved_path, PATH_MAX);
-    }
-
-    if ( '\0' != conf->node_cache_file[0] && NULL != gnb_realpath(conf->node_cache_file,resolved_path) ) {
-        strncpy(conf->node_cache_file, resolved_path, PATH_MAX);
     }
 
     return conf;
