@@ -1100,7 +1100,7 @@ static void show_useage(int argc,char *argv[]){
     printf("      --index-service-worker-queue  index service worker queue length\n");
     printf("      --packet-filter-worker-queue  packet filter worker queue length\n");
 
-    printf("      --port-detect                node address detect port start,end,range\n");
+    printf("      --port-detect                node address detect port range,start,end\n");
     printf("      --detect-interval            node address detect interval default %u,%u\n", GNB_ADDRESS_DETECT_INTERVAL_USEC,GNB_FULL_DETECT_INTERVAL_SEC);
 
     printf("      --mtu                        TUN Device MTU ipv4:532~1500,ipv6:1280~1500\n");
