@@ -243,7 +243,7 @@ void gnb_logf(gnb_log_ctx_t *log, uint8_t log_type, uint8_t log_id, uint8_t leve
 
     va_start(ap, format);
 
-    len = vsnprintf(p, GNB_LOG_LINE_MAX, format, ap);
+    len = vsnprintf(p, GNB_LOG_LINE_MAX-log_string_len, format, ap);
 
     va_end(ap);
 
