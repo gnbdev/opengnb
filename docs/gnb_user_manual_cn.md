@@ -215,7 +215,7 @@ es-argv      "--upnp"
 ```
 multi-socket on
 ```
-打开更多 UDP 监听端口，增加NAT穿透是端口探测成功的概率。
+打开更多 UDP 监听端口，增加NAT穿透端口探测成功的概率。
 
 `multi-socket` 被设为 on 后会除原有的 `listen` 的端口外，在额外打开4个随机 UDP 端口，如果想额外监听指定的端口，可以用多个 `listen` 设置项，GNB 支持用`listen` 指定监听5个地址端口或通过`listen6` 监听 5个IPV6地址和端口 以及用 `listen4` 监听5个IPV4地址端口。
 
