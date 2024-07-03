@@ -567,6 +567,7 @@ void gnb_address_list3_fifo(gnb_address_list_t *address_list, gnb_address_t *add
     idx = gnb_address_list_find(address_list, address);
 
     if ( idx >= 0 ) {
+        memcpy( &address_list->array[idx], address, sizeof(gnb_address_t) );
         return;
     }
 
