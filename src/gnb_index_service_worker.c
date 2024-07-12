@@ -63,7 +63,7 @@ typedef struct _index_service_worker_ctx_t {
 
 typedef struct _gnb_key_address_t{
 
-    uint32_t uuid32;
+    uint64_t uuid64;
 
     // key_node 最后发送 post_addr_frame的时间
     uint64_t last_post_addr4_sec;
@@ -91,7 +91,7 @@ typedef struct _gnb_key_address_t{
 }gnb_key_address_t;
 
 
-static void send_echo_addr_frame(gnb_worker_t *gnb_index_service_worker, unsigned char *key512, uint32_t uuid32, gnb_address_t *address);
+static void send_echo_addr_frame(gnb_worker_t *gnb_index_service_worker, unsigned char *key512, uint64_t uuid64, gnb_address_t *address);
 static void send_push_addr_frame(gnb_worker_t *gnb_index_service_worker, unsigned char action, unsigned char attachment, unsigned char *src_key, gnb_key_address_t *src_key_address, unsigned char *dst_key, gnb_key_address_t *dst_key_address);
 static void handle_post_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *index_service_worker_in_data);
 static void handle_request_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *index_service_worker_in_data);
@@ -135,7 +135,7 @@ static void handle_post_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *i
 
     }
 
-    key_address->uuid32 = ntohl(post_addr_frame->data.src_uuid32);
+    key_address->uuid64 = gnb_ntohll(post_addr_frame->data.src_uuid64);
 
     gnb_address_t *address = alloca(sizeof(gnb_address_t));
 
@@ -144,7 +144,7 @@ static void handle_post_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *i
     if ( AF_INET6 == sockaddress->addr_type ) {
 
         if ( index_service_worker_ctx->now_time_sec - key_address->last_post_addr6_sec < GNB_POST_ADDR_LIMIT_SEC ) {
-            GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE POST receive addr=%u now_time_sec=%"PRIu64" last_post_addr6_sec=%"PRIu64" LIMIT\n", key_address->uuid32, index_service_worker_ctx->now_time_sec, key_address->last_post_addr6_sec);
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE POST receive addr=%"PRIu64" now_time_sec=%"PRIu64" last_post_addr6_sec=%"PRIu64" LIMIT\n", key_address->uuid64, index_service_worker_ctx->now_time_sec, key_address->last_post_addr6_sec);
             key_address->last_post_addr6_sec = index_service_worker_ctx->now_time_sec;
             return;
         }
@@ -160,7 +160,7 @@ static void handle_post_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *i
     if ( AF_INET == sockaddress->addr_type ) {
 
         if ( index_service_worker_ctx->now_time_sec - key_address->last_post_addr4_sec < GNB_POST_ADDR_LIMIT_SEC ) {
-            GNB_LOG2(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE POST receive addr=%u now_time_sec=%"PRIu64" last_post_addr4_sec=%"PRIu64" LIMIT\n", key_address->uuid32, index_service_worker_ctx->now_time_sec, key_address->last_post_addr4_sec);
+            GNB_LOG2(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE POST receive addr=%"PRIu64" now_time_sec=%"PRIu64" last_post_addr4_sec=%"PRIu64" LIMIT\n", key_address->uuid64, index_service_worker_ctx->now_time_sec, key_address->last_post_addr4_sec);
             key_address->last_post_addr4_sec = index_service_worker_ctx->now_time_sec;
             return;
         }
@@ -189,14 +189,14 @@ static void handle_post_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *i
 
     }
 
-    send_echo_addr_frame(gnb_core->index_service_worker, post_addr_frame->data.src_key512, key_address->uuid32, address);
+    send_echo_addr_frame(gnb_core->index_service_worker, post_addr_frame->data.src_key512, key_address->uuid64, address);
 
-    GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE POST addr [%u][%s]\n", key_address->uuid32, GNB_SOCKETADDRSTR1(sockaddress));
+    GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE POST addr [%"PRIu64"][%s]\n", key_address->uuid64, GNB_SOCKETADDRSTR1(sockaddress));
 
 }
 
 
-static void send_echo_addr_frame(gnb_worker_t *gnb_index_service_worker, unsigned char *key512, uint32_t uuid32, gnb_address_t *address){
+static void send_echo_addr_frame(gnb_worker_t *gnb_index_service_worker, unsigned char *key512, uint64_t uuid64, gnb_address_t *address){
 
     index_service_worker_ctx_t *index_service_worker_ctx = gnb_index_service_worker->ctx;
     gnb_core_t *gnb_core = index_service_worker_ctx->gnb_core;
@@ -211,7 +211,7 @@ static void send_echo_addr_frame(gnb_worker_t *gnb_index_service_worker, unsigne
 
     memcpy(echo_addr_frame->data.dst_key512, key512, 64);
 
-    echo_addr_frame->data.dst_uuid32 = htonl(uuid32);
+    echo_addr_frame->data.dst_uuid64 = gnb_htonll(uuid64);
 
     echo_addr_frame->data.src_ts_usec = gnb_htonll(index_service_worker_ctx->now_time_usec);
 
@@ -219,12 +219,12 @@ static void send_echo_addr_frame(gnb_worker_t *gnb_index_service_worker, unsigne
         echo_addr_frame->data.addr_type = '6';
         memcpy(echo_addr_frame->data.addr, address->m_address6, 16);
         //debug_text
-        snprintf(echo_addr_frame->data.text, 80, "ECHO ADDR [%s:%d][%u]", GNB_ADDR6STR_PLAINTEXT1(address->m_address6), ntohs(address->port), uuid32);
+        snprintf(echo_addr_frame->data.text, 80, "ECHO ADDR [%s:%d][%"PRIu64"]", GNB_ADDR6STR_PLAINTEXT1(address->m_address6), ntohs(address->port), uuid64);
     } else if ( AF_INET == address->type ) {
         echo_addr_frame->data.addr_type = '4';
         memcpy(echo_addr_frame->data.addr, address->m_address4, 4);
         //debug_text
-        snprintf(echo_addr_frame->data.text, 80, "ECHO ADDR [%s:%d][%u]", GNB_ADDR4STR_PLAINTEXT1(address->m_address4), ntohs(address->port), uuid32 );
+        snprintf(echo_addr_frame->data.text, 80, "ECHO ADDR [%s:%d][%"PRIu64"]", GNB_ADDR4STR_PLAINTEXT1(address->m_address4), ntohs(address->port), uuid64 );
     }
 
     echo_addr_frame->data.port = address->port;
@@ -253,7 +253,7 @@ static void send_push_addr_frame(gnb_worker_t *gnb_index_service_worker, unsigne
 
     memcpy(push_addr_frame->data.node_key, src_key, 64);
 
-    push_addr_frame->data.node_uuid32 = htonl(src_key_address->uuid32);
+    push_addr_frame->data.node_uuid64 = gnb_htonll(src_key_address->uuid64);
 
     gnb_address_list_t *address6_list = (gnb_address_list_t *)src_key_address->address6_list_block;
     gnb_address_list_t *address4_list = (gnb_address_list_t *)src_key_address->address4_list_block;
@@ -318,7 +318,7 @@ finish_fill_address:
     }
 
     //debug_text
-    snprintf(push_addr_frame->data.text, 32, "INDEX PUSH ADDR[%u]=>[%u]", src_key_address->uuid32, dst_key_address->uuid32);
+    snprintf(push_addr_frame->data.text, 32, "INDEX PUSH ADDR[%"PRIu64"]=>[%"PRIu64"]", src_key_address->uuid64, dst_key_address->uuid64);
 
     gnb_address_list_t *dst_address6_list = (gnb_address_list_t *)dst_key_address->address6_list_block;
     gnb_address_list_t *dst_address4_list = (gnb_address_list_t *)dst_key_address->address4_list_block;
@@ -327,7 +327,7 @@ finish_fill_address:
     gnb_send_available_address_list(gnb_core, dst_address6_list, index_service_worker_ctx->index_frame_payload, index_service_worker_ctx->now_time_sec);
     gnb_send_available_address_list(gnb_core, dst_address4_list, index_service_worker_ctx->index_frame_payload, index_service_worker_ctx->now_time_sec);
 
-    GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "SEND PUSH ADDR [%u]->[%u]\n", src_key_address->uuid32, dst_key_address->uuid32);
+    GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "SEND PUSH ADDR [%"PRIu64"]->[%"PRIu64"]\n", src_key_address->uuid64, dst_key_address->uuid64);
 
 }
 
@@ -338,8 +338,8 @@ static void handle_request_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t
     request_addr_frame_t *request_addr_frame = (request_addr_frame_t *)&index_service_worker_in_data->payload_st.data;
     gnb_sockaddress_t *sockaddress = &index_service_worker_in_data->node_addr_st;
 
-    uint32_t src_uuid32 = ntohl(request_addr_frame->data.src_uuid32);
-    uint32_t dst_uuid32 = ntohl(request_addr_frame->data.dst_uuid32);
+    uint64_t src_uuid64 = gnb_ntohll(request_addr_frame->data.src_uuid64);
+    uint64_t dst_uuid64 = gnb_ntohll(request_addr_frame->data.dst_uuid64);
 
     gnb_key_address_t *l_key_address;
     gnb_key_address_t *r_key_address;
@@ -347,7 +347,7 @@ static void handle_request_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t
     l_key_address = GNB_LRU32_HASH_GET_VALUE(index_service_worker_ctx->lru, request_addr_frame->data.src_key512, 64);
 
     if ( NULL==l_key_address ) {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE REQUEST src[%u] => [%u] l_key_address[%s] is Not Founded\n", src_uuid32, dst_uuid32, GNB_HEX1_BYTE128(request_addr_frame->data.src_key512));
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE REQUEST src[%"PRIu64"] => [%"PRIu64"] l_key_address[%s] is Not Founded\n", src_uuid64, dst_uuid64, GNB_HEX1_BYTE128(request_addr_frame->data.src_key512));
         return;
     }
 
@@ -355,7 +355,7 @@ static void handle_request_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t
         // l_key_address 里面的地址未超时，将其移到双向链表的首部
         GNB_LRU32_MOVETOHEAD(index_service_worker_ctx->lru, request_addr_frame->data.src_key512, 64);
     } else {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE REQUEST src[%u] => [%u] l_key_address[%s] time out now[%"PRIu64"] lastpost6[%"PRIu64"] lastpost4[%"PRIu64"]\n", src_uuid32, dst_uuid32,
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE REQUEST src[%"PRIu64"] => [%"PRIu64"] l_key_address[%s] time out now[%"PRIu64"] lastpost6[%"PRIu64"] lastpost4[%"PRIu64"]\n", src_uuid64, dst_uuid64,
                 GNB_HEX1_BYTE128(request_addr_frame->data.src_key512), index_service_worker_ctx->now_time_sec, l_key_address->last_post_addr6_sec, l_key_address->last_post_addr4_sec);
         return;
     }
@@ -371,7 +371,7 @@ static void handle_request_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t
 
     r_key_address = GNB_LRU32_HASH_GET_VALUE(index_service_worker_ctx->lru, request_addr_frame->data.dst_key512, 64);
     if ( NULL==r_key_address ) {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE REQUEST src[%u] => [%u] r_key_address[%s] is  Not Founded\n", src_uuid32, dst_uuid32, GNB_HEX1_BYTE128(request_addr_frame->data.dst_key512));
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE REQUEST src[%"PRIu64"] => [%"PRIu64"] r_key_address[%s] is  Not Founded\n", src_uuid64, dst_uuid64, GNB_HEX1_BYTE128(request_addr_frame->data.dst_key512));
         return;
     }
 
@@ -380,7 +380,7 @@ static void handle_request_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t
         GNB_LRU32_MOVETOHEAD(index_service_worker_ctx->lru, request_addr_frame->data.dst_key512, 64);
 
     } else {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE REQUEST src[%u] => [%u] r_key_address[%s] time out now[%"PRIu64"] lastpost6[%"PRIu64"] lastpost4[%"PRIu64"]\n", src_uuid32, dst_uuid32,
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE REQUEST src[%"PRIu64"] => [%"PRIu64"] r_key_address[%s] time out now[%"PRIu64"] lastpost6[%"PRIu64"] lastpost4[%"PRIu64"]\n", src_uuid64, dst_uuid64,
                 GNB_HEX1_BYTE128(request_addr_frame->data.dst_key512), index_service_worker_ctx->now_time_sec, r_key_address->last_post_addr6_sec, r_key_address->last_post_addr4_sec);
         return;
     }
@@ -415,7 +415,7 @@ static void handle_request_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t
     send_push_addr_frame(gnb_core->index_service_worker, PUSH_ADDR_ACTION_CONNECT, attachment, request_addr_frame->data.src_key512, l_key_address, request_addr_frame->data.dst_key512, r_key_address);
     send_push_addr_frame(gnb_core->index_service_worker, PUSH_ADDR_ACTION_CONNECT, attachment, request_addr_frame->data.dst_key512, r_key_address, request_addr_frame->data.src_key512, l_key_address);
 
-    GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE REQUEST push addr src[%u] => [%u] r_key_address[%s] now[%"PRIu64"] lastpost6[%"PRIu64"] lastpost4[%"PRIu64"]\n", src_uuid32, dst_uuid32,
+    GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE REQUEST push addr src[%"PRIu64"] => [%"PRIu64"] r_key_address[%s] now[%"PRIu64"] lastpost6[%"PRIu64"] lastpost4[%"PRIu64"]\n", src_uuid64, dst_uuid64,
                     GNB_HEX1_BYTE128(request_addr_frame->data.dst_key512), index_service_worker_ctx->now_time_sec, r_key_address->last_post_addr6_sec, r_key_address->last_post_addr4_sec);
 
 }

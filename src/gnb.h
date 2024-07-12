@@ -85,7 +85,7 @@ typedef struct _gnb_core_t{
 
 	uint32_t node_nums;
 
-	gnb_hash32_map_t *uuid_node_map;   //以节点的uuid32作为key的 node 表
+	gnb_hash32_map_t *uuid_node_map;   //以节点的uuid64作为key的 node 表
 	gnb_hash32_map_t *ipv4_node_map;
 
 	gnb_hash32_map_t *subneta_node_map;

@@ -40,7 +40,7 @@
 
 char * check_domain_name(char *host_string);
 char * check_node_route(char *config_line_string);
-gnb_node_t * gnb_node_init(gnb_core_t *gnb_core, uint32_t uuid32);
+gnb_node_t * gnb_node_init(gnb_core_t *gnb_core, uint64_t uuid64);
 int check_listen_string(char *listen_string);
 void gnb_setup_listen_addr_port(char *listen_address6_string, uint16_t *port_ptr, char *sockaddress_string, int addr_type);
 void gnb_setup_es_argv(char *es_argv_string);
@@ -76,7 +76,7 @@ static void address_file_config(gnb_core_t *gnb_core){
     char line_buffer[1024+1];
 
     char attrib_string[16+1];
-    uint32_t uuid32;
+    uint64_t uuid64;
     char     host_string[INET6_ADDRSTRLEN+1];
     uint16_t port = 0;
 
@@ -99,9 +99,9 @@ static void address_file_config(gnb_core_t *gnb_core){
         ret = gnb_test_field_separator(line_buffer);
 
         if ( GNB_CONF_FIELD_SEPARATOR_TYPE_SLASH == ret ) {
-            num = sscanf(line_buffer,"%16[^/]/%u/%46[^/]/%hu\n", attrib_string, &uuid32, host_string, &port);
+            num = sscanf(line_buffer,"%16[^/]/%"PRIu64"/%46[^/]/%hu\n", attrib_string, &uuid64, host_string, &port);
         } else if ( GNB_CONF_FIELD_SEPARATOR_TYPE_VERTICAL == ret ) {
-            num = sscanf(line_buffer,"%16[^|]|%u|%46[^|]|%hu\n", attrib_string, &uuid32, host_string, &port);
+            num = sscanf(line_buffer,"%16[^|]|%"PRIu64"|%46[^|]|%hu\n", attrib_string, &uuid64, host_string, &port);
         } else {
             num = 0;
         }
@@ -132,15 +132,15 @@ static void address_file_config(gnb_core_t *gnb_core){
         }
 
         //加入到 index address list
-        if ( NULL != strchr(attrib_string, 'i') && uuid32 != gnb_core->local_node->uuid32 ) {
+        if ( NULL != strchr(attrib_string, 'i') && uuid64 != gnb_core->local_node->uuid64 ) {
             gnb_address_list_update(gnb_core->index_address_ring.address_list, &address_st);
         }
 
-        if ( NULL != strchr(attrib_string, 'u') && uuid32 != gnb_core->local_node->uuid32 ) {
+        if ( NULL != strchr(attrib_string, 'u') && uuid64 != gnb_core->local_node->uuid64 ) {
             gnb_address_list_update(gnb_core->fwdu0_address_ring.address_list, &address_st);
         }
 
-        node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, uuid32);
+        node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, uuid64);
 
         if ( NULL == node ) {
             continue;
@@ -184,9 +184,9 @@ static void address_file_config(gnb_core_t *gnb_core){
             node->type |= GNB_NODE_TYPE_SLIENCE;
         }
 
-        if ( NULL != strchr(attrib_string, 'f') && uuid32 != gnb_core->local_node->uuid32 ) {
+        if ( NULL != strchr(attrib_string, 'f') && uuid64 != gnb_core->local_node->uuid64 ) {
             node->type |= GNB_NODE_TYPE_FWD;
-            gnb_add_forward_node_ring(gnb_core, uuid32);
+            gnb_add_forward_node_ring(gnb_core, uuid64);
         }
 
 
@@ -226,7 +226,7 @@ static void load_node_cache(gnb_core_t *gnb_core){
     char line_buffer[1024+1];
 
     char attrib_string[16+1];
-    uint32_t uuid32;
+    uint64_t uuid64;
     char     host_string[INET6_ADDRSTRLEN+1];
     uint16_t port = 0;
     char key512_hex_string[128+1];
@@ -248,9 +248,9 @@ static void load_node_cache(gnb_core_t *gnb_core){
         ret = gnb_test_field_separator(line_buffer);
 
         if ( GNB_CONF_FIELD_SEPARATOR_TYPE_SLASH == ret ) {
-            num = sscanf(line_buffer,"%16[^/]/%u/%46[^/]/%hu/%128s\n", attrib_string, &uuid32, host_string, &port, key512_hex_string);
+            num = sscanf(line_buffer,"%16[^/]/%"PRIu64"/%46[^/]/%hu/%128s\n", attrib_string, &uuid64, host_string, &port, key512_hex_string);
         } else if ( GNB_CONF_FIELD_SEPARATOR_TYPE_VERTICAL == ret ) {
-            num = sscanf(line_buffer,"%16[^|]|%u|%46[^|]|%hu|%128s\n", attrib_string, &uuid32, host_string, &port, key512_hex_string);
+            num = sscanf(line_buffer,"%16[^|]|%"PRIu64"|%46[^|]|%hu|%128s\n", attrib_string, &uuid64, host_string, &port, key512_hex_string);
         } else {
             num = 0;
         }
@@ -288,7 +288,7 @@ static void load_node_cache(gnb_core_t *gnb_core){
             continue;
         }
 
-        node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, uuid32);
+        node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, uuid64);
 
         if ( NULL==node ) {
             continue;
@@ -396,7 +396,7 @@ void local_node_file_config(gnb_conf_t *conf){
 
         if ( !strncmp(line_buffer, "nodeid", sizeof("nodeid")-1) ) {
 
-            num = sscanf(line_buffer, "%32[^ ] %u", field, &conf->local_uuid);
+            num = sscanf(line_buffer, "%32[^ ] %"PRIu64"", field, &conf->local_uuid);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "nodeid", node_conf_file);
@@ -1166,7 +1166,7 @@ size_t gnb_get_node_num_from_file(gnb_conf_t *conf){
 
     FILE *file;
 
-    uint32_t uuid32;
+    uint64_t uuid64;
 
     char tun_ipv4_string[INET_ADDRSTRLEN+1];
     char tun_netmask_string[INET_ADDRSTRLEN+1];
@@ -1201,8 +1201,8 @@ size_t gnb_get_node_num_from_file(gnb_conf_t *conf){
             continue;
         }
 
-        num = sscanf(line_buffer,"%u|%16[^|]|%16[^|]",
-                &uuid32,
+        num = sscanf(line_buffer,"%"PRIu64"|%16[^|]|%16[^|]",
+                &uuid64,
                 tun_ipv4_string,
                 tun_netmask_string
         );
@@ -1230,7 +1230,7 @@ static void load_route_config(gnb_core_t *gnb_core){
 
     char route_file[PATH_MAX+NAME_MAX];
 
-    uint32_t uuid32;
+    uint64_t uuid64;
     uint32_t tun_addr4;
     uint32_t tun_subnet_addr4;
     uint32_t tun_netmask_addr4;
@@ -1278,9 +1278,9 @@ static void load_route_config(gnb_core_t *gnb_core){
         ret = gnb_test_field_separator(line_buffer);
 
         if ( GNB_CONF_FIELD_SEPARATOR_TYPE_SLASH == ret ) {
-            num = sscanf(line_buffer,"%u/%16[^/]/%16[^/]", &uuid32, tun_ipv4_string, tun_netmask_string);
+            num = sscanf(line_buffer,"%"PRIu64"/%16[^/]/%16[^/]", &uuid64, tun_ipv4_string, tun_netmask_string);
         } else if ( GNB_CONF_FIELD_SEPARATOR_TYPE_VERTICAL == ret ) {
-            num = sscanf(line_buffer,"%u|%16[^|]|%16[^|]", &uuid32, tun_ipv4_string, tun_netmask_string);
+            num = sscanf(line_buffer,"%"PRIu64"|%16[^|]|%16[^|]", &uuid64, tun_ipv4_string, tun_netmask_string);
         } else {
             num = 0;
         }
@@ -1289,11 +1289,11 @@ static void load_route_config(gnb_core_t *gnb_core){
             continue;
         }
 
-        node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, uuid32);
+        node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, uuid64);
 
         if ( NULL==node ) {
-            node = gnb_node_init(gnb_core, uuid32);
-            GNB_HASH32_UINT32_SET(gnb_core->uuid_node_map, uuid32, node);
+            node = gnb_node_init(gnb_core, uuid64);
+            GNB_HASH32_UINT64_SET(gnb_core->uuid_node_map, uuid64, node);
             gnb_core->node_nums++;
         }
 
@@ -1342,7 +1342,7 @@ static void load_route_config(gnb_core_t *gnb_core){
 }
 
 
-static void set_node_route(gnb_core_t *gnb_core, uint32_t uuid32, char *relay_nodeids_string){
+static void set_node_route(gnb_core_t *gnb_core, uint64_t uuid64, char *relay_nodeids_string){
 
     char *p;
 
@@ -1350,7 +1350,7 @@ static void set_node_route(gnb_core_t *gnb_core, uint32_t uuid32, char *relay_no
 
     gnb_node_t *node;
 
-    node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, uuid32);
+    node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, uuid64);
 
     if ( NULL==node ) {
         return;
@@ -1370,7 +1370,7 @@ static void set_node_route(gnb_core_t *gnb_core, uint32_t uuid32, char *relay_no
         return;
     }
 
-    uint32_t relay_nodeid;
+    uint64_t relay_nodeid;
 
     p = relay_nodeids_string;
 
@@ -1378,7 +1378,7 @@ static void set_node_route(gnb_core_t *gnb_core, uint32_t uuid32, char *relay_no
 
     for ( row = 0; row < GNB_MAX_NODE_RELAY; row++ ) {
 
-        relay_nodeid = strtoul(p, &endptr, 10);
+        relay_nodeid = strtoull(p, &endptr, 10);
 
         if ( NULL == endptr ) {
             break;
@@ -1403,11 +1403,11 @@ static void set_node_route(gnb_core_t *gnb_core, uint32_t uuid32, char *relay_no
 }
 
 
-static void set_node_route_mode(gnb_core_t *gnb_core, uint32_t uuid32, char *route_mode_string){
+static void set_node_route_mode(gnb_core_t *gnb_core, uint64_t uuid64, char *route_mode_string){
 
     gnb_node_t *node;
 
-    node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, uuid32);
+    node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, uuid64);
 
     if ( NULL==node ) {
         return;
@@ -1444,7 +1444,7 @@ static void load_route_node_config(gnb_core_t *gnb_core){
 
     char route_file[PATH_MAX+NAME_MAX];
 
-    uint32_t uuid32;
+    uint64_t uuid64;
     char row2_string[512+1];
 
     gnb_conf_t *conf = gnb_core->conf;
@@ -1481,9 +1481,9 @@ static void load_route_node_config(gnb_core_t *gnb_core){
         ret = gnb_test_field_separator(line_buffer);
 
         if ( GNB_CONF_FIELD_SEPARATOR_TYPE_SLASH == ret ) {
-            num = sscanf(line_buffer,"%u/%512s]", &uuid32, row2_string);
+            num = sscanf(line_buffer,"%"PRIu64"/%512s]", &uuid64, row2_string);
         } else if ( GNB_CONF_FIELD_SEPARATOR_TYPE_VERTICAL == ret ) {
-            num = sscanf(line_buffer,"%u|%512s]", &uuid32, row2_string);
+            num = sscanf(line_buffer,"%"PRIu64"|%512s]", &uuid64, row2_string);
         } else {
             num = 0;
         }
@@ -1493,9 +1493,9 @@ static void load_route_node_config(gnb_core_t *gnb_core){
         }
 
         if ( row2_string[0] < '0' || row2_string[0] > '9' ) {
-            set_node_route_mode(gnb_core, uuid32, row2_string);
+            set_node_route_mode(gnb_core, uuid64, row2_string);
         } else {
-            set_node_route(gnb_core, uuid32, row2_string);
+            set_node_route(gnb_core, uuid64, row2_string);
         }
 
     }while(1);
@@ -1516,10 +1516,10 @@ void gnb_config_safe(gnb_core_t *gnb_core){
 
     gnb_init_node_key512(gnb_core);
 
-    gnb_core->local_node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, gnb_core->conf->local_uuid);
+    gnb_core->local_node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, gnb_core->conf->local_uuid);
 
     if ( NULL==gnb_core->local_node ) {
-        printf("miss local_node[%u] is NULL\n", gnb_core->conf->local_uuid);
+        printf("miss local_node[%"PRIu64"] is NULL\n", gnb_core->conf->local_uuid);
         exit(1);
     }
 

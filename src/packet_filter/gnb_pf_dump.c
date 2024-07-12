@@ -144,8 +144,8 @@ static int pf_inet_fwd_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_c
 
     seq++;
 
-    if ( gnb_core->local_node->uuid32 != pf_ctx->dst_uuid32 ) {
-        GNB_LOG3(gnb_core->log,GNB_LOG_ID_PF,"inet dump[%"PRIu64"] [%u] < [%u] in:%u\n",seq, pf_ctx->dst_uuid32, pf_ctx->src_uuid32, gnb_payload16_size(pf_ctx->fwd_payload));
+    if ( gnb_core->local_node->uuid64 != pf_ctx->dst_uuid64 ) {
+        GNB_LOG3(gnb_core->log,GNB_LOG_ID_PF,"inet dump[%"PRIu64"] [%"PRIu64"] < [%"PRIu64"] in:%u\n",seq, pf_ctx->dst_uuid64, pf_ctx->src_uuid64, gnb_payload16_size(pf_ctx->fwd_payload));
         return pf_ctx->pf_status;
     }
 
@@ -160,9 +160,9 @@ static int pf_inet_fwd_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_c
         inet_ntop(AF_INET, &ip_frame_head->saddr, src_ipv4_string, INET_ADDRSTRLEN);
         inet_ntop(AF_INET, &ip_frame_head->daddr, dst_ipv4_string, INET_ADDRSTRLEN);
 
-        GNB_LOG3(gnb_core->log,GNB_LOG_ID_PF,"inet dump[%"PRIu64"] [%u]%s < [%u]%s in:%u\n",seq,
-                  pf_ctx->dst_uuid32,dst_ipv4_string,
-                  pf_ctx->src_uuid32,src_ipv4_string,
+        GNB_LOG3(gnb_core->log,GNB_LOG_ID_PF,"inet dump[%"PRIu64"] [%"PRIu64"]%s < [%u]%s in:%u\n",seq,
+                  pf_ctx->dst_uuid64,dst_ipv4_string,
+                  pf_ctx->src_uuid64,src_ipv4_string,
                   gnb_payload16_size(pf_ctx->fwd_payload));
 
         return pf_ctx->pf_status;
@@ -173,9 +173,9 @@ static int pf_inet_fwd_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_c
         inet_ntop(AF_INET6, &ip6_frame_head->ip6_src, src_ipv6_string, INET6_ADDRSTRLEN);
         inet_ntop(AF_INET6, &ip6_frame_head->ip6_dst, dst_ipv6_string, INET6_ADDRSTRLEN);
 
-        GNB_LOG3(gnb_core->log,GNB_LOG_ID_PF,"inet dump[%"PRIu64"] [%u]%s < [%u]%s in:%u\n",seq,
-                  pf_ctx->dst_uuid32, dst_ipv6_string,
-                  pf_ctx->src_uuid32, src_ipv6_string,
+        GNB_LOG3(gnb_core->log,GNB_LOG_ID_PF,"inet dump[%"PRIu64"] [%"PRIu64"]%s < [%"PRIu64"]%s in:%u\n",seq,
+                  pf_ctx->dst_uuid64, dst_ipv6_string,
+                  pf_ctx->src_uuid64, src_ipv6_string,
                   gnb_payload16_size(pf_ctx->fwd_payload));
 
     }

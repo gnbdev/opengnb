@@ -84,7 +84,7 @@ static void self_test(){
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST systemd_daemon='%d'\n", gnb_core->conf->systemd_daemon );
 
     if ( 1 == gnb_core->conf->activate_tun && 0 == gnb_core->conf->public_index_service ) {
-        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST local node=%lu\n", gnb_core->local_node->uuid32);
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST local node=%"PRIu64"\n", gnb_core->local_node->uuid64);
         GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST tun ipv4[%s]\n",   GNB_ADDR4STR_PLAINTEXT1(&gnb_core->local_node->tun_addr4));
     }
 
@@ -228,10 +228,10 @@ static void self_test(){
 
             node = &ctl_block->node_zone->node[i];
 
-            if ( node->uuid32 != ctl_block->core_zone->local_uuid ) {
-                GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST ----- remote node %u -----\n", node->uuid32);
+            if ( node->uuid64 != ctl_block->core_zone->local_uuid ) {
+                GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST ----- remote node %"PRIu64" -----\n", node->uuid64);
             } else {
-                GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST local  node %u\n", node->uuid32);
+                GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST local  node %"PRIu64"\n", node->uuid64);
             }
 
             GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST tun_ipv6 %s\n", GNB_ADDR6STR_PLAINTEXT1(&node->tun_ipv6_addr));
@@ -262,7 +262,7 @@ static void self_test(){
         GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"SELF-TEST num of fwd node=%d\n", gnb_core->fwd_node_ring.num);
 
         for ( i=0; i<gnb_core->fwd_node_ring.num; i++ ) {
-            GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST fwd node=%d\n", gnb_core->fwd_node_ring.nodes[i]->uuid32);
+            GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST fwd node=%"PRIu64"\n", gnb_core->fwd_node_ring.nodes[i]->uuid64);
         }
 
         for ( i=0; i<gnb_es_arg_list->argc; i++ ) {
