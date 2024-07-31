@@ -210,7 +210,7 @@ static void handle_ur1_frame(gnb_core_t *gnb_core, gnb_payload16_t *payload){
         return;
     }
 
-    uint64_t dst_uuid64 = gnb_ntohll(ur1_frame_head->dst_uuid64);
+    gnb_uuid_t dst_uuid64 = gnb_ntohll(ur1_frame_head->dst_uuid64);
 
     //to gnb node or ur1 node
     if ( dst_uuid64 != gnb_core->local_node->uuid64 ) {

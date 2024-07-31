@@ -27,7 +27,7 @@
 
 void gnb_send_ur0_frame(gnb_core_t *gnb_core, gnb_node_t *dst_node, gnb_payload16_t *payload);
 
-gnb_node_t* gnb_query_route4(gnb_core_t *gnb_core, uint64_t dst_ip_int){
+gnb_node_t* gnb_query_route4(gnb_core_t *gnb_core, uint32_t dst_ip_int){
 
     char ip_string[INET_ADDRSTRLEN];
 
@@ -35,7 +35,7 @@ gnb_node_t* gnb_query_route4(gnb_core_t *gnb_core, uint64_t dst_ip_int){
 
     gnb_node_t *node=NULL;
 
-    uint64_t dsp_ip_key = dst_ip_int;
+    uint32_t dsp_ip_key = dst_ip_int;
 
     node = GNB_HASH32_UINT32_GET_PTR(gnb_core->ipv4_node_map, dsp_ip_key);
 
@@ -240,7 +240,7 @@ void gnb_pf_tun(gnb_core_t *gnb_core, gnb_pf_array_t *pf_array, gnb_payload16_t 
     int pf_tun_route_status   = GNB_PF_TUN_ROUTE_INIT;
     int pf_tun_forward_status = GNB_PF_TUN_FORWARD_INIT;
 
-    uint64_t fwd_uuid64 = 0;
+    gnb_uuid_t fwd_uuid64 = 0;
     gnb_core->select_fwd_node = gnb_select_forward_node(gnb_core);
 
     pf_ctx_st.pf_status = GNB_PF_TUN_FRAME_INIT;
@@ -323,7 +323,7 @@ void gnb_pf_tun(gnb_core_t *gnb_core, gnb_pf_array_t *pf_array, gnb_payload16_t 
 
     if ( GNB_UNIFIED_FORWARDING_FORCE == gnb_core->conf->unified_forwarding ) {
 
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "Unified Forwarding Force src=%"PRIu64" dst=%"PRIu64"\n", pf_ctx_st.src_uuid64, pf_ctx_st.dst_uuid64);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "Unified Forwarding Force src=%u dst=%u\n", pf_ctx_st.src_uuid64, pf_ctx_st.dst_uuid64);
 
         ret = gnb_unified_forwarding_tun(gnb_core, &pf_ctx_st);
 
@@ -339,7 +339,7 @@ void gnb_pf_tun(gnb_core_t *gnb_core, gnb_pf_array_t *pf_array, gnb_payload16_t 
 
     if ( NULL == pf_ctx_st.fwd_node && GNB_UNIFIED_FORWARDING_AUTO == gnb_core->conf->unified_forwarding ) {
 
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "Unified Forwarding Auto src=%"PRIu64" dst=%"PRIu64"\n", pf_ctx_st.src_uuid64, pf_ctx_st.dst_uuid64);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "Unified Forwarding Auto src=%u dst=%u\n", pf_ctx_st.src_uuid64, pf_ctx_st.dst_uuid64);
 
         ret = gnb_unified_forwarding_tun(gnb_core, &pf_ctx_st);
 
@@ -356,7 +356,7 @@ void gnb_pf_tun(gnb_core_t *gnb_core, gnb_pf_array_t *pf_array, gnb_payload16_t 
 
     if ( GNB_UNIFIED_FORWARDING_SUPER == gnb_core->conf->unified_forwarding || GNB_UNIFIED_FORWARDING_HYPER == gnb_core->conf->unified_forwarding ) {
 
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "Unified Forwarding Multi-Path src=%"PRIu64" dst=%"PRIu64"\n", pf_ctx_st.src_uuid64, pf_ctx_st.dst_uuid64);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "Unified Forwarding Multi-Path src=%u dst=%u\n", pf_ctx_st.src_uuid64, pf_ctx_st.dst_uuid64);
 
         ret = gnb_unified_forwarding_with_multi_path_tun(gnb_core, &pf_ctx_st);
 
@@ -412,9 +412,9 @@ pf_tun_fwd:
     gnb_core->local_node->out_bytes  += pf_ctx_st.ip_frame_size;
 
     if ( pf_ctx_st.dst_uuid64 == pf_ctx_st.fwd_node->uuid64 ) {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, ">>> tun payload forward to inet src=%"PRIu64" dst=%"PRIu64" >>>\n", pf_ctx_st.src_uuid64, pf_ctx_st.fwd_node->uuid64);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, ">>> tun payload forward to inet src=%u dst=%u >>>\n", pf_ctx_st.src_uuid64, pf_ctx_st.fwd_node->uuid64);
     } else {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "*>> tun payload forward to inet src=%"PRIu64" dst=%"PRIu64" fwd=%"PRIu64" *>>\n", pf_ctx_st.src_uuid64, pf_ctx_st.dst_uuid64, pf_ctx_st.fwd_node->uuid64);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "*>> tun payload forward to inet src=%u dst=%u fwd=%u *>>\n", pf_ctx_st.src_uuid64, pf_ctx_st.dst_uuid64, pf_ctx_st.fwd_node->uuid64);
     }
 
 
@@ -422,7 +422,7 @@ pf_tun_finish:
 
     if ( 0 == pf_ctx_st.unified_forwarding && NULL != pf_ctx_st.dst_node && NULL == pf_ctx_st.fwd_node && 1 == pf_ctx_st.universal_udp4_relay ) {
         gnb_send_ur0_frame(gnb_core, pf_ctx_st.dst_node, pf_ctx_st.fwd_payload);
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "tun try to universal relay src=%"PRIu64" dst=%"PRIu64"\n", pf_ctx_st.src_uuid64, pf_ctx_st.dst_uuid64);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "tun try to universal relay src=%u dst=%u\n", pf_ctx_st.src_uuid64, pf_ctx_st.dst_uuid64);
     }
 
 
@@ -432,7 +432,7 @@ if_dump:
 
         fwd_uuid64 = NULL != pf_ctx_st.fwd_node ? pf_ctx_st.fwd_node->uuid64:0;
 
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "tun src=%"PRIu64" dst=%"PRIu64" fwd=%"PRIu64" [%s] [%s] relay=%d,unified=%d,direct=%d,forward=%d ip_frame_size=%u\n",
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "tun src=%u dst=%u fwd=%u [%s] [%s] relay=%d,unified=%d,direct=%d,forward=%d ip_frame_size=%u\n",
                pf_ctx_st.src_uuid64, pf_ctx_st.dst_uuid64, fwd_uuid64,
                gnb_pf_status_strings[pf_tun_frame_status], gnb_pf_status_strings[pf_tun_route_status],
                pf_ctx_st.relay_forwarding, pf_ctx_st.unified_forwarding, pf_ctx_st.direct_forwarding, pf_ctx_st.std_forwarding,
@@ -469,7 +469,7 @@ void gnb_pf_inet(gnb_core_t *gnb_core, gnb_pf_array_t *pf_array, gnb_payload16_t
 
     int ret;
 
-    uint64_t fwd_uuid64 = 0;
+    gnb_uuid_t fwd_uuid64 = 0;
 
     gnb_core->select_fwd_node = gnb_select_forward_node(gnb_core);
 
@@ -609,7 +609,7 @@ void gnb_pf_inet(gnb_core_t *gnb_core, gnb_pf_array_t *pf_array, gnb_payload16_t
         gnb_core->local_node->in_bytes += pf_ctx_st.ip_frame_size;
         pf_ctx_st.src_node->out_bytes  += pf_ctx_st.ip_frame_size;
 
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "<<< inet payload forward to tun src=%"PRIu64" dst=%"PRIu64" <<<\n", pf_ctx_st.src_uuid64, pf_ctx_st.dst_uuid64);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "<<< inet payload forward to tun src=%u dst=%u <<<\n", pf_ctx_st.src_uuid64, pf_ctx_st.dst_uuid64);
 
         goto pf_inet_finish;
 
@@ -624,14 +624,14 @@ void gnb_pf_inet(gnb_core_t *gnb_core, gnb_pf_array_t *pf_array, gnb_payload16_t
         gnb_core->local_node->out_bytes += pf_ctx_st.ip_frame_size;
         pf_ctx_st.fwd_node->in_bytes    += pf_ctx_st.ip_frame_size;
 
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "<*< inet payload forward to inet src=%"PRIu64" dst=%"PRIu64" fwd=%"PRIu64" >*>\n", pf_ctx_st.src_uuid64, pf_ctx_st.dst_uuid64, fwd_uuid64);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "<*< inet payload forward to inet src=%u dst=%u fwd=%u >*>\n", pf_ctx_st.src_uuid64, pf_ctx_st.dst_uuid64, fwd_uuid64);
 
     }
 
 pf_inet_finish:
 
     if ( 1 == gnb_core->conf->if_dump ) {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "inet src=%"PRIu64" dst=%"PRIu64" fwd=%"PRIu64" [%s] [%s] [%s] ip_frame_size=%u\n",
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "inet src=%u dst=%u fwd=%u [%s] [%s] [%s] ip_frame_size=%u\n",
                    pf_ctx_st.src_uuid64, pf_ctx_st.dst_uuid64, fwd_uuid64,
                    gnb_pf_status_strings[pf_inet_frame_status], gnb_pf_status_strings[pf_inet_route_status], gnb_pf_status_strings[pf_inet_forwad_status],
                    pf_ctx_st.ip_frame_size);

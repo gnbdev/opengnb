@@ -51,10 +51,8 @@ typedef struct _index_worker_ctx_t {
     gnb_payload16_t *index_frame_payload;
 
     struct timeval now_timeval;
-
     uint64_t now_time_sec;
     uint64_t now_time_usec;
-
     uint64_t last_post_addr_ts_sec;
 
     pthread_t thread_worker;
@@ -80,8 +78,7 @@ static void send_post_addr_frame(gnb_worker_t *gnb_index_worker){
 
     memcpy(post_addr_frame->data.src_key512, gnb_core->local_node->key512, 64);
 
-    post_addr_frame->data.src_uuid64 = gnb_htonll(gnb_core->local_node->uuid64);
-
+    post_addr_frame->data.src_uuid64  = gnb_htonll(gnb_core->local_node->uuid64);
     post_addr_frame->data.src_ts_usec = gnb_htonll(index_worker_ctx->now_time_usec);
 
     if ( 0 != gnb_core->ctl_block->core_zone->wan6_port ) {
@@ -91,11 +88,7 @@ static void send_post_addr_frame(gnb_worker_t *gnb_index_worker){
     }
 
     //debug_text
-    snprintf(post_addr_frame->data.text,32,"[%"PRIu64"]POST ADDR",gnb_core->local_node->uuid64);
-
-    if ( 0 == gnb_core->conf->lite_mode ) {
-        ed25519_sign(post_addr_frame->src_sign, (const unsigned char *)&post_addr_frame->data, sizeof(struct post_addr_frame_data), gnb_core->ed25519_public_key, gnb_core->ed25519_private_key);
-    }
+    snprintf(post_addr_frame->data.text, 32, "[%llu]POST ADDR", gnb_core->local_node->uuid64);
 
     //向所有index节点post
     gnb_send_address_list(gnb_core, gnb_core->index_address_ring.address_list, index_worker_ctx->index_frame_payload);
@@ -123,7 +116,7 @@ static void send_request_addr_frame(gnb_worker_t *gnb_index_worker, gnb_node_t *
 
     index_worker_ctx->index_frame_payload->sub_type = PAYLOAD_SUB_TYPE_REQUEST_ADDR;
 
-    gnb_payload16_set_data_len( index_worker_ctx->index_frame_payload,  sizeof(request_addr_frame_t) );
+    gnb_payload16_set_data_len( index_worker_ctx->index_frame_payload, sizeof(request_addr_frame_t) );
 
     request_addr_frame_t *request_addr_frame = (request_addr_frame_t *)index_worker_ctx->index_frame_payload->data;
     memset(request_addr_frame, 0, sizeof(request_addr_frame_t));
@@ -135,17 +128,12 @@ static void send_request_addr_frame(gnb_worker_t *gnb_index_worker, gnb_node_t *
     memcpy(request_addr_frame->data.src_key512, gnb_core->local_node->key512, 64);
     memcpy(request_addr_frame->data.dst_key512, node->key512, 64);
 
-    request_addr_frame->data.src_uuid64 = gnb_htonll(gnb_core->local_node->uuid64);
-    request_addr_frame->data.dst_uuid64 = gnb_htonll(node->uuid64);
-
+    request_addr_frame->data.src_uuid64  = gnb_htonll(gnb_core->local_node->uuid64);
+    request_addr_frame->data.dst_uuid64  = gnb_htonll(node->uuid64);
     request_addr_frame->data.src_ts_usec = gnb_htonll(index_worker_ctx->now_time_usec);
 
     //debug_text
-    snprintf(request_addr_frame->data.text,32,"%s %"PRIu64"==>%"PRIu64"","REQUEST_ADDR", gnb_core->local_node->uuid64, node->uuid64);
-
-    if ( 0 == gnb_core->conf->lite_mode ) {
-        ed25519_sign(request_addr_frame->src_sign, (const unsigned char *)&request_addr_frame->data, sizeof(struct request_addr_frame_data), gnb_core->ed25519_public_key, gnb_core->ed25519_private_key);
-    }
+    snprintf(request_addr_frame->data.text,32, "%s %llu==>%llu", "REQUEST_ADDR", gnb_core->local_node->uuid64, node->uuid64);
 
     gnb_address_t *address;
 
@@ -154,7 +142,6 @@ static void send_request_addr_frame(gnb_worker_t *gnb_index_worker, gnb_node_t *
         address = gnb_select_index_address(gnb_core, index_worker_ctx->now_time_sec);
 
         if (NULL!=address) {
-            //gnb_send_to_address(gnb_core, address, index_worker_ctx->index_frame_payload);
             gnb_send_to_address_through_all_sockets(gnb_core, address, index_worker_ctx->index_frame_payload);
         }
 
@@ -165,13 +152,13 @@ static void send_request_addr_frame(gnb_worker_t *gnb_index_worker, gnb_node_t *
 
     node->last_request_addr_sec = index_worker_ctx->now_time_sec;
 
-    GNB_DEBUG5(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "SEND REQUEST ADDR %"PRIu64" ==>%"PRIu64" lkey[%s] rkey[%s]\n", gnb_core->local_node->uuid64, node->uuid64, GNB_HEX1_BYTE128(gnb_core->local_node->key512), GNB_HEX2_BYTE128(node->key512));
+    GNB_DEBUG5(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "SEND REQUEST ADDR %llu ==>%llu lkey[%s] rkey[%s]\n", gnb_core->local_node->uuid64, node->uuid64, GNB_HEX1_BYTE128(gnb_core->local_node->key512), GNB_HEX2_BYTE128(node->key512));
  
 }
 
 
 //地址端口探测   gnb_address_t *address
-static void send_detect_addr_frame(gnb_worker_t *gnb_index_worker, gnb_address_t *in_address, uint64_t dst_uuid64){
+static void send_detect_addr_frame(gnb_worker_t *gnb_index_worker, gnb_address_t *in_address, gnb_uuid_t dst_uuid64){
 
     if ( 0 == in_address->port ) {
         return;
@@ -198,12 +185,12 @@ static void send_detect_addr_frame(gnb_worker_t *gnb_index_worker, gnb_address_t
 
     memcpy(detect_addr_frame->data.src_key512, gnb_core->local_node->key512, 64);
 
-    detect_addr_frame->data.src_uuid64 = gnb_htonll(gnb_core->local_node->uuid64);
-    detect_addr_frame->data.dst_uuid64 = gnb_htonll(dst_uuid64);
+    detect_addr_frame->data.src_uuid64  = gnb_htonll(gnb_core->local_node->uuid64);
+    detect_addr_frame->data.dst_uuid64  = gnb_htonll(dst_uuid64);
     detect_addr_frame->data.src_ts_usec = gnb_htonll(index_worker_ctx->now_time_usec);
 
     //debug_text
-    snprintf(detect_addr_frame->data.text,32,"[%"PRIu64"]DETECT_ADDR[%"PRIu64"]", gnb_core->local_node->uuid64, dst_uuid64);
+    snprintf(detect_addr_frame->data.text,32,"[%llu]DETECT_ADDR[%llu]", gnb_core->local_node->uuid64, dst_uuid64);
 
     if ( 0 == gnb_core->conf->lite_mode ) {
         ed25519_sign(detect_addr_frame->src_sign, (const unsigned char *)&detect_addr_frame->data, sizeof(struct detect_addr_frame_data), gnb_core->ed25519_public_key, gnb_core->ed25519_private_key);
@@ -220,7 +207,7 @@ static void send_detect_addr_frame(gnb_worker_t *gnb_index_worker, gnb_address_t
         return;
     }
 
-    GNB_LOG2(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "send DETECT %"PRIu64" ==> %"PRIu64" address %s port range[%d]\n", gnb_core->local_node->uuid64, dst_uuid64 , GNB_IP_PORT_STR1(&address_st),gnb_core->conf->port_detect_range);
+    GNB_LOG2(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "send DETECT %llu ==> %llu address %s port range[%d]\n", gnb_core->local_node->uuid64, dst_uuid64 , GNB_IP_PORT_STR1(&address_st),gnb_core->conf->port_detect_range);
 
     uint16_t dst_port = ntohs(address_st.port);
 
@@ -254,7 +241,7 @@ static void send_detect_addr_frame(gnb_worker_t *gnb_index_worker, gnb_address_t
 }
 
 
-static void send_detect_addr_frame_arg(gnb_worker_t *gnb_index_worker, gnb_address_t *in_address, uint64_t dst_uuid64, unsigned char agr0){
+static void send_detect_addr_frame_arg(gnb_worker_t *gnb_index_worker, gnb_address_t *in_address, gnb_uuid_t dst_uuid64, unsigned char agr0){
 
     if ( 0 == in_address->port ) {
         return;
@@ -279,12 +266,12 @@ static void send_detect_addr_frame_arg(gnb_worker_t *gnb_index_worker, gnb_addre
 
     memcpy(detect_addr_frame->data.src_key512, gnb_core->local_node->key512, 64);
 
-    detect_addr_frame->data.src_uuid64 = gnb_htonll(gnb_core->local_node->uuid64);
-    detect_addr_frame->data.dst_uuid64 = gnb_htonll(dst_uuid64);
+    detect_addr_frame->data.src_uuid64  = gnb_htonll(gnb_core->local_node->uuid64);
+    detect_addr_frame->data.dst_uuid64  = gnb_htonll(dst_uuid64);
     detect_addr_frame->data.src_ts_usec = gnb_htonll(index_worker_ctx->now_time_usec);
 
     //debug_text
-    snprintf(detect_addr_frame->data.text,32,"[%"PRIu64"]DETECT_ADDR[%"PRIu64"]", gnb_core->local_node->uuid64, dst_uuid64);
+    snprintf(detect_addr_frame->data.text,32,"[%llu]DETECT_ADDR[%llu]", gnb_core->local_node->uuid64, dst_uuid64);
 
     if ( 0 == gnb_core->conf->lite_mode ) {
         ed25519_sign(detect_addr_frame->src_sign, (const unsigned char *)&detect_addr_frame->data, sizeof(struct detect_addr_frame_data), gnb_core->ed25519_public_key, gnb_core->ed25519_private_key);
@@ -302,10 +289,10 @@ static void detect_node_addr(gnb_worker_t *gnb_index_worker, gnb_node_t *node){
     gnb_address_list_t *resolv_address_list;
     gnb_address_list_t *push_address_list;
 
-    static_address_list = (gnb_address_list_t *)&node->static_address_block;
+    static_address_list  = (gnb_address_list_t *)&node->static_address_block;
     dynamic_address_list = (gnb_address_list_t *)&node->dynamic_address_block;
-    resolv_address_list = (gnb_address_list_t *)&node->resolv_address_block;
-    push_address_list = (gnb_address_list_t *)&node->push_address_block;
+    resolv_address_list  = (gnb_address_list_t *)&node->resolv_address_block;
+    push_address_list    = (gnb_address_list_t *)&node->push_address_block;
 
     int i;
 
@@ -340,7 +327,7 @@ static void handle_push_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *i
 
     int i;
 
-    uint64_t nodeid = gnb_ntohll(push_addr_frame->data.node_uuid64);
+    gnb_uuid_t nodeid = gnb_ntohll(push_addr_frame->data.node_uuid64);
 
     gnb_node_t *node;
 
@@ -362,15 +349,6 @@ static void handle_push_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *i
     if ( (gnb_core->local_node->type & GNB_NODE_TYPE_SLIENCE) && !(node->type & GNB_NODE_TYPE_FWD) ) {
         return;
     }
-
-#if 0
-    if ( 0 == gnb_core->conf->lite_mode && 0 != ed25519_verify(push_addr_frame->src_sign, (void *)&push_addr_frame->data, sizeof(struct push_addr_frame_data), node->public_key) ) {
-        return;
-    }
-#endif
-
-    node->last_push_addr_sec = index_worker_ctx->now_time_sec;
-    node->detect_count = 0;
 
     push_address_list   = (gnb_address_list_t *)&node->push_address_block;
     detect_address_list = (gnb_address_list_t *)&node->detect_address4_block;
@@ -418,7 +396,7 @@ static void handle_push_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *i
 
     //just for log
     for ( i=0; i<dst_address6_list->num; i++ ) {
-        GNB_LOG2(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"RECEIVE_PUSH_ADDR node=%"PRIu64" %s text='%.*s' action=%c\n", nodeid, GNB_IP_PORT_STR1(&dst_address6_list->array[i]), 32, push_addr_frame->data.text, push_addr_frame->data.arg0);
+        GNB_LOG2(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"RECEIVE_PUSH_ADDR node=%llu %s text='%.*s' action=%c\n", nodeid, GNB_IP_PORT_STR1(&dst_address6_list->array[i]), 32, push_addr_frame->data.text, push_addr_frame->data.arg0);
     }
 
     if ( PUSH_ADDR_ACTION_CONNECT == push_addr_frame->data.arg0 ) {
@@ -460,15 +438,22 @@ static void handle_push_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *i
 
     //just for log
     for ( i=0; i<dst_address4_list->num; i++ ) {
-        GNB_LOG2(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"RECEIVE_PUSH_ADDR node=%"PRIu64" %s text='%.*s' action=%c\n", nodeid, GNB_IP_PORT_STR1(&dst_address4_list->array[i]), 32, push_addr_frame->data.text, push_addr_frame->data.arg0);
+        GNB_LOG2(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"RECEIVE_PUSH_ADDR node=%llu %s text='%.*s' action=%c\n", nodeid, GNB_IP_PORT_STR1(&dst_address4_list->array[i]), 32, push_addr_frame->data.text, push_addr_frame->data.arg0);
     }
+
+    if ( dst_address6_list->num == 0 && dst_address4_list->num == 0 ) {
+        GNB_LOG2(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"RECEIVE_PUSH_ADDR ERROR push address incorrect node=%llu text='%.*s' action=%c\n", nodeid,  32, push_addr_frame->data.text, push_addr_frame->data.arg0);
+        return;
+    }
+
+    node->last_push_addr_sec = index_worker_ctx->now_time_sec;
+    node->detect_count = 0;
 
     if ( PUSH_ADDR_ACTION_CONNECT == push_addr_frame->data.arg0 ) {
         for ( i=0; i<dst_address4_list->num; i++ ) {
             send_detect_addr_frame(gnb_core->index_worker, &dst_address4_list->array[i], nodeid);
         }
     }
-
 
 }
 
@@ -537,7 +522,7 @@ static void handle_echo_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *i
 
     echo_addr_frame_t *echo_addr_frame = (echo_addr_frame_t *)&index_worker_in_data->payload_st.data;
 
-    uint64_t dst_uuid64 = gnb_ntohll(echo_addr_frame->data.dst_uuid64);
+    gnb_uuid_t dst_uuid64 = gnb_ntohll(echo_addr_frame->data.dst_uuid64);
 
     if ( dst_uuid64 != gnb_core->local_node->uuid64 ) {
         return;
@@ -552,7 +537,6 @@ static void handle_echo_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *i
     if ( AF_INET == sockaddress->addr_type ) {
         gnb_set_address4(address, &sockaddress->addr.in);
     }
-
 
     /*
     如果 index 节点有多个 ipv6 地址,这里得到地址不一定与发送的目的地址相同
@@ -593,8 +577,8 @@ static void handle_detect_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t 
 
     detect_addr_frame_t *detect_addr_frame = (detect_addr_frame_t *)&index_worker_in_data->payload_st.data;
 
-    uint64_t src_uuid64 = gnb_ntohll(detect_addr_frame->data.src_uuid64);
-    uint64_t dst_uuid64 = gnb_ntohll(detect_addr_frame->data.dst_uuid64);
+    gnb_uuid_t src_uuid64 = gnb_ntohll(detect_addr_frame->data.src_uuid64);
+    gnb_uuid_t dst_uuid64 = gnb_ntohll(detect_addr_frame->data.dst_uuid64);
 
     gnb_sockaddress_t *sockaddress = &index_worker_in_data->node_addr_st;
 
@@ -618,12 +602,12 @@ static void handle_detect_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t 
     dynamic_address_list = (gnb_address_list_t *)&src_node->dynamic_address_block;
 
     if ( 0 != memcmp(src_node->key512, detect_addr_frame->data.src_key512, 64) ) {
-        GNB_LOG2(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"handle detect addr invalid key512 src=%"PRIu64" %s ！！\n", src_uuid64, GNB_SOCKETADDRSTR1(sockaddress));
+        GNB_LOG2(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"handle detect addr invalid key512 src=%llu %s ！！\n", src_uuid64, GNB_SOCKETADDRSTR1(sockaddress));
         return;
     }
 
     if ( 0 == gnb_core->conf->lite_mode && !ed25519_verify(detect_addr_frame->src_sign, (const unsigned char *)&detect_addr_frame->data, sizeof(struct detect_addr_frame_data), src_node->public_key) ) {
-        GNB_LOG2(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"handle detect addr src=%"PRIu64" invalid signature %s !!\n", src_uuid64, GNB_SOCKETADDRSTR1(sockaddress));
+        GNB_LOG2(gnb_core->log,GNB_LOG_ID_INDEX_WORKER,"handle detect addr src=%llu invalid signature %s !!\n", src_uuid64, GNB_SOCKETADDRSTR1(sockaddress));
         return;
     }
 
@@ -638,7 +622,7 @@ static void handle_detect_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t 
 
         if ( 0 != gnb_determine_subnet6_prefixlen96(sockaddress->addr.in6.sin6_addr, gnb_core->local_node->tun_ipv6_addr ) ) {
 
-            GNB_LOG3(gnb_core->log,GNB_LOG_ID_NODE_WORKER, "handle_detect_addr_frame IPV6 Warning src[%"PRIu64"]->dst[%"PRIu64"] idx=%u %s\n",
+            GNB_LOG3(gnb_core->log,GNB_LOG_ID_NODE_WORKER, "handle_detect_addr_frame IPV6 Warning src[%u]->dst[%u] idx=%u %s\n",
                     src_node->uuid64, dst_uuid64,
                     index_worker_in_data->socket_idx,
                     GNB_ADDR6STR1(&sockaddress->addr.in6.sin6_addr)
@@ -663,14 +647,14 @@ static void handle_detect_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t 
 
         gnb_set_address6(address, &sockaddress->addr.in6);
 
-        GNB_LOG2(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "==###== RECEIVE_DETECT_ADDR6 node[%"PRIu64"]->[%"PRIu64"] idx[%u]%s[%c] ==###==\n", src_uuid64, dst_uuid64, src_node->socket6_idx, GNB_IP_PORT_STR1(address), detect_addr_frame->data.arg0);
+        GNB_LOG2(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "==###== RECEIVE_DETECT_ADDR6 node[%llu]->[%llu] idx[%u]%s[%c] ==###==\n", src_uuid64, dst_uuid64, src_node->socket6_idx, GNB_IP_PORT_STR1(address), detect_addr_frame->data.arg0);
     }
 
     if ( AF_INET == sockaddress->addr_type ) {
 
         if ( 0 != gnb_determine_subnet4(sockaddress->addr.in.sin_addr,  gnb_core->local_node->tun_addr4, gnb_core->local_node->tun_netmask_addr4) ) {
 
-            GNB_LOG3(gnb_core->log,GNB_LOG_ID_NODE_WORKER, "handle_detect_addr_frame IPV4 Warning src[%"PRIu64"]->dst[%"PRIu64"] idx=%u %s\n",
+            GNB_LOG3(gnb_core->log,GNB_LOG_ID_NODE_WORKER, "handle_detect_addr_frame IPV4 Warning src[%llu]->dst[%llu] idx=%u %s\n",
                     src_node->uuid64, dst_uuid64,
                     index_worker_in_data->socket_idx,
                     GNB_ADDR4STR1(&sockaddress->addr.in.sin_addr)
@@ -695,7 +679,7 @@ static void handle_detect_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t 
 
         gnb_set_address4(address, &sockaddress->addr.in);
 
-        GNB_LOG2(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "==###== RECEIVE_DETECT_ADDR4 node[%"PRIu64"]->[%"PRIu64"] idx[%u]%s[%c] ==###==\n", src_uuid64, dst_uuid64, src_node->socket4_idx, GNB_IP_PORT_STR1(address), detect_addr_frame->data.arg0);
+        GNB_LOG2(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "==###== RECEIVE_DETECT_ADDR4 node[%llu]->[%llu] idx[%u]%s[%c] ==###==\n", src_uuid64, dst_uuid64, src_node->socket4_idx, GNB_IP_PORT_STR1(address), detect_addr_frame->data.arg0);
 
     }
 
@@ -705,7 +689,7 @@ static void handle_detect_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t 
 
     if ( 'e' != detect_addr_frame->data.arg0 ) {
         send_detect_addr_frame_arg(gnb_core->index_worker, address,  src_uuid64, 'e');
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "ECHO DETECT -> node[%"PRIu64"] idx[%u]%s\n", src_uuid64, src_node->socket4_idx, GNB_IP_PORT_STR1(address));
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "ECHO DETECT -> node[%llu] idx[%u]%s\n", src_uuid64, src_node->socket4_idx, GNB_IP_PORT_STR1(address));
     }
 
 }
@@ -792,7 +776,7 @@ static void* thread_worker_func( void *data ) {
 
         handle_recv_queue(gnb_core);
 
-        if ( 0 ==gnb_core->index_address_ring.address_list->num ) {
+        if ( 0 == gnb_core->index_address_ring.address_list->num ) {
             goto next;
         }
 

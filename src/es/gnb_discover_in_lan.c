@@ -74,7 +74,7 @@ static void send_broadcast4(gnb_es_ctx *es_ctx, struct sockaddr_in *src_address_
     local_node = (gnb_node_t *)GNB_HASH32_UINT64_GET_PTR(es_ctx->uuid_node_map, es_ctx->ctl_block->core_zone->local_uuid);
 
     if ( NULL == local_node ) {
-        GNB_LOG1(es_ctx->log, GNB_LOG_ID_ES_DISCOVER_IN_LAN, "send broadcast4 error local node=%"PRIu64"\n", es_ctx->ctl_block->core_zone->local_uuid);
+        GNB_LOG1(es_ctx->log, GNB_LOG_ID_ES_DISCOVER_IN_LAN, "send broadcast4 error local node=%llu\n", es_ctx->ctl_block->core_zone->local_uuid);
         return;
     }
 #endif
@@ -107,7 +107,7 @@ static void send_broadcast4(gnb_es_ctx *es_ctx, struct sockaddr_in *src_address_
         broadcast_address_st.sin_addr.s_addr = INADDR_BROADCAST;
     }
 
-    snprintf(discover_lan_in_frame->data.text, 256, "GNB LAN DISCOVER node=%"PRIu64" address=%s,port=%d,broadcast_address=%s",
+    snprintf(discover_lan_in_frame->data.text, 256, "GNB LAN DISCOVER node=%llu address=%s,port=%d,broadcast_address=%s",
                                                     local_node->uuid64,
                                                     gnb_get_address4string(&src_address_in->sin_addr.s_addr,        gnb_static_ip_port_string_buffer1, 0),
                                                     es_ctx->ctl_block->conf_zone->conf_st.udp4_ports[0],
@@ -138,7 +138,7 @@ static void send_broadcast4(gnb_es_ctx *es_ctx, struct sockaddr_in *src_address_
 
 static void handle_discover_lan_in_frame(gnb_es_ctx *es_ctx, gnb_payload16_t *in_payload, gnb_sockaddress_t *node_addr){
 
-    uint64_t in_src_uuid64;
+    gnb_uuid_t in_src_uuid64;
     gnb_node_t *local_node;
     gnb_node_t *dst_node;
 
@@ -160,7 +160,7 @@ static void handle_discover_lan_in_frame(gnb_es_ctx *es_ctx, gnb_payload16_t *in
     local_node = (gnb_node_t *)GNB_HASH32_UINT64_GET_PTR(es_ctx->uuid_node_map, es_ctx->ctl_block->core_zone->local_uuid);
 
     if ( NULL == local_node ) {
-        GNB_LOG1(es_ctx->log, GNB_LOG_ID_ES_DISCOVER_IN_LAN, "handle_discover_lan_in_frame error local_uuid=%"PRIu64"\n", es_ctx->ctl_block->core_zone->local_uuid);
+        GNB_LOG1(es_ctx->log, GNB_LOG_ID_ES_DISCOVER_IN_LAN, "handle_discover_lan_in_frame error local_uuid=%llu\n", es_ctx->ctl_block->core_zone->local_uuid);
         return;
     }
 
@@ -168,17 +168,17 @@ static void handle_discover_lan_in_frame(gnb_es_ctx *es_ctx, gnb_payload16_t *in
 
     in_src_uuid64 = gnb_ntohll(discover_lan_in_frame->data.src_uuid64);
 
-    GNB_LOG1(es_ctx->log, GNB_LOG_ID_ES_DISCOVER_IN_LAN, "handle_discover_lan_in_frame src_node[%"PRIu64"]\n", in_src_uuid64);
+    GNB_LOG1(es_ctx->log, GNB_LOG_ID_ES_DISCOVER_IN_LAN, "handle_discover_lan_in_frame src_node[%llu]\n", in_src_uuid64);
 
     if ( in_src_uuid64 == local_node->uuid64 ) {
-        GNB_LOG1(es_ctx->log, GNB_LOG_ID_ES_DISCOVER_IN_LAN, "handle_discover_lan_in_frame error in_src_uuid64=%"PRIu64" local_node->uuid64=%"PRIu64"\n", in_src_uuid64, local_node->uuid64);
+        GNB_LOG1(es_ctx->log, GNB_LOG_ID_ES_DISCOVER_IN_LAN, "handle_discover_lan_in_frame error in_src_uuid64=%llu local_node->uuid64=%llu\n", in_src_uuid64, local_node->uuid64);
         return;
     }
 
     dst_node = (gnb_node_t *)GNB_HASH32_UINT64_GET_PTR(es_ctx->uuid_node_map, in_src_uuid64);
 
     if ( NULL == dst_node ) {
-        GNB_LOG1(es_ctx->log, GNB_LOG_ID_ES_DISCOVER_IN_LAN, "handle_discover_lan_in_frame error dst node[%"PRIu64"] not found!\n", in_src_uuid64);
+        GNB_LOG1(es_ctx->log, GNB_LOG_ID_ES_DISCOVER_IN_LAN, "handle_discover_lan_in_frame error dst node[%llu] not found!\n", in_src_uuid64);
         return;
     }
 
@@ -198,7 +198,7 @@ static void handle_discover_lan_in_frame(gnb_es_ctx *es_ctx, gnb_payload16_t *in
     src_port4 = htons(es_ctx->ctl_block->conf_zone->conf_st.udp4_ports[0]);
     memcpy(node_ping_frame->data.attachment, &src_port4, sizeof(uint16_t));
 
-    snprintf((char *)node_ping_frame->data.text, 32, "(LAN)%"PRIu64" --PING-> %"PRIu64"", local_node->uuid64, dst_node->uuid64);
+    snprintf((char *)node_ping_frame->data.text, 32, "(LAN)%llu --PING-> %llu", local_node->uuid64, dst_node->uuid64);
 
     if ( 0 == es_ctx->ctl_block->conf_zone->conf_st.lite_mode ) {
         ed25519_sign(node_ping_frame->src_sign, (const unsigned char *)&node_ping_frame->data, sizeof(struct ping_frame_data), es_ctx->ctl_block->core_zone->ed25519_public_key, es_ctx->ctl_block->core_zone->ed25519_private_key);

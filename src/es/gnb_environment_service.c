@@ -151,7 +151,7 @@ gnb_map_init_success:
     es_ctx->local_node = (gnb_node_t *)GNB_HASH32_UINT64_GET_PTR(es_ctx->uuid_node_map, es_ctx->ctl_block->core_zone->local_uuid);
 
     if ( NULL == es_ctx->local_node ) {
-        GNB_LOG1(log, GNB_LOG_ID_ES_CORE, "gnb_es_ctx_create local node=%"PRIu64"\n", es_ctx->ctl_block->core_zone->local_uuid);
+        GNB_LOG1(log, GNB_LOG_ID_ES_CORE, "gnb_es_ctx_create local node=%llu\n", es_ctx->ctl_block->core_zone->local_uuid);
         return NULL;
     }
 

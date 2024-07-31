@@ -76,7 +76,7 @@ static void send_address_to_node(gnb_es_ctx *es_ctx, gnb_node_t *src_node, gnb_n
     memcpy(&push_addr_frame->data.addr4_a, &src_node->udp_sockaddr4.sin_addr.s_addr, 4);
     push_addr_frame->data.port4_a = src_node->udp_sockaddr4.sin_port;
 
-    snprintf(push_addr_frame->data.text,32,"%"PRIu64">%"PRIu64">%"PRIu64"", ctl_block->core_zone->local_uuid, src_node->uuid64, dst_node->uuid64);
+    snprintf(push_addr_frame->data.text,32,"%llu>%llu>%llu", ctl_block->core_zone->local_uuid, src_node->uuid64, dst_node->uuid64);
 
     struct sockaddr_in udp_sockaddr4;
     memset(&udp_sockaddr4, 0, sizeof(struct sockaddr_in));
@@ -132,7 +132,7 @@ static void broadcast_address_to_node(gnb_es_ctx *es_ctx, gnb_node_t *src_node){
             continue;
         }
 
-        GNB_LOG1(log, GNB_LOG_ID_ES_BROADCAST, "broadcast_address_to_node [%"PRIu64"] ==> [%"PRIu64"]\n", src_node->uuid64, dst_node->uuid64);
+        GNB_LOG1(log, GNB_LOG_ID_ES_BROADCAST, "broadcast_address_to_node [%llu] ==> [%llu]\n", src_node->uuid64, dst_node->uuid64);
 
         send_address_to_node(es_ctx, src_node, dst_node);
 

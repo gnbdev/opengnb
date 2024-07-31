@@ -23,9 +23,9 @@
 typedef struct _uf_node_notify_frame_t {
 
     struct __attribute__((__packed__)) uf_node_notify_frame_data {
-      uint64_t src_uuid64;   //发送方的uuid64
-      uint64_t dst_uuid64;   //接收方的uuid64
-      uint64_t df_uuid64;    //direct forwarding node uuid64
+      gnb_uuid_t src_uuid64;   //发送方的uuid64
+      gnb_uuid_t dst_uuid64;   //接收方的uuid64
+      gnb_uuid_t df_uuid64;    //direct forwarding node uuid64
       int64_t  addr6_ping_latency_usec;
       int64_t  addr4_ping_latency_usec;
       unsigned char attachment[128];

@@ -177,7 +177,7 @@ void gnb_resolv_address(gnb_es_ctx *es_ctx){
 
     char attrib_string[16+1];
 
-    uint64_t uuid64;
+    gnb_uuid_t uuid64;
 
     char host_string[256+1];
 
@@ -204,9 +204,9 @@ void gnb_resolv_address(gnb_es_ctx *es_ctx){
         ret = gnb_test_field_separator(line_buffer);
 
         if ( GNB_CONF_FIELD_SEPARATOR_TYPE_SLASH == ret ) {
-            num = sscanf(line_buffer,"%16[^/]/%"PRIu64"/%256[^/]/%hu\n", attrib_string, &uuid64, host_string, &port);
+            num = sscanf(line_buffer,"%16[^/]/%llu/%256[^/]/%hu\n", attrib_string, &uuid64, host_string, &port);
         } else if ( GNB_CONF_FIELD_SEPARATOR_TYPE_VERTICAL == ret ) {
-            num = sscanf(line_buffer,"%16[^|]|%"PRIu64"|%256[^|]|%hu\n", attrib_string, &uuid64, host_string, &port);
+            num = sscanf(line_buffer,"%16[^|]|%llu|%256[^|]|%hu\n", attrib_string, &uuid64, host_string, &port);
         } else {
             num = 0;
         }
