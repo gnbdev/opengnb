@@ -108,8 +108,9 @@ void gnb_setup_es_argv(char *es_argv_string);
 #define SET_ZIP                        (GNB_OPT_INIT + 49)
 #define SET_ZIP_LEVEL                  (GNB_OPT_INIT + 50)
 
-
 #define SET_MEMORY_SCALE               (GNB_OPT_INIT + 51)
+
+#define SET_SAFE_INDEX                 (GNB_OPT_INIT + 52)
 
 gnb_arg_list_t *gnb_es_arg_list;
 
@@ -120,19 +121,13 @@ int is_trace     = 0;
 gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
     gnb_conf_t *conf;
-
     uint16_t port_host;
-
     char *ctl_block_file = NULL;
-
     int ret;
-
     int num;
 
     conf = malloc( sizeof(gnb_conf_t) );
-
     memset(conf,0,sizeof(gnb_conf_t));
-
     memset(&gnb_conf_ext_lite,0,sizeof(gnb_conf_ext_lite_t));
 
     gnb_es_arg_list = gnb_arg_list_init(32);
@@ -152,12 +147,9 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
     conf->activate_detect_worker        = 1;
 
     conf->pf_worker_num = 0;
-
     conf->direct_forwarding  = 1;
-
     conf->unified_forwarding = GNB_UNIFIED_FORWARDING_AUTO;
-
-    conf->universal_relay0   = 1;
+    conf->universal_relay0   = 0;
 
     /*
     IPv4最小MTU=576bytes
@@ -201,13 +193,11 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
     conf->udp_socket_type = GNB_ADDR_TYPE_IPV4 | GNB_ADDR_TYPE_IPV6;
 
-
     conf->pf_woker_in_queue_length  = 0xFFF;
     conf->pf_woker_out_queue_length = 0xFFF;
     conf->node_woker_queue_length   = 0xFF;
     conf->index_woker_queue_length  = 0xFF;
     conf->index_service_woker_queue_length = 0xFF;
-
 
     conf->udp6_socket_num = 1;
     conf->udp4_socket_num = 1;
@@ -218,7 +208,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
     conf->address_detect_interval_usec = GNB_ADDRESS_DETECT_INTERVAL_USEC;
     conf->full_detect_interval_sec     = GNB_FULL_DETECT_INTERVAL_SEC;
-
+    conf->safe_index = 0;
     conf->daemon = 0;
     conf->systemd_daemon = 0;
 
@@ -280,6 +270,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
       { "nodeid",   required_argument, 0, 'n' },
 
       { "public-index-service",  no_argument, 0, 'P' },
+      { "safe-index",            no_argument, 0, SET_SAFE_INDEX },
 
       { "index-address",  required_argument, 0, 'I' },
       { "node-address",   required_argument, 0, 'a' },
@@ -329,7 +320,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
     
       { "port-detect",               required_argument,  0, SET_PORT_DETECT },
 
-      { "detect-interval",          required_argument,  0, SET_DETECT_INTERVAL },
+      { "detect-interval",           required_argument,  0, SET_DETECT_INTERVAL },
 
       { "set-tun",                   required_argument,  0, SET_TUN },
       { "index-worker",              required_argument,  0, SET_INDEX_WORKER },
@@ -406,7 +397,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
             break;
 
         case 'n':
-            conf->local_uuid = (uint64_t)strtoull(optarg, NULL, 10);
+            conf->local_uuid = (gnb_uuid_t)strtoull(optarg, NULL, 10);
             conf->lite_mode = 1;
             break;
 
@@ -481,6 +472,9 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
         case 'T':
             is_trace = 1;
             break;
+
+        case SET_SAFE_INDEX:
+            conf->safe_index = 1;
 
         case SET_SYSTEMD_DAEMON:
             conf->systemd_daemon = 1;
@@ -1094,7 +1088,7 @@ static void show_useage(int argc,char *argv[]){
 #if defined(__linux__)
     printf("      --systemd                    systemd daemon\n");
 #endif
-
+    
     printf("      --node-worker-queue           node  worker queue length\n");
     printf("      --index-worker-queue          index worker queue length\n");
     printf("      --index-service-worker-queue  index service worker queue length\n");
@@ -1124,6 +1118,7 @@ static void show_useage(int argc,char *argv[]){
     printf("      --address-secure             hide part of ip address in logs \"on\",\"off\" default:\"on\"\n");
     printf("      --if-dump                    dump the interface data frame \"on\",\"off\" default:\"off\"\n");
     printf("      --pf-route                   packet filter route\n");
+    printf("      --safe-index                 \"on\",\"off\" default:\"off\"\n");
     printf("      --multi-socket               \"on\",\"off\" default:\"off\"\n");
     printf("      --direct-forwarding          \"on\",\"off\" default:\"on\"\n");
     printf("      --set-tun                    \"on\",\"off\" default:\"on\"\n");

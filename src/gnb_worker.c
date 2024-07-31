@@ -25,33 +25,32 @@
 #include "gnb_worker.h"
 #include "gnb_worker_queue_data.h"
 
-
 /*
 每个 worker 都是一个独立线程，设计上允许多个线程并发处理payload，但对于处理 node 的数据来说不是很必要。
 如果把 pf 也设计为 worker 的形式，对于加密运算比较重的分组，可以发挥多核的特性
 */
-
 extern gnb_worker_t gnb_primary_worker_mod;
 extern gnb_worker_t gnb_node_worker_mod;
-
 extern gnb_worker_t gnb_index_worker_mod;
+extern gnb_worker_t gnb_secure_index_worker_mod;
 extern gnb_worker_t gnb_detect_worker_mod;
 
 extern gnb_worker_t gnb_index_service_worker_mod;
+extern gnb_worker_t gnb_secure_index_service_worker_mod;
 
 extern gnb_worker_t gnb_pf_worker_mod;
-
 
 static gnb_worker_t *gnb_worker_array[] = {
     &gnb_primary_worker_mod,
     &gnb_index_worker_mod,
+    &gnb_secure_index_worker_mod,
     &gnb_index_service_worker_mod,
+    &gnb_secure_index_service_worker_mod,
     &gnb_detect_worker_mod,
     &gnb_node_worker_mod,
     &gnb_pf_worker_mod,
     NULL,
 };
-
 
 static gnb_worker_t* find_worker_mod_by_name(const char *name){
 
