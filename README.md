@@ -323,4 +323,4 @@ For details, please visit [https://aur.archlinux.org/packages/opengnb/](https://
 [gnb_udp_over_tcp](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp") is a service developed for GNB that forwards UDP packets through tcp link, and can also forward data for other services based on UDP protocol.
 
 ---
-[Disclaimer](docs/disclaimer_cn.md)
+[Disclaimer](docs/disclaimer_cn.md) 
