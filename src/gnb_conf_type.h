@@ -29,6 +29,7 @@
 
 #endif
 
+#include "gnb_node_type.h"
 
 #define GNB_PF_BITS_NONE            (0x0)
 #define GNB_PF_BITS_CRYPTO_XOR      (0x1)
@@ -60,9 +61,10 @@ typedef struct _gnb_conf_t {
 	char conf_dir[PATH_MAX];
 
 	uint8_t public_index_service;
+    uint8_t safe_index;
 	uint8_t lite_mode;
 
-	uint64_t local_uuid;
+	gnb_uuid_t local_uuid;
 
 	char binary_dir[PATH_MAX];
 

@@ -630,7 +630,13 @@ gnb_core_t* gnb_core_create(gnb_conf_t *conf){
     }
 
     if ( gnb_core->conf->activate_index_worker ) {
-        gnb_core->index_worker  = gnb_worker_init("gnb_index_worker", gnb_core);
+
+        if ( 1 == gnb_core->conf->safe_index ) {
+            gnb_core->index_worker  = gnb_worker_init("gnb_secure_index_worker", gnb_core);
+        } else {
+            gnb_core->index_worker  = gnb_worker_init("gnb_index_worker", gnb_core);
+        }
+
     }
 
     if ( gnb_core->conf->activate_detect_worker ) {
@@ -638,9 +644,14 @@ gnb_core_t* gnb_core_create(gnb_conf_t *conf){
     }
 
     if ( gnb_core->conf->activate_index_service_worker ) {
-        gnb_core->index_service_worker  = gnb_worker_init("gnb_index_service_worker", gnb_core);
-    }
 
+        if ( 1 == gnb_core->conf->safe_index ) {
+            gnb_core->index_service_worker  = gnb_worker_init("gnb_secure_index_service_worker", gnb_core);
+        } else {
+            gnb_core->index_service_worker  = gnb_worker_init("gnb_index_service_worker", gnb_core);            
+        }
+
+    }
 
     if ( gnb_core->conf->pf_worker_num > 0 ) {
 
@@ -806,7 +817,7 @@ void gnb_core_start(gnb_core_t *gnb_core){
         }
 
         GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"if[%s] opened\n", gnb_core->ifname);
-        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"node[%"PRIu64"] ipv4[%s]\n", gnb_core->local_node->uuid64, GNB_ADDR4STR_PLAINTEXT1(&gnb_core->local_node->tun_addr4));
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"node[%d] ipv4[%s]\n", gnb_core->local_node->uuid64, GNB_ADDR4STR_PLAINTEXT1(&gnb_core->local_node->tun_addr4));
 
         for ( i=0; i<gnb_core->pf_worker_ring->size; i++ ) {
             gnb_core->pf_worker_ring->worker[i]->start(gnb_core->pf_worker_ring->worker[i]);

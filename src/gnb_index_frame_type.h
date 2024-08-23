@@ -56,7 +56,7 @@ typedef struct _post_addr_frame_t {
 		unsigned char arg3;              //保留
 
 		unsigned char src_key512[64];    //发送节点的key
-		uint64_t src_uuid64;             //发送方的uuid64,可选
+		gnb_uuid_t src_uuid64;             //发送方的uuid64,可选
 		uint64_t src_ts_usec;            //发送方的时间戳,可选
 
 		//源节点对自身探测的wan地址
@@ -95,7 +95,7 @@ typedef struct _echo_addr_frame_t {
 		unsigned char arg3;               //保留
 
 		unsigned char dst_key512[64];     //发送post addr节点的key
-		uint64_t dst_uuid64;              //发送post addr节点的uuid64
+		gnb_uuid_t dst_uuid64;              //发送post addr节点的uuid64
 		uint64_t src_ts_usec;             //发送方的时间戳,可选
 
 		char     addr_type;               //ipv6='6' or ipv4='4'
@@ -107,6 +107,7 @@ typedef struct _echo_addr_frame_t {
 	}data;
 
 	unsigned char src_sign[ED25519_SIGN_SIZE];
+    gnb_uuid_t  index_node_uuid64;
 
 }__attribute__ ((__packed__)) echo_addr_frame_t;
 
@@ -129,8 +130,8 @@ typedef struct _request_addr_frame_t {
 		unsigned char src_key512[64];     //发送节点的key
 		unsigned char dst_key512[64];     //被查询节点的key
 
-		uint64_t src_uuid64;              //发送方的uuid64,可选
-		uint64_t dst_uuid64;              //被查询节点的uuid可选
+		gnb_uuid_t src_uuid64;              //发送方的uuid64,可选
+		gnb_uuid_t dst_uuid64;              //被查询节点的uuid可选
 		uint64_t src_ts_usec;
 
 		char text[32];
@@ -157,7 +158,7 @@ typedef struct _push_addr_frame_t {
 		unsigned char arg3;               //保留
 
 		unsigned char node_key[64];
-		uint64_t  node_uuid64;
+		gnb_uuid_t  node_uuid64;
 
 		uint8_t  addr6_a[16];
 		uint16_t port6_a;
@@ -189,6 +190,7 @@ typedef struct _push_addr_frame_t {
 
 	}data;
 
+    gnb_uuid_t  index_node_uuid64;
 	unsigned char src_sign[ED25519_SIGN_SIZE];
 
 }__attribute__ ((__packed__)) push_addr_frame_t;
@@ -205,8 +207,8 @@ typedef struct _detect_addr_frame_t {
 		unsigned char arg3;              //保留
 
 		unsigned char src_key512[64];    //发送节点的key
-		uint64_t src_uuid64;             //发送方的uuid64,可选
-		uint64_t dst_uuid64;             //目的方的uuid64,可选
+		gnb_uuid_t src_uuid64;             //发送方的uuid64,可选
+		gnb_uuid_t dst_uuid64;             //目的方的uuid64,可选
 
 		uint64_t src_ts_usec;            //发送方的时间戳
 

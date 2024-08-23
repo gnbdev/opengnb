@@ -90,13 +90,12 @@ typedef struct _gnb_key_address_t{
 
 }gnb_key_address_t;
 
-
 static void send_echo_addr_frame(gnb_worker_t *gnb_index_service_worker, unsigned char *key512, gnb_uuid_t uuid64, gnb_address_t *address);
 static void send_push_addr_frame(gnb_worker_t *gnb_index_service_worker, unsigned char action, unsigned char attachment, unsigned char *src_key, gnb_key_address_t *src_key_address, unsigned char *dst_key, gnb_key_address_t *dst_key_address);
 static void handle_post_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *index_service_worker_in_data);
 static void handle_request_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *index_service_worker_in_data);
 
-
+/*verify*/
 static void handle_post_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *index_service_worker_in_data){
 
     index_service_worker_ctx_t *index_service_worker_ctx = gnb_core->index_service_worker->ctx;
@@ -106,6 +105,26 @@ static void handle_post_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *i
     post_addr_frame_t *post_addr_frame = (post_addr_frame_t *)&index_service_worker_in_data->payload_st.data;
 
     gnb_sockaddress_t *sockaddress = &index_service_worker_in_data->node_addr_st;
+
+    gnb_node_t *src_node;
+    gnb_uuid_t src_uuid64;
+
+    if ( 0 == gnb_core->conf->lite_mode && 0==gnb_core->conf->public_index_service && 1==gnb_core->conf->safe_index ) {
+
+        src_uuid64 = gnb_ntohll(post_addr_frame->data.src_uuid64);
+        src_node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, src_uuid64);
+
+        if ( NULL==src_node ) {
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "handle_post_addr_frame error src node not found src=%llu %s\n", src_uuid64, GNB_SOCKETADDRSTR1(sockaddress));
+            return;
+        }        
+
+        if ( !ed25519_verify(post_addr_frame->src_sign, (const unsigned char *)&post_addr_frame->data, sizeof(struct post_addr_frame_data), src_node->public_key) ) {
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "handle_post_addr_frame error invalid signature src=%llu %s\n", src_uuid64, GNB_SOCKETADDRSTR1(sockaddress));
+            return;
+        }
+
+    }
 
     key_address = GNB_LRU32_HASH_GET_VALUE(index_service_worker_ctx->lru, post_addr_frame->data.src_key512, 64);
 
@@ -144,7 +163,7 @@ static void handle_post_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *i
     if ( AF_INET6 == sockaddress->addr_type ) {
 
         if ( index_service_worker_ctx->now_time_sec - key_address->last_post_addr6_sec < GNB_POST_ADDR_LIMIT_SEC ) {
-            GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE POST receive addr=%u now_time_sec=%"PRIu64" last_post_addr6_sec=%"PRIu64" LIMIT\n", key_address->uuid64, index_service_worker_ctx->now_time_sec, key_address->last_post_addr6_sec);
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE POST receive addr=%llu now_time_sec=%"PRIu64" last_post_addr6_sec=%"PRIu64" LIMIT\n", key_address->uuid64, index_service_worker_ctx->now_time_sec, key_address->last_post_addr6_sec);
             key_address->last_post_addr6_sec = index_service_worker_ctx->now_time_sec;
             return;
         }
@@ -160,7 +179,7 @@ static void handle_post_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *i
     if ( AF_INET == sockaddress->addr_type ) {
 
         if ( index_service_worker_ctx->now_time_sec - key_address->last_post_addr4_sec < GNB_POST_ADDR_LIMIT_SEC ) {
-            GNB_LOG2(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE POST receive addr=%u now_time_sec=%"PRIu64" last_post_addr4_sec=%"PRIu64" LIMIT\n", key_address->uuid64, index_service_worker_ctx->now_time_sec, key_address->last_post_addr4_sec);
+            GNB_LOG2(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE POST receive addr=%llu now_time_sec=%"PRIu64" last_post_addr4_sec=%"PRIu64" LIMIT\n", key_address->uuid64, index_service_worker_ctx->now_time_sec, key_address->last_post_addr4_sec);
             key_address->last_post_addr4_sec = index_service_worker_ctx->now_time_sec;
             return;
         }
@@ -195,11 +214,13 @@ static void handle_post_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *i
 
 }
 
-
+/*sign*/
 static void send_echo_addr_frame(gnb_worker_t *gnb_index_service_worker, unsigned char *key512, gnb_uuid_t uuid64, gnb_address_t *address){
 
     index_service_worker_ctx_t *index_service_worker_ctx = gnb_index_service_worker->ctx;
     gnb_core_t *gnb_core = index_service_worker_ctx->gnb_core;
+    gnb_node_t *node;
+    int i;
 
     index_service_worker_ctx->index_frame_payload->sub_type = PAYLOAD_SUB_TYPE_ECHO_ADDR;
 
@@ -208,9 +229,11 @@ static void send_echo_addr_frame(gnb_worker_t *gnb_index_service_worker, unsigne
     echo_addr_frame_t *echo_addr_frame = (echo_addr_frame_t *)index_service_worker_ctx->index_frame_payload->data;
 
     memset(echo_addr_frame, 0, sizeof(echo_addr_frame_t));
+
     memcpy(echo_addr_frame->data.dst_key512, key512, 64);
 
     echo_addr_frame->data.dst_uuid64 = gnb_htonll(uuid64);
+
     echo_addr_frame->data.src_ts_usec = gnb_htonll(index_service_worker_ctx->now_time_usec);
 
     if ( AF_INET6 == address->type ) {
@@ -227,13 +250,34 @@ static void send_echo_addr_frame(gnb_worker_t *gnb_index_service_worker, unsigne
 
     echo_addr_frame->data.port = address->port;
 
-    gnb_send_to_address(gnb_core, address, index_service_worker_ctx->index_frame_payload);
+    if ( 0 == gnb_core->conf->lite_mode && 1 == gnb_core->conf->safe_index ) {       
+
+        node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, uuid64);
+
+        if ( NULL == node ) {
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "send_echo_addr_frame error node=%llu is miss\n", uuid64);
+            return;
+        }
+
+        ed25519_sign(echo_addr_frame->src_sign, (const unsigned char *)&echo_addr_frame->data, sizeof(struct echo_addr_frame_data), gnb_core->ed25519_public_key, gnb_core->ed25519_private_key);
+
+        for ( i=0; i<gnb_core->index_node_ring.num; i++ ) {        
+            gnb_send_to_node(gnb_core, node, index_service_worker_ctx->index_frame_payload, GNB_ADDR_TYPE_IPV6|GNB_ADDR_TYPE_IPV4);
+        }
+
+    } else {
+
+        gnb_send_to_address(gnb_core, address, index_service_worker_ctx->index_frame_payload);    
+        
+    }
+    
 
 }
 
 
 /*
  * 把 src_key_address里nodeid及ip地址 发到 dst_key_address 对于的nodeid的节点
+ * sign
 */
 static void send_push_addr_frame(gnb_worker_t *gnb_index_service_worker, unsigned char action, unsigned char attachment, unsigned char *src_key, gnb_key_address_t *src_key_address, unsigned char *dst_key, gnb_key_address_t *dst_key_address){
 
@@ -243,7 +287,7 @@ static void send_push_addr_frame(gnb_worker_t *gnb_index_service_worker, unsigne
 
     index_service_worker_ctx->index_frame_payload->sub_type = PAYLOAD_SUB_TYPE_PUSH_ADDR;
 
-    gnb_payload16_set_data_len( index_service_worker_ctx->index_frame_payload,  sizeof(push_addr_frame_t) );
+    gnb_payload16_set_data_len( index_service_worker_ctx->index_frame_payload, sizeof(push_addr_frame_t) );
 
     push_addr_frame_t *push_addr_frame = (push_addr_frame_t *)index_service_worker_ctx->index_frame_payload->data;
 
@@ -317,6 +361,9 @@ finish_fill_address:
 
     //debug_text
     snprintf(push_addr_frame->data.text, 32, "INDEX PUSH ADDR[%llu]=>[%llu]", src_key_address->uuid64, dst_key_address->uuid64);
+    push_addr_frame->index_node_uuid64 = gnb_htonll(gnb_core->local_node->uuid64);
+
+    ed25519_sign(push_addr_frame->src_sign, (const unsigned char *)&push_addr_frame->data, sizeof(struct push_addr_frame_data), gnb_core->ed25519_public_key, gnb_core->ed25519_private_key);
 
     gnb_address_list_t *dst_address6_list = (gnb_address_list_t *)dst_key_address->address6_list_block;
     gnb_address_list_t *dst_address4_list = (gnb_address_list_t *)dst_key_address->address4_list_block;
@@ -329,23 +376,40 @@ finish_fill_address:
 
 }
 
-
+/*verify*/
 static void handle_request_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *index_service_worker_in_data){
 
     index_service_worker_ctx_t *index_service_worker_ctx = gnb_core->index_service_worker->ctx;
     request_addr_frame_t *request_addr_frame = (request_addr_frame_t *)&index_service_worker_in_data->payload_st.data;
     gnb_sockaddress_t *sockaddress = &index_service_worker_in_data->node_addr_st;
 
-    gnb_uuid_t src_uuid64 = gnb_ntohll(request_addr_frame->data.src_uuid64);
+    gnb_uuid_t src_uuid64 = gnb_ntohll(request_addr_frame->data.src_uuid64);             
     gnb_uuid_t dst_uuid64 = gnb_ntohll(request_addr_frame->data.dst_uuid64);
 
     gnb_key_address_t *l_key_address;
     gnb_key_address_t *r_key_address;
 
+    gnb_node_t *src_node;
+    if ( 0 == gnb_core->conf->lite_mode && 0==gnb_core->conf->public_index_service && 1==gnb_core->conf->safe_index ) {
+
+        src_node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, src_uuid64);
+
+        if ( NULL==src_node ) {
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "handle_request_addr_frame error src node not found src=%llu %s\n", src_uuid64, GNB_SOCKETADDRSTR1(sockaddress));
+            return;
+        }                
+
+        if ( !ed25519_verify(request_addr_frame->src_sign, (const unsigned char *)&request_addr_frame->data, sizeof(struct request_addr_frame_data), src_node->public_key) ) {
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "handle_request_addr_frame error invalid signature src=%llu %s\n", src_uuid64, GNB_SOCKETADDRSTR1(sockaddress));
+            return;
+        }
+
+    }
+
     l_key_address = GNB_LRU32_HASH_GET_VALUE(index_service_worker_ctx->lru, request_addr_frame->data.src_key512, 64);
 
     if ( NULL==l_key_address ) {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE REQUEST src[%llu] => [%llu] l_key_address[%s] is Not Founded\n", src_uuid64, dst_uuid64, GNB_HEX1_BYTE128(request_addr_frame->data.src_key512));
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE REQUEST src[%llu] => [%llu] l_key_address[%s] is Not Found\n", src_uuid64, dst_uuid64, GNB_HEX1_BYTE128(request_addr_frame->data.src_key512));
         return;
     }
 
@@ -369,7 +433,7 @@ static void handle_request_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t
 
     r_key_address = GNB_LRU32_HASH_GET_VALUE(index_service_worker_ctx->lru, request_addr_frame->data.dst_key512, 64);
     if ( NULL==r_key_address ) {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE REQUEST src[%llu] => [%llu] r_key_address[%s] is  Not Founded\n", src_uuid64, dst_uuid64, GNB_HEX1_BYTE128(request_addr_frame->data.dst_key512));
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "HANDLE REQUEST src[%llu] => [%llu] r_key_address[%s] is  Not Found\n", src_uuid64, dst_uuid64, GNB_HEX1_BYTE128(request_addr_frame->data.dst_key512));
         return;
     }
 
@@ -462,7 +526,7 @@ static void handle_recv_queue(gnb_core_t *gnb_core){
 
     for ( i=0; i<1024; i++ ) {
 
-        receive_queue_data = (gnb_worker_queue_data_t *)gnb_ring_buffer_fixed_pop( gnb_core->index_service_worker->ring_buffer_in );
+        receive_queue_data = (gnb_worker_queue_data_t *)gnb_ring_buffer_fixed_pop(gnb_core->index_service_worker->ring_buffer_in);
 
         if ( NULL==receive_queue_data ) {
             break;
@@ -470,7 +534,7 @@ static void handle_recv_queue(gnb_core_t *gnb_core){
 
         handle_index_frame(gnb_core, &receive_queue_data->data.node_in);
 
-        gnb_ring_buffer_fixed_pop_submit( gnb_core->index_service_worker->ring_buffer_in );
+        gnb_ring_buffer_fixed_pop_submit(gnb_core->index_service_worker->ring_buffer_in);
 
     }
 
@@ -574,9 +638,9 @@ static int notify(gnb_worker_t *gnb_worker){
 
 }
 
-gnb_worker_t gnb_index_service_worker_mod = {
+gnb_worker_t gnb_secure_index_service_worker_mod = {
 
-    .name      = "gnb_index_service_worker",
+    .name      = "gnb_secure_index_service_worker",
     .init      = init,
     .release   = release,
     .start     = start,
