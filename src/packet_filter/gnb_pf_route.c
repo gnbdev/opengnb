@@ -42,9 +42,9 @@ typedef struct _gnb_route_frame_head_t {
 
     uint8_t ttl;
 
-    uint32_t src_uuid32;
+    gnb_uuid_t src_uuid64;
 
-    uint32_t dst_uuid32;
+    gnb_uuid_t dst_uuid64;
 
 } __attribute__ ((__packed__)) gnb_route_frame_head_t;
 
@@ -143,12 +143,12 @@ handle_ip_frame:
     route_frame_head->ttl = GNB_PAYLOAD_MAX_TTL;
 
 
-    //把src和dst的 uuid32 保存在ctx中，route过程要用到
-    route_frame_head->src_uuid32 = htonl(gnb_core->local_node->uuid32);
-    route_frame_head->dst_uuid32 = htonl(pf_ctx->dst_node->uuid32);
+    //把src和dst的 uuid64 保存在ctx中，route过程要用到
+    route_frame_head->src_uuid64 = gnb_htonll(gnb_core->local_node->uuid64);
+    route_frame_head->dst_uuid64 = gnb_htonll(pf_ctx->dst_node->uuid64);
 
-    pf_ctx->src_uuid32 = gnb_core->local_node->uuid32;
-    pf_ctx->dst_uuid32 = pf_ctx->dst_node->uuid32;
+    pf_ctx->src_uuid64 = gnb_core->local_node->uuid64;
+    pf_ctx->dst_uuid64 = pf_ctx->dst_node->uuid64;
 
     //把 ip frame 和 size，保存在ctx中，供后面的模块使用
     pf_ctx->ip_frame = pf_ctx->fwd_payload->data + sizeof(gnb_route_frame_head_t);
@@ -174,8 +174,8 @@ static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_
     uint16_t org_payload_size;
     uint16_t new_payload_size;
 
-    uint32_t *src_fwd_nodeid_ptr;
-    uint32_t *relay_nodeid_ptr;
+    gnb_uuid_t *src_fwd_nodeid_ptr;
+    gnb_uuid_t *relay_nodeid_ptr;
 
     int relay_nodeid_idx;
     gnb_node_t *last_relay_node;
@@ -269,19 +269,19 @@ handle_relay:
         pf_ctx->dst_node->selected_route_node = 0;
     }
 
-    relay_nodeid_ptr = (uint32_t *)( pf_ctx->fwd_payload->data + sizeof(gnb_route_frame_head_t) + pf_ctx->ip_frame_size );
+    relay_nodeid_ptr = (gnb_uuid_t *)( pf_ctx->fwd_payload->data + sizeof(gnb_route_frame_head_t) + pf_ctx->ip_frame_size );
 
     for ( relay_nodeid_idx=0; relay_nodeid_idx < relay_count; relay_nodeid_idx++ ) {
-        relay_nodeid_ptr[ relay_nodeid_idx ] = htonl( pf_ctx->dst_node->route_node[ pf_ctx->dst_node->selected_route_node ][ relay_nodeid_idx ] );
+        relay_nodeid_ptr[ relay_nodeid_idx ] = gnb_htonll( pf_ctx->dst_node->route_node[ pf_ctx->dst_node->selected_route_node ][ relay_nodeid_idx ] );
     }
 
-    relay_nodeid_ptr[ relay_nodeid_idx ] = htonl(gnb_core->local_node->uuid32);
+    relay_nodeid_ptr[ relay_nodeid_idx ] = gnb_htonll(gnb_core->local_node->uuid64);
 
     org_payload_size = gnb_payload16_size(pf_ctx->fwd_payload);
 
     route_frame_head->ttl = relay_count + 1;
 
-    new_payload_size = org_payload_size + relay_count*sizeof(uint32_t) + sizeof(uint32_t);
+    new_payload_size = org_payload_size + relay_count*sizeof(gnb_uuid_t) + sizeof(gnb_uuid_t);
 
     if ( new_payload_size > GNB_MAX_PAYLOAD_SIZE ) {
         ret = GNB_PF_DROP;
@@ -290,7 +290,7 @@ handle_relay:
 
     gnb_payload16_set_size(pf_ctx->fwd_payload, new_payload_size);
 
-    pf_ctx->fwd_node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, pf_ctx->dst_node->route_node[ pf_ctx->dst_node->selected_route_node ][ relay_count-1 ]);
+    pf_ctx->fwd_node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, pf_ctx->dst_node->route_node[ pf_ctx->dst_node->selected_route_node ][ relay_count-1 ]);
 
     if ( NULL==pf_ctx->fwd_node ) {
         ret = GNB_PF_NOROUTE;
@@ -316,7 +316,7 @@ handle_relay:
     if ( 1==gnb_core->conf->if_dump ) {
 
         for ( relay_nodeid_idx=0; relay_nodeid_idx<relay_count; relay_nodeid_idx++ ) {
-            GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "pf_tun_route_cb idx=%u relay node=%u\n", relay_nodeid_idx, pf_ctx->dst_node->route_node[ pf_ctx->dst_node->selected_route_node ][ relay_nodeid_idx ]);
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "pf_tun_route_cb idx=%u relay node=%llu\n", relay_nodeid_idx, pf_ctx->dst_node->route_node[ pf_ctx->dst_node->selected_route_node ][ relay_nodeid_idx ]);
         }
 
     }
@@ -333,7 +333,7 @@ finish_relay:
             goto finish;
         }
 
-        last_relay_node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, pf_ctx->dst_node->last_relay_nodeid);
+        last_relay_node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, pf_ctx->dst_node->last_relay_nodeid);
 
         if ( NULL==last_relay_node ) {
             goto finish;
@@ -341,14 +341,14 @@ finish_relay:
 
         if ( (last_relay_node->udp_addr_status & GNB_NODE_STATUS_IPV6_PONG) || (last_relay_node->udp_addr_status & GNB_NODE_STATUS_IPV4_PONG) ) {
             pf_ctx->fwd_node = last_relay_node;
-            GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "pf_tun_route_cb forward through last relay node %u => %u => %u\n", gnb_core->local_node->uuid32, last_relay_node->uuid32, pf_ctx->dst_node->uuid32 );
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "pf_tun_route_cb forward through last relay node %llu => %llu => %llu\n", gnb_core->local_node->uuid64, last_relay_node->uuid64, pf_ctx->dst_node->uuid64 );
         }
 
     }
 
 finish:
 
-    GNB_LOG4(gnb_core->log, GNB_LOG_ID_PF, "pf_tun_route_cb [%u]>[%u] pf_ctx->in_ttl[%u] route_frame_head->ttl[%u] ip_frame_size[%d]\n", pf_ctx->src_uuid32, pf_ctx->dst_uuid32, pf_ctx->in_ttl, route_frame_head->ttl, pf_ctx->ip_frame_size);
+    GNB_LOG4(gnb_core->log, GNB_LOG_ID_PF, "pf_tun_route_cb [%llu]>[%llu] pf_ctx->in_ttl[%u] route_frame_head->ttl[%u] ip_frame_size[%d]\n", pf_ctx->src_uuid64, pf_ctx->dst_uuid64, pf_ctx->in_ttl, route_frame_head->ttl, pf_ctx->ip_frame_size);
 
     return ret;
 
@@ -360,14 +360,14 @@ static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf
     int ret = GNB_PF_NEXT;
 
     uint16_t payload_data_size;
-    uint32_t *pre_src_fwd_nodeid_ptr;
+    gnb_uuid_t *pre_src_fwd_nodeid_ptr;
 
     //gnb_route_ctx_t *ctx = (gnb_route_ctx_t *)GNB_PF_GET_CTX(gnb_core,gnb_pf_route);
 
     gnb_route_frame_head_t *route_frame_head;
 
     int i;
-    uint32_t *nodeid_ptr;
+    gnb_uuid_t *nodeid_ptr;
 
     if ( NULL == pf_ctx->fwd_payload ) {
         ret = GNB_PF_ERROR;
@@ -381,9 +381,9 @@ static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf
         goto finish;
     }
 
-    pre_src_fwd_nodeid_ptr = (uint32_t *)( pf_ctx->fwd_payload->data + payload_data_size );
+    pre_src_fwd_nodeid_ptr = (gnb_uuid_t *)( pf_ctx->fwd_payload->data + payload_data_size );
 
-    pf_ctx->src_fwd_uuid32 = ntohl(*pre_src_fwd_nodeid_ptr);
+    pf_ctx->src_fwd_uuid64 = gnb_ntohll(*pre_src_fwd_nodeid_ptr);
 
     //从payload中得到 route_frame 首地址
     route_frame_head = (gnb_route_frame_head_t *)pf_ctx->fwd_payload->data;
@@ -394,8 +394,8 @@ static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf
         goto finish;
     }
 
-    pf_ctx->src_uuid32 = ntohl(route_frame_head->src_uuid32);
-    pf_ctx->dst_uuid32 = ntohl(route_frame_head->dst_uuid32);
+    pf_ctx->src_uuid64 = gnb_ntohll(route_frame_head->src_uuid64);
+    pf_ctx->dst_uuid64 = gnb_ntohll(route_frame_head->dst_uuid64);
 
     pf_ctx->pf_type_bits = &route_frame_head->pf_type_bits;
 
@@ -408,7 +408,7 @@ static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf
     pf_ctx->ip_frame = pf_ctx->fwd_payload->data + sizeof(gnb_route_frame_head_t);
 
     if ( GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY & pf_ctx->fwd_payload->sub_type ) {
-        pf_ctx->ip_frame_size = gnb_payload16_data_len(pf_ctx->fwd_payload) - sizeof(gnb_route_frame_head_t) - route_frame_head->ttl*sizeof(uint32_t);
+        pf_ctx->ip_frame_size = gnb_payload16_data_len(pf_ctx->fwd_payload) - sizeof(gnb_route_frame_head_t) - route_frame_head->ttl*sizeof(gnb_uuid_t);
     } else {
         pf_ctx->ip_frame_size = gnb_payload16_data_len(pf_ctx->fwd_payload) - sizeof(gnb_route_frame_head_t);
     }
@@ -419,7 +419,7 @@ static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf
         route_frame_head->ttl--;
     }
 
-    if (gnb_core->local_node->uuid32 == pf_ctx->dst_uuid32) {
+    if (gnb_core->local_node->uuid64 == pf_ctx->dst_uuid64) {
         route_frame_head->ttl = 0;
     }
 
@@ -431,18 +431,18 @@ finish:
 
         if( GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY & pf_ctx->fwd_payload->sub_type ) {
 
-            nodeid_ptr = (uint32_t *)(pf_ctx->fwd_payload->data + sizeof(gnb_route_frame_head_t) + pf_ctx->ip_frame_size);
+            nodeid_ptr = (gnb_uuid_t *)(pf_ctx->fwd_payload->data + sizeof(gnb_route_frame_head_t) + pf_ctx->ip_frame_size);
 
-            GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "pf_inet_frame_cb src_fwd[%u] [%u]>[%u] in_ttl[%u] ip_frame_size[%u]\n", pf_ctx->src_fwd_uuid32, pf_ctx->src_uuid32, pf_ctx->dst_uuid32, pf_ctx->in_ttl, pf_ctx->ip_frame_size);
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "pf_inet_frame_cb src_fwd[%llu] [%llu]>[%llu] in_ttl[%u] ip_frame_size[%u]\n", pf_ctx->src_fwd_uuid64, pf_ctx->src_uuid64, pf_ctx->dst_uuid64, pf_ctx->in_ttl, pf_ctx->ip_frame_size);
 
             for ( i=0; i<pf_ctx->in_ttl; i++ ) {
-                GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "pf_inet_frame_cb [%u]>[%u] relay[%u]\n", pf_ctx->src_uuid32, pf_ctx->dst_uuid32, ntohl(*nodeid_ptr) );
+                GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "pf_inet_frame_cb [%llu]>[%llu] relay[%llu]\n", pf_ctx->src_uuid64, pf_ctx->dst_uuid64, gnb_ntohll(*nodeid_ptr) );
                 nodeid_ptr++;
             }
 
         } else {
 
-            GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "pf_inet_frame_cb [%u]>[%u] in_ttl[%u] ip_frame_size[%u]\n", pf_ctx->src_uuid32, pf_ctx->dst_uuid32, pf_ctx->in_ttl, pf_ctx->ip_frame_size);
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "pf_inet_frame_cb [%llu]>[%llu] in_ttl[%u] ip_frame_size[%u]\n", pf_ctx->src_uuid64, pf_ctx->dst_uuid64, pf_ctx->in_ttl, pf_ctx->ip_frame_size);
 
         }
 
@@ -465,36 +465,36 @@ static int pf_inet_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf
 
     int ret = GNB_PF_NEXT;
 
-    uint32_t *src_fwd_nodeid_ptr;
-    uint32_t *relay_nodeid_ptr;
-    uint32_t  relay_nodeid;
+    gnb_uuid_t *src_fwd_nodeid_ptr;
+    gnb_uuid_t *relay_nodeid_ptr;
+    gnb_uuid_t  relay_nodeid;
 
-    uint32_t  current_nodeid;
+    gnb_uuid_t  current_nodeid;
 
     uint16_t payload_data_size;
 
     int i;
-    uint32_t *nodeid_ptr;
+    gnb_uuid_t *nodeid_ptr;
 
     payload_data_size = GNB_PAYLOAD16_DATA_SIZE(pf_ctx->fwd_payload);
 
-    pf_ctx->src_node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, pf_ctx->src_uuid32);
+    pf_ctx->src_node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, pf_ctx->src_uuid64);
 
     if ( NULL==pf_ctx->src_node ) {
         ret = GNB_PF_DROP;
         goto finish;
     }
 
-    if ( gnb_core->local_node->uuid32 == pf_ctx->dst_uuid32 ) {
+    if ( gnb_core->local_node->uuid64 == pf_ctx->dst_uuid64 ) {
 
         pf_ctx->pf_fwd = GNB_PF_FWD_TUN;
         ret = GNB_PF_NEXT;
 
         if ( GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY & pf_ctx->fwd_payload->sub_type ) {
-            src_fwd_nodeid_ptr = (uint32_t *)(pf_ctx->fwd_payload->data + payload_data_size - sizeof(uint32_t));
-            pf_ctx->src_node->last_relay_nodeid = ntohl( *(src_fwd_nodeid_ptr) );
+            src_fwd_nodeid_ptr = (gnb_uuid_t *)(pf_ctx->fwd_payload->data + payload_data_size - sizeof(gnb_uuid_t));
+            pf_ctx->src_node->last_relay_nodeid = gnb_ntohll( *(src_fwd_nodeid_ptr) );
             pf_ctx->src_node->last_relay_node_ts_sec = gnb_core->now_time_sec;
-            GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "pf_inet_route_cb GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY src_nodeid=%u set last_relay_nodeid=%u\n", pf_ctx->src_node->uuid32, pf_ctx->src_node->last_relay_nodeid);
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "pf_inet_route_cb GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY src_nodeid=%llu set last_relay_nodeid=%llu\n", pf_ctx->src_node->uuid64, pf_ctx->src_node->last_relay_nodeid);
         } else {
             pf_ctx->src_node->last_relay_nodeid = 0;
             pf_ctx->src_node->last_relay_node_ts_sec = 0l;
@@ -515,7 +515,7 @@ static int pf_inet_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf
 
 route_default:
 
-    pf_ctx->dst_node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, pf_ctx->dst_uuid32);
+    pf_ctx->dst_node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, pf_ctx->dst_uuid64);
 
     if ( NULL != pf_ctx->dst_node ) {
         pf_ctx->fwd_node = pf_ctx->dst_node;
@@ -528,7 +528,7 @@ route_default:
     ret = GNB_PF_NEXT;
 
     if ( 1==gnb_core->conf->if_dump ) {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "pf_inet_route_cb [%u]>[%u] out_ttl[%u] ip_frame_size[%u] route node\n", pf_ctx->src_uuid32, pf_ctx->dst_uuid32, route_frame_head->ttl, pf_ctx->ip_frame_size);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "pf_inet_route_cb [%llu]>[%llu] out_ttl[%u] ip_frame_size[%u] route node\n", pf_ctx->src_uuid64, pf_ctx->dst_uuid64, route_frame_head->ttl, pf_ctx->ip_frame_size);
     }
 
     goto finish;
@@ -541,15 +541,15 @@ route_relay:
         goto finish;
     }
 
-    src_fwd_nodeid_ptr = (uint32_t *)(pf_ctx->fwd_payload->data + payload_data_size - sizeof(uint32_t));
+    src_fwd_nodeid_ptr = (gnb_uuid_t *)(pf_ctx->fwd_payload->data + payload_data_size - sizeof(gnb_uuid_t));
 
-    current_nodeid = ntohl( *(src_fwd_nodeid_ptr-1) );
+    current_nodeid = gnb_ntohll( *(src_fwd_nodeid_ptr-1) );
 
     if ( pf_ctx->in_ttl > 2 ) {
 
         relay_nodeid_ptr = src_fwd_nodeid_ptr-2;
 
-        if ( current_nodeid != gnb_core->local_node->uuid32 ) {
+        if ( current_nodeid != gnb_core->local_node->uuid64 ) {
             ret = GNB_PF_ERROR;
             goto finish;
         }
@@ -560,20 +560,20 @@ route_relay:
 
     if ( NULL != relay_nodeid_ptr ) {
 
-        relay_nodeid = ntohl( *relay_nodeid_ptr );
+        relay_nodeid = gnb_ntohll( *relay_nodeid_ptr );
 
-        if ( relay_nodeid==gnb_core->local_node->uuid32 ) {
+        if ( relay_nodeid==gnb_core->local_node->uuid64 ) {
             ret = GNB_PF_ERROR;
             goto finish;
         }
 
     } else {
 
-        relay_nodeid = pf_ctx->dst_uuid32;
+        relay_nodeid = pf_ctx->dst_uuid64;
 
     }
 
-    pf_ctx->dst_node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, relay_nodeid);
+    pf_ctx->dst_node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, relay_nodeid);
 
     if ( NULL == pf_ctx->dst_node ) {
         ret = GNB_PF_NOROUTE;
@@ -583,18 +583,18 @@ route_relay:
     pf_ctx->fwd_node = pf_ctx->dst_node;
     pf_ctx->pf_fwd = GNB_PF_FWD_INET;
 
-    gnb_payload16_set_data_len(pf_ctx->fwd_payload, payload_data_size - sizeof(uint32_t) );
+    gnb_payload16_set_data_len(pf_ctx->fwd_payload, payload_data_size - sizeof(gnb_uuid_t) );
 
     ret = GNB_PF_NEXT;
 
     if ( 1==gnb_core->conf->if_dump ) {
 
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "pf_inet_route_cb [%u]>[%u] out_ttl[%u] ip_frame_size[%u] route relay node\n", pf_ctx->src_uuid32, pf_ctx->dst_uuid32, route_frame_head->ttl, pf_ctx->ip_frame_size);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "pf_inet_route_cb [%llu]>[%llu] out_ttl[%u] ip_frame_size[%u] route relay node\n", pf_ctx->src_uuid64, pf_ctx->dst_uuid64, route_frame_head->ttl, pf_ctx->ip_frame_size);
 
-        nodeid_ptr = (uint32_t *)(pf_ctx->fwd_payload->data + sizeof(gnb_route_frame_head_t) + pf_ctx->ip_frame_size);
+        nodeid_ptr = (gnb_uuid_t *)(pf_ctx->fwd_payload->data + sizeof(gnb_route_frame_head_t) + pf_ctx->ip_frame_size);
 
         for ( i=0; i<(pf_ctx->in_ttl-1); i++ ) {
-            GNB_LOG3( gnb_core->log,GNB_LOG_ID_PF, "pf_inet_frame_cb [%u]>[%u] in_ttl[%u] relay[%u]\n", pf_ctx->src_uuid32, pf_ctx->dst_uuid32, pf_ctx->in_ttl, ntohl(*nodeid_ptr) );
+            GNB_LOG3( gnb_core->log,GNB_LOG_ID_PF, "pf_inet_frame_cb [%llu]>[%llu] in_ttl[%u] relay[%llu]\n", pf_ctx->src_uuid64, pf_ctx->dst_uuid64, pf_ctx->in_ttl, gnb_ntohll(*nodeid_ptr) );
             nodeid_ptr++;
         }
 

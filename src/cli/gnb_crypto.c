@@ -51,7 +51,7 @@ static void show_useage(int argc,char *argv[]){
 
 }
 
-static void create_keypair(uint32_t uuid32, const char *private_key_file, const char *public_key_file){
+static void create_keypair(gnb_uuid_t uuid64, const char *private_key_file, const char *public_key_file){
 
     int private_file_fd;
     int public_file_fd;
@@ -119,7 +119,7 @@ int main (int argc,char *argv[]){
 
     int opt;
 
-    uint32_t uuid32 = 0;
+    gnb_uuid_t uuid64 = 0;
 
     char *public_key_file  = NULL;
     char *private_key_file = NULL;
@@ -164,7 +164,7 @@ int main (int argc,char *argv[]){
         exit(0);
     }
 
-    create_keypair(uuid32, private_key_file, public_key_file);
+    create_keypair(uuid64, private_key_file, public_key_file);
 
     return 0;
 

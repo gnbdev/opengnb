@@ -53,7 +53,7 @@ typedef struct _gnb_ctl_core_zone_t {
 
 	unsigned char name[8];
 
-	uint32_t local_uuid;
+	gnb_uuid_t local_uuid;
 
 	unsigned char ed25519_private_key[64];
 	unsigned char ed25519_public_key[32];

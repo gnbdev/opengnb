@@ -37,7 +37,7 @@
 #endif
 
 
-void gnb_ctl_dump_status(gnb_ctl_block_t *ctl_block, uint32_t in_nodeid, uint8_t online_opt){
+void gnb_ctl_dump_status(gnb_ctl_block_t *ctl_block, gnb_uuid_t in_nodeid, uint8_t online_opt){
 
     #define LINE_SIZE 1024
     char line_string[LINE_SIZE];
@@ -89,7 +89,7 @@ void gnb_ctl_dump_status(gnb_ctl_block_t *ctl_block, uint32_t in_nodeid, uint8_t
             goto dump_all_node;
         }
 
-        if ( 0 != in_nodeid && in_nodeid != node->uuid32 ) {
+        if ( 0 != in_nodeid && in_nodeid != node->uuid64 ) {
             continue;
         }
 
@@ -110,7 +110,7 @@ dump_all_node:
 
         printf("\n====================\n");
 
-        printf("node %u\n",node->uuid32);
+        printf("node %llu\n",node->uuid64);
         printf("addr4_ping_latency_usec %"PRIu64"\n",node->addr4_ping_latency_usec);
         printf("tun_ipv4 %s\n",GNB_ADDR4STR1(&node->tun_addr4));
         printf("tun_ipv6 %s\n",GNB_ADDR6STR1(&node->tun_ipv6_addr));
@@ -144,7 +144,7 @@ dump_all_node:
         printf("crypto_key %s\n",GNB_HEX1_BYTE128(node->crypto_key));
         printf("key512 %s\n",GNB_HEX1_BYTE64(node->key512));
 
-        if ( node->uuid32 != ctl_block->core_zone->local_uuid ) {
+        if ( node->uuid64 != ctl_block->core_zone->local_uuid ) {
 
             if ( (node->udp_addr_status & GNB_NODE_STATUS_IPV6_PONG) ) {
                 printf("ipv6 Direct Point to Point\n");
@@ -171,7 +171,7 @@ dump_all_node:
         printf("addr6_ping_latency_usec:%"PRIu64"\n", node->addr6_ping_latency_usec);
         printf("addr4_ping_latency_usec:%"PRIu64"\n", node->addr4_ping_latency_usec);
 
-        printf("detect_count %d\n", node->detect_count);
+        printf("detect_count %u\n", node->detect_count);
 
         printf("wan_ipv4 %s\n", GNB_SOCKADDR4STR1(&node->udp_sockaddr4));
         printf("wan_ipv6 %s\n", GNB_SOCKADDR6STR1(&node->udp_sockaddr6));
@@ -243,7 +243,7 @@ dump_all_node:
 
         for ( j=0; j<GNB_UNIFIED_FORWARDING_NODE_ARRAY_SIZE; j++ ) {
 
-            wlen = snprintf(p, line_string_len-wlen, "%u,", node->unified_forwarding_node_array[j].uuid32);
+            wlen = snprintf(p, line_string_len-wlen, "%llu,", node->unified_forwarding_node_array[j].uuid64);
 
             line_string_len -= wlen;
 
@@ -280,7 +280,7 @@ dump_all_node:
 }
 
 
-void gnb_ctl_dump_address_list(gnb_ctl_block_t *ctl_block, uint32_t in_nodeid, uint8_t online_opt) {
+void gnb_ctl_dump_address_list(gnb_ctl_block_t *ctl_block, gnb_uuid_t in_nodeid, uint8_t online_opt) {
 
     gnb_address_t *gnb_address;
 
@@ -307,15 +307,15 @@ void gnb_ctl_dump_address_list(gnb_ctl_block_t *ctl_block, uint32_t in_nodeid, u
             goto dump_all_node_address;
         }
 
-        if ( 0 != in_nodeid && in_nodeid != node->uuid32 ) {        
+        if ( 0 != in_nodeid && in_nodeid != node->uuid64 ) {        
             continue;
         }
 
 dump_all_node_address:
 
-        if ( node->uuid32 == ctl_block->core_zone->local_uuid ) {
-            printf( "l|%u|%s\n", node->uuid32, GNB_SOCKADDR6STR1(&node->udp_sockaddr6) );
-            printf( "l|%u|%s\n", node->uuid32, GNB_SOCKADDR4STR1(&node->udp_sockaddr4) );
+        if ( node->uuid64 == ctl_block->core_zone->local_uuid ) {
+            printf( "l|%llu|%s\n", node->uuid64, GNB_SOCKADDR6STR1(&node->udp_sockaddr6) );
+            printf( "l|%llu|%s\n", node->uuid64, GNB_SOCKADDR4STR1(&node->udp_sockaddr4) );
             continue;
         }
 
@@ -323,18 +323,16 @@ dump_all_node_address:
             continue;
         }
 
+        if ( GNB_NODE_STATUS_IPV6_PONG & node->udp_addr_status ) {
+            printf( "w|%llu|%s\n", node->uuid64, GNB_SOCKADDR6STR1(&node->udp_sockaddr6) );
+        }
+
+        if ( GNB_NODE_STATUS_IPV4_PONG & node->udp_addr_status  ) {
+            printf( "w|%llu|%s\n", node->uuid64, GNB_SOCKADDR4STR1(&node->udp_sockaddr4) );
+        }
+
         if ( 0 != online_opt ) {
-
-            if ( GNB_NODE_STATUS_IPV6_PONG & node->udp_addr_status ) {
-                printf( "w|%u|%s\n", node->uuid32, GNB_SOCKADDR6STR1(&node->udp_sockaddr6) );
-            }
-
-            if ( GNB_NODE_STATUS_IPV4_PONG & node->udp_addr_status  ) {
-                printf( "w|%u|%s\n", node->uuid32, GNB_SOCKADDR4STR1(&node->udp_sockaddr4) );
-            }
-
             continue;
-
         }
 
         available_address6_list = (gnb_address_list_t *)&node->available_address6_list3_block;
@@ -353,9 +351,9 @@ dump_all_node_address:
             }
 
             if ( AF_INET6 == gnb_address->type ) {
-                printf( "a|%u|%s|%d\n", node->uuid32, GNB_ADDR6STR1(&gnb_address->address.addr6), ntohs(gnb_address->port) );
+                printf( "a|%llu|%s|%d\n", node->uuid64, GNB_ADDR6STR1(&gnb_address->address.addr6), ntohs(gnb_address->port) );
             } else if ( AF_INET == gnb_address->type ) {
-                printf( "p|%u|%s|%d\n", node->uuid32, GNB_ADDR4STR1(&gnb_address->address.addr4), ntohs(gnb_address->port) );
+                printf( "p|%llu|%s|%d\n", node->uuid64, GNB_ADDR4STR1(&gnb_address->address.addr4), ntohs(gnb_address->port) );
             } else {
                 continue;
             }
@@ -371,9 +369,9 @@ dump_all_node_address:
             }
 
             if ( AF_INET6 == gnb_address->type ) {
-                printf( "a|%u|%s|%d\n", node->uuid32, GNB_ADDR6STR1(&gnb_address->address.addr6), ntohs(gnb_address->port) );
+                printf( "a|%llu|%s|%d\n", node->uuid64, GNB_ADDR6STR1(&gnb_address->address.addr6), ntohs(gnb_address->port) );
             } else if ( AF_INET == gnb_address->type ) {
-                printf( "p|%u|%s|%d\n", node->uuid32, GNB_ADDR4STR1(&gnb_address->address.addr4), ntohs(gnb_address->port) );
+                printf( "p|%llu|%s|%d\n", node->uuid64, GNB_ADDR4STR1(&gnb_address->address.addr4), ntohs(gnb_address->port) );
             } else {
                 continue;
             }
@@ -389,9 +387,9 @@ dump_all_node_address:
             }
 
             if ( AF_INET6 == gnb_address->type ) {
-                printf( "s|%u|%s|%d\n", node->uuid32, GNB_ADDR6STR1(&gnb_address->address.addr6), ntohs(gnb_address->port) );
+                printf( "s|%llu|%s|%d\n", node->uuid64, GNB_ADDR6STR1(&gnb_address->address.addr6), ntohs(gnb_address->port) );
             } else if ( AF_INET == gnb_address->type ) {
-                printf( "s|%u|%s|%d\n", node->uuid32, GNB_ADDR4STR1(&gnb_address->address.addr4), ntohs(gnb_address->port) );
+                printf( "s|%llu|%s|%d\n", node->uuid64, GNB_ADDR4STR1(&gnb_address->address.addr4), ntohs(gnb_address->port) );
             } else {
                 continue;
             }
@@ -407,9 +405,9 @@ dump_all_node_address:
             }
 
             if ( AF_INET6 == gnb_address->type ) {
-                printf( "d|%u|%s|%d\n", node->uuid32, GNB_ADDR6STR1(&gnb_address->address.addr6), ntohs(gnb_address->port) );
+                printf( "d|%llu|%s|%d\n", node->uuid64, GNB_ADDR6STR1(&gnb_address->address.addr6), ntohs(gnb_address->port) );
             } else if ( AF_INET == gnb_address->type ) {
-                printf( "d|%u|%s|%d\n", node->uuid32, GNB_ADDR4STR1(&gnb_address->address.addr4), ntohs(gnb_address->port) );
+                printf( "d|%llu|%s|%d\n", node->uuid64, GNB_ADDR4STR1(&gnb_address->address.addr4), ntohs(gnb_address->port) );
             } else {
                 continue;
             }
@@ -425,9 +423,9 @@ dump_all_node_address:
             }
 
             if ( AF_INET6 == gnb_address->type ) {
-                printf( "r|%u|%s|%d\n", node->uuid32, GNB_ADDR6STR1(&gnb_address->address.addr6), ntohs(gnb_address->port) );
+                printf( "r|%llu|%s|%d\n", node->uuid64, GNB_ADDR6STR1(&gnb_address->address.addr6), ntohs(gnb_address->port) );
             } else if ( AF_INET == gnb_address->type ) {
-                printf( "r|%u|%s|%d\n", node->uuid32, GNB_ADDR4STR1(&gnb_address->address.addr4), ntohs(gnb_address->port) );
+                printf( "r|%llu|%s|%d\n", node->uuid64, GNB_ADDR4STR1(&gnb_address->address.addr4), ntohs(gnb_address->port) );
             } else {
                 continue;
             }
@@ -443,9 +441,9 @@ dump_all_node_address:
             }
 
             if ( AF_INET6 == gnb_address->type ) {
-                printf( "p|%u|%s|%d\n", node->uuid32, GNB_ADDR6STR1(&gnb_address->address.addr6), ntohs(gnb_address->port) );
+                printf( "p|%llu|%s|%d\n", node->uuid64, GNB_ADDR6STR1(&gnb_address->address.addr6), ntohs(gnb_address->port) );
             } else if ( AF_INET == gnb_address->type ) {
-                printf( "p|%u|%s|%d\n", node->uuid32, GNB_ADDR4STR1(&gnb_address->address.addr4), ntohs(gnb_address->port) );
+                printf( "p|%llu|%s|%d\n", node->uuid64, GNB_ADDR4STR1(&gnb_address->address.addr4), ntohs(gnb_address->port) );
             } else {
                 continue;
             }

@@ -39,12 +39,12 @@
 #endif
 
 
-void gnb_ctl_dump_status(gnb_ctl_block_t *ctl_block, uint32_t in_nodeid, uint8_t online_opt);
-void gnb_ctl_dump_address_list(gnb_ctl_block_t *ctl_block, uint32_t in_nodeid);
+void gnb_ctl_dump_status(gnb_ctl_block_t *ctl_block, gnb_uuid_t in_nodeid, uint8_t online_opt);
+void gnb_ctl_dump_address_list(gnb_ctl_block_t *ctl_block, gnb_uuid_t in_nodeid, uint8_t online_opt);
 
 static void show_useage(int argc,char *argv[]){
 
-    printf("GNB Ctl version 1.4.5.c protocol version 1.4.5\n");
+    printf("GNB Ctl version 1.5.0.a protocol version 1.5.0\n");
 
     printf("%s\n", GNB_BUILD_STRING);
 
@@ -76,7 +76,7 @@ int main (int argc,char *argv[]){
     uint8_t  core_opt         = 0;
     uint8_t  node_status_opt  = 0;
     uint8_t  online_opt       = 0;
-    uint32_t nodeid = 0;
+    gnb_uuid_t nodeid = 0;
 
     static struct option long_options[] = {
 
@@ -112,7 +112,7 @@ int main (int argc,char *argv[]){
             break;
 
         case 'n':
-            nodeid = (uint32_t)strtoul(optarg, NULL, 10);
+            nodeid = (gnb_uuid_t)strtoull(optarg, NULL, 10);
             break;
 
         case 'c':
@@ -167,7 +167,7 @@ int main (int argc,char *argv[]){
     }
 
     if ( address_opt ) {
-        gnb_ctl_dump_address_list(ctl_block, nodeid);
+        gnb_ctl_dump_address_list(ctl_block, nodeid, online_opt);
     }
 
 

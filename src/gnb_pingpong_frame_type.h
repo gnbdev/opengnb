@@ -26,8 +26,8 @@
 typedef struct _node_ping_frame_t {
 
     struct __attribute__((__packed__)) ping_frame_data {
-      uint32_t src_uuid32;   //发送方的uuid32
-      uint32_t dst_uuid32;   //接收方的uuid32
+      gnb_uuid_t src_uuid64;   //发送方的uuid64
+      gnb_uuid_t dst_uuid64;   //接收方的uuid64
       uint64_t src_ts_usec;  //发送方的时间戳
 
       /*让 dst 看到自己的 ip 地址，暂时还没启用*/
@@ -52,8 +52,8 @@ typedef struct _node_ping_frame_t {
 typedef struct _node_pong_frame_t {
 
     struct __attribute__((__packed__)) pong_frame_data {
-      uint32_t src_uuid32;   //发送方的uuid32
-      uint32_t dst_uuid32;   //接收方的uuid32
+      gnb_uuid_t src_uuid64;   //发送方的uuid64
+      gnb_uuid_t dst_uuid64;   //接收方的uuid64
       uint64_t src_ts_usec;  //发送方的时间戳
       uint64_t dst_ts_usec;  //接收方上一个ping frame带来的时间戳
 

@@ -104,7 +104,7 @@ static int pf_tun_fwd_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ct
 
         p = (unsigned char *)pf_ctx->fwd_payload->data;
 
-        for ( i=0; i < (gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(uint32_t)); i++ ){
+        for ( i=0; i < (gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(gnb_uuid_t)); i++ ){
 
             *p = *p ^ pf_ctx->fwd_node->crypto_key[j];
 
@@ -139,7 +139,7 @@ static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf
 
     ctx->save_time_seed_update_factor = gnb_core->time_seed_update_factor;
 
-    uint32_t *src_fwd_nodeid_ptr;
+    gnb_uuid_t *src_fwd_nodeid_ptr;
     uint16_t payload_size;
 
     if ( !(pf_ctx->fwd_payload->sub_type & GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY) ) {
@@ -148,17 +148,16 @@ static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf
 
     payload_size = gnb_payload16_size(pf_ctx->fwd_payload);
 
-    src_fwd_nodeid_ptr = (uint32_t *)( (void *)pf_ctx->fwd_payload + payload_size - sizeof(uint32_t) );
+    src_fwd_nodeid_ptr = (gnb_uuid_t *)( (void *)pf_ctx->fwd_payload + payload_size - sizeof(gnb_uuid_t) );
 
-    pf_ctx->src_fwd_uuid32 = ntohl(*src_fwd_nodeid_ptr);
+    pf_ctx->src_fwd_uuid64 = gnb_ntohll(*src_fwd_nodeid_ptr);
 
-    pf_ctx->src_fwd_node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, pf_ctx->src_fwd_uuid32);
+    pf_ctx->src_fwd_node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, pf_ctx->src_fwd_uuid64);
 
     if ( NULL==pf_ctx->src_fwd_node ) {
         pf_ctx->pf_status = GNB_PF_NOROUTE;
         goto finish;
     }
-
 
     int i;
     int j = 0;
@@ -167,7 +166,7 @@ static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf
 
     p = (unsigned char *)pf_ctx->fwd_payload->data;
 
-    for ( i=0; i < (gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(uint32_t)); i++ ) {
+    for ( i=0; i < (gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(gnb_uuid_t)); i++ ) {
         *p = *p ^ pf_ctx->src_fwd_node->crypto_key[j];
 
         p++;
@@ -262,7 +261,7 @@ static int pf_inet_fwd_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_c
 
         p = (unsigned char *)pf_ctx->fwd_payload->data;
 
-        for ( i=0; i < (gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(uint32_t)); i++ ) {
+        for ( i=0; i < (gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(gnb_uuid_t)); i++ ) {
 
             *p = *p ^ pf_ctx->fwd_node->crypto_key[j];
 

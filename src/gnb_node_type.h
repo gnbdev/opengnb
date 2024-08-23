@@ -19,20 +19,22 @@
 #define GNB_NODE_TYPE_H
 
 #include <stdint.h>
-
 #include "gnb_address_type.h"
+
+/* 64 bits node id*/
+typedef unsigned long long int gnb_uuid_t; 
 
 typedef struct _gnb_unified_forwarding_node_t {
 
-	uint32_t uuid32;
-	uint64_t last_ts_sec;
+	gnb_uuid_t uuid64;
+	uint64_t   last_ts_sec;
 
 }gnb_unified_forwarding_node_t;
 
 
 typedef struct _gnb_node_t{
 
-	uint32_t uuid32;
+	gnb_uuid_t uuid64;
 
 	uint64_t in_bytes;
 	uint64_t out_bytes;
@@ -64,7 +66,7 @@ typedef struct _gnb_node_t{
 
 	#define GNB_MAX_NODE_ROUTE    8
 	#define GNB_MAX_NODE_RELAY    5
-	uint32_t route_node[GNB_MAX_NODE_ROUTE][GNB_MAX_NODE_RELAY];
+	gnb_uuid_t route_node[GNB_MAX_NODE_ROUTE][GNB_MAX_NODE_RELAY];
 	uint8_t  route_node_ttls[GNB_MAX_NODE_ROUTE];
 	uint8_t  selected_route_node;
 
@@ -141,11 +143,11 @@ typedef struct _gnb_node_t{
 
 	unsigned char key512[64];
 
-	uint32_t last_relay_nodeid;
+	gnb_uuid_t last_relay_nodeid;
     #define GNB_LAST_RELAY_NODE_EXPIRED_SEC         145
 	uint64_t last_relay_node_ts_sec;
 
-	uint32_t unified_forwarding_nodeid;
+	gnb_uuid_t unified_forwarding_nodeid;
     #define GNB_UNIFIED_FORWARDING_NODE_EXPIRED_SEC 15
 	uint64_t  unified_forwarding_node_ts_sec;
 

@@ -493,7 +493,7 @@ gnb_core_t* gnb_core_create(gnb_conf_t *conf){
     gnb_core->ifname = (char *)gnb_core->ctl_block->core_zone->ifname;
     gnb_core->if_device_string = (char *)gnb_core->ctl_block->core_zone->if_device_string;
 
-    gnb_core->uuid_node_map   = gnb_hash32_create(gnb_core->heap, 1024, 1024); //以节点的uuid32作为key的 node 表
+    gnb_core->uuid_node_map   = gnb_hash32_create(gnb_core->heap, 1024, 1024); //以节点的uuid64作为key的 node 表
     gnb_core->ipv4_node_map   = gnb_hash32_create(gnb_core->heap, 1024, 1024);
 
     //以节点的subnet(uint32)作为key的 node 表
@@ -806,7 +806,7 @@ void gnb_core_start(gnb_core_t *gnb_core){
         }
 
         GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"if[%s] opened\n", gnb_core->ifname);
-        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"node[%d] ipv4[%s]\n", gnb_core->local_node->uuid32, GNB_ADDR4STR_PLAINTEXT1(&gnb_core->local_node->tun_addr4));
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"node[%"PRIu64"] ipv4[%s]\n", gnb_core->local_node->uuid64, GNB_ADDR4STR_PLAINTEXT1(&gnb_core->local_node->tun_addr4));
 
         for ( i=0; i<gnb_core->pf_worker_ring->size; i++ ) {
             gnb_core->pf_worker_ring->worker[i]->start(gnb_core->pf_worker_ring->worker[i]);

@@ -46,18 +46,18 @@
 #include "gnb_binary.h"
 
 
-gnb_node_t * gnb_node_init(gnb_core_t *gnb_core, uint32_t uuid32){
+gnb_node_t * gnb_node_init(gnb_core_t *gnb_core, uint64_t uuid64){
 
     gnb_node_t *node = &gnb_core->ctl_block->node_zone->node[gnb_core->node_nums];
 
     memset(node,0,sizeof(gnb_node_t));
 
-    node->uuid32 = uuid32;
+    node->uuid64 = uuid64;
 
     node->type =  GNB_NODE_TYPE_STD;
 
-    uint32_t node_id_network_order;
-    uint32_t local_node_id_network_order;
+    uint64_t node_id_network_order;
+    uint64_t local_node_id_network_order;
 
     gnb_address_list_t *static_address_list;
     gnb_address_list_t *dynamic_address_list;
@@ -81,9 +81,9 @@ gnb_node_t * gnb_node_init(gnb_core_t *gnb_core, uint32_t uuid32){
 
     if ( 0 == gnb_core->conf->lite_mode ) {
 
-        if ( gnb_core->conf->local_uuid != uuid32 ) {
+        if ( gnb_core->conf->local_uuid != uuid64 ) {
 
-            gnb_load_public_key(gnb_core, uuid32, node->public_key);
+            gnb_load_public_key(gnb_core, uuid64, node->public_key);
             ed25519_key_exchange(node->shared_secret, node->public_key, gnb_core->ed25519_private_key);
 
         } else {
@@ -97,15 +97,15 @@ gnb_node_t * gnb_node_init(gnb_core_t *gnb_core, uint32_t uuid32){
     } else {
 
         //lite mode
-        if ( gnb_core->conf->local_uuid == uuid32 ) {
+        if ( gnb_core->conf->local_uuid == uuid64 ) {
             memset(gnb_core->ed25519_private_key, 0, 64);
             memset(gnb_core->ed25519_public_key,  0,32);
         }
 
         memset(node->public_key, 0, 32);
 
-        node_id_network_order       = htonl(uuid32);
-        local_node_id_network_order = htonl(gnb_core->conf->local_uuid);
+        node_id_network_order       = gnb_htonll(uuid64);
+        local_node_id_network_order = gnb_htonll(gnb_core->conf->local_uuid);
 
         memcpy(node->public_key, &node_id_network_order, 4);
 
@@ -137,7 +137,7 @@ void gnb_init_node_key512(gnb_core_t *gnb_core){
 
     int i;
 
-    uint32_t uuid32;
+    uint64_t uuid64;
 
     gnb_node_t *node;
 
@@ -161,11 +161,11 @@ void gnb_init_node_key512(gnb_core_t *gnb_core){
 }
 
 
-void gnb_add_forward_node_ring(gnb_core_t *gnb_core, uint32_t uuid32){
+void gnb_add_forward_node_ring(gnb_core_t *gnb_core, uint64_t uuid64){
 
     gnb_node_t *node;
 
-    node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, uuid32);
+    node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, uuid64);
 
     if ( NULL == node ) {
         return;

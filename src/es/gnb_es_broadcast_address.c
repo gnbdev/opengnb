@@ -65,7 +65,7 @@ static void send_address_to_node(gnb_es_ctx *es_ctx, gnb_node_t *src_node, gnb_n
 
     push_addr_frame_t *push_addr_frame = (push_addr_frame_t *)payload->data;
 
-    push_addr_frame->data.node_uuid32 = htonl(src_node->uuid32);
+    push_addr_frame->data.node_uuid64 = gnb_htonll(src_node->uuid64);
     memcpy(push_addr_frame->data.node_key, src_node->key512, 64);
 
     push_addr_frame->data.arg0 = 'N';
@@ -76,7 +76,7 @@ static void send_address_to_node(gnb_es_ctx *es_ctx, gnb_node_t *src_node, gnb_n
     memcpy(&push_addr_frame->data.addr4_a, &src_node->udp_sockaddr4.sin_addr.s_addr, 4);
     push_addr_frame->data.port4_a = src_node->udp_sockaddr4.sin_port;
 
-    snprintf(push_addr_frame->data.text,32,"%u>%u>%u", ctl_block->core_zone->local_uuid, src_node->uuid32, dst_node->uuid32);
+    snprintf(push_addr_frame->data.text,32,"%llu>%llu>%llu", ctl_block->core_zone->local_uuid, src_node->uuid64, dst_node->uuid64);
 
     struct sockaddr_in udp_sockaddr4;
     memset(&udp_sockaddr4, 0, sizeof(struct sockaddr_in));
@@ -108,15 +108,15 @@ static void broadcast_address_to_node(gnb_es_ctx *es_ctx, gnb_node_t *src_node){
 
         dst_node = &ctl_block->node_zone->node[i];
 
-        if ( dst_node->uuid32 == src_node->uuid32 ) {
+        if ( dst_node->uuid64 == src_node->uuid64 ) {
             continue;
         }
 
-        if ( src_node->uuid32 == ctl_block->core_zone->local_uuid ) {
+        if ( src_node->uuid64 == ctl_block->core_zone->local_uuid ) {
             continue;
         }
 
-        if ( dst_node->uuid32 == ctl_block->core_zone->local_uuid ) {
+        if ( dst_node->uuid64 == ctl_block->core_zone->local_uuid ) {
             continue;
         }
 
@@ -132,7 +132,7 @@ static void broadcast_address_to_node(gnb_es_ctx *es_ctx, gnb_node_t *src_node){
             continue;
         }
 
-        GNB_LOG1(log, GNB_LOG_ID_ES_BROADCAST, "broadcast_address_to_node [%u] ==> [%u]\n", src_node->uuid32, dst_node->uuid32);
+        GNB_LOG1(log, GNB_LOG_ID_ES_BROADCAST, "broadcast_address_to_node [%llu] ==> [%llu]\n", src_node->uuid64, dst_node->uuid64);
 
         send_address_to_node(es_ctx, src_node, dst_node);
 

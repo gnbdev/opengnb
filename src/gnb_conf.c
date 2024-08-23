@@ -53,7 +53,7 @@ char * check_domain_name(char *host_string){
 /*判断 配置行第二列是ip地址 还是node id*/
 char * check_node_route(char *config_line_string){
 
-    if ( NULL != strchr(config_line_string, ':')  || NULL != strchr(config_line_string, '.') ) {
+    if ( NULL != strchr(config_line_string, ':') || NULL != strchr(config_line_string, '.') ) {
         return NULL;
     }
 

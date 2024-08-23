@@ -406,7 +406,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
             break;
 
         case 'n':
-            conf->local_uuid = (uint16_t)strtoul(optarg, NULL, 10);
+            conf->local_uuid = (uint64_t)strtoull(optarg, NULL, 10);
             conf->lite_mode = 1;
             break;
 

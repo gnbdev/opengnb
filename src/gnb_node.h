@@ -22,11 +22,11 @@
 
 void gnb_init_node_key512(gnb_core_t *gnb_core);
 
-void gnb_add_forward_node_ring(gnb_core_t *gnb_core, uint32_t uuid32);
+void gnb_add_forward_node_ring(gnb_core_t *gnb_core, uint64_t uuid64);
 
 gnb_node_t* gnb_select_forward_node(gnb_core_t *gnb_core);
 
-int gnb_node_sign_verify(gnb_core_t *gnb_core, uint32_t uuid32, unsigned char *sign, void *data, size_t data_size);
+int gnb_node_sign_verify(gnb_core_t *gnb_core, uint64_t uuid64, unsigned char *sign, void *data, size_t data_size);
 
 void gnb_send_to_address(gnb_core_t *gnb_core, gnb_address_t *address, gnb_payload16_t *payload);
 void gnb_send_udata_to_address(gnb_core_t *gnb_core, gnb_address_t *address, void *udata, size_t udata_size);

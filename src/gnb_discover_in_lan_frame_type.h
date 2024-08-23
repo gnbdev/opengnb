@@ -33,7 +33,7 @@ typedef struct _discover_lan_in_frame_t {
     	unsigned char arg3;
 
     	unsigned char src_key512[64];
-    	uint32_t      src_uuid32;
+    	gnb_uuid_t      src_uuid64;
 
     	uint8_t  src_addr6_a[16];
     	uint16_t src_port6_a;

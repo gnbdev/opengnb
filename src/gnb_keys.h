@@ -22,7 +22,7 @@
 
 int gnb_load_keypair(gnb_core_t *gnb_core);
 
-int gnb_load_public_key(gnb_core_t *gnb_core, uint32_t uuid32, unsigned char *public_key);
+int gnb_load_public_key(gnb_core_t *gnb_core, gnb_uuid_t uuid64, unsigned char *public_key);
 
 void gnb_update_time_seed(gnb_core_t *gnb_core, uint64_t now_sec);
 

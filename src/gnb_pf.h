@@ -80,11 +80,11 @@ typedef struct _gnb_pf_ctx_t {
 
 	int pf_status;
 
-	uint32_t src_fwd_uuid32;
+	gnb_uuid_t src_fwd_uuid64;
 	uint8_t  in_ttl;
 
-	uint32_t src_uuid32;
-	uint32_t dst_uuid32;
+	gnb_uuid_t src_uuid64;
+	gnb_uuid_t dst_uuid64;
 
 
 	gnb_node_t *src_fwd_node;

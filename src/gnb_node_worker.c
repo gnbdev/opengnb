@@ -44,16 +44,12 @@
 
 //节点同步检测的时间间隔
 #define GNB_NODE_SYNC_INTERVAL_TIME_SEC   10
-
 //对一个node的ping时间间隔
 #define GNB_NODE_PING_INTERVAL_SEC        37
-
 //对于一个节点必须收到的 ping 或 pong 的时间间隔
 #define GNB_NODE_UPDATE_INTERVAL_SEC      (GNB_NODE_PING_INTERVAL_SEC * 2 + 1)
 
-
 #define GNB_UF_NODES_NOTIFY_INTERVAL_SEC  35
-
 
 typedef struct _node_worker_ctx_t {
 
@@ -82,12 +78,12 @@ static void update_unified_forwarding_node_array(gnb_core_t *gnb_core, gnb_node_
 
     for ( i=0; i<GNB_UNIFIED_FORWARDING_NODE_ARRAY_SIZE; i++ ) {
 
-        if ( 0 == node->unified_forwarding_node_array[i].uuid32 ) {
+        if ( 0 == node->unified_forwarding_node_array[i].uuid64 ) {
             find_idx = i;
             break;
         }
 
-        if ( uf_node->uuid32 == node->unified_forwarding_node_array[i].uuid32 ) {
+        if ( uf_node->uuid64 == node->unified_forwarding_node_array[i].uuid64 ) {
             find_idx = i;
             break;
         }
@@ -108,7 +104,7 @@ static void update_unified_forwarding_node_array(gnb_core_t *gnb_core, gnb_node_
         find_idx = pop_idx;
     }
 
-    node->unified_forwarding_node_array[find_idx].uuid32 = uf_node->uuid32;
+    node->unified_forwarding_node_array[find_idx].uuid64 = uf_node->uuid64;
     node->unified_forwarding_node_array[find_idx].last_ts_sec = node_worker_ctx->now_time_sec;
 
 }
@@ -121,37 +117,37 @@ static void handle_uf_node_notify_frame(gnb_core_t *gnb_core, gnb_worker_in_data
 
     uf_node_notify_frame_t *uf_node_notify_frame = (uf_node_notify_frame_t *)&node_worker_in_data->payload_st.data;
 
-    uint32_t src_uuid32    = ntohl(uf_node_notify_frame->data.src_uuid32);
-    uint32_t dst_uuid32    = ntohl(uf_node_notify_frame->data.dst_uuid32);
-    uint32_t df_uuid32     = ntohl(uf_node_notify_frame->data.df_uuid32);
+    gnb_uuid_t src_uuid64    = gnb_ntohll(uf_node_notify_frame->data.src_uuid64);
+    gnb_uuid_t dst_uuid64    = gnb_ntohll(uf_node_notify_frame->data.dst_uuid64);
+    gnb_uuid_t df_uuid64     = gnb_ntohll(uf_node_notify_frame->data.df_uuid64);
 
     gnb_sockaddress_t *node_addr = &node_worker_in_data->node_addr_st;
 
-    if ( src_uuid32 == gnb_core->local_node->uuid32 || dst_uuid32 != gnb_core->local_node->uuid32 || df_uuid32 == gnb_core->local_node->uuid32 ) {
-        GNB_LOG2(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_uf_node_notify_frame error local=%u src=%u dst=%u\n", gnb_core->local_node->uuid32, src_uuid32, dst_uuid32);
+    if ( src_uuid64 == gnb_core->local_node->uuid64 || dst_uuid64 != gnb_core->local_node->uuid64 || df_uuid64 == gnb_core->local_node->uuid64 ) {
+        GNB_LOG2(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_uf_node_notify_frame error local=%llu src=%llu dst=%llu\n", gnb_core->local_node->uuid64, src_uuid64, dst_uuid64);
         return;
     }
 
-    gnb_node_t *src_node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, src_uuid32);
+    gnb_node_t *src_node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, src_uuid64);
 
     if ( NULL==src_node ) {
-        GNB_LOG2(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_uf_node_notify_frame src node=%u is miss\n", src_uuid32);
+        GNB_LOG2(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_uf_node_notify_frame src node=%llu is miss\n", src_uuid64);
         return;
     }
 
     if ( 0 == gnb_core->conf->lite_mode && !ed25519_verify(uf_node_notify_frame->src_sign, (const unsigned char *)&uf_node_notify_frame->data, sizeof(struct uf_node_notify_frame_data), src_node->public_key) ) {
-        GNB_LOG2(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_uf_node_notify_frame invalid signature src=%u %s\n", src_uuid32, GNB_SOCKETADDRSTR1(node_addr));
+        GNB_LOG2(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_uf_node_notify_frame invalid signature src=%llu %s\n", src_uuid64, GNB_SOCKETADDRSTR1(node_addr));
         return;
     }
 
-    gnb_node_t *df_node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, df_uuid32);
+    gnb_node_t *df_node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, df_uuid64);
 
     if ( NULL==df_node ) {
-        GNB_LOG2(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_uf_node_notify_frame df node=%u is miss\n", df_uuid32);
+        GNB_LOG2(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_uf_node_notify_frame df node=%llu is miss\n", df_uuid64);
         return;
     }
 
-    GNB_LOG2(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_uf_node_notify_frame src_uuid32=%u dst_uuid32=%u df_uuid32=%u\n", src_uuid32, dst_uuid32, df_uuid32);
+    GNB_LOG2(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_uf_node_notify_frame src_uuid64=%llu dst_uuid64=%llu df_uuid64=%llu\n", src_uuid64, dst_uuid64, df_uuid64);
 
     update_unified_forwarding_node_array(gnb_core, df_node, src_node);
 
@@ -172,11 +168,11 @@ static void send_uf_node_notify_frame(gnb_core_t *gnb_core, gnb_node_t *dst_node
 
     memset(uf_node_notify_frame, 0, sizeof(uf_node_notify_frame_t));
 
-    uf_node_notify_frame->data.src_uuid32 = htonl(gnb_core->local_node->uuid32);
-    uf_node_notify_frame->data.dst_uuid32 = htonl(dst_node->uuid32);
-    uf_node_notify_frame->data.df_uuid32  = htonl(direct_forwarding_node->uuid32);
+    uf_node_notify_frame->data.src_uuid64 = gnb_htonll(gnb_core->local_node->uuid64);
+    uf_node_notify_frame->data.dst_uuid64 = gnb_htonll(dst_node->uuid64);
+    uf_node_notify_frame->data.df_uuid64  = gnb_htonll(direct_forwarding_node->uuid64);
 
-    snprintf((char *)uf_node_notify_frame->data.text, 64, "UNIFIED_NOTIFY src=%u dst=%u df=%u", gnb_core->local_node->uuid32, dst_node->uuid32, direct_forwarding_node->uuid32);
+    snprintf((char *)uf_node_notify_frame->data.text, 64, "UNIFIED_NOTIFY src=%llu dst=%llu df=%llu", gnb_core->local_node->uuid64, dst_node->uuid64, direct_forwarding_node->uuid64);
 
     if ( 0 == gnb_core->conf->lite_mode ) {
         ed25519_sign(uf_node_notify_frame->src_sign, (const unsigned char *)&uf_node_notify_frame->data, sizeof(struct uf_node_notify_frame_data), gnb_core->ed25519_public_key, gnb_core->ed25519_private_key);
@@ -184,7 +180,7 @@ static void send_uf_node_notify_frame(gnb_core_t *gnb_core, gnb_node_t *dst_node
 
     gnb_forward_payload_to_node(gnb_core, dst_node, node_worker_ctx->node_frame_payload);
 
-    GNB_LOG2(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "send_uf_node_notify_frame src=%u notify=%u direct_forwarding=%u\n", gnb_core->local_node->uuid32, dst_node->uuid32, direct_forwarding_node->uuid32);
+    GNB_LOG2(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "send_uf_node_notify_frame src=%llu notify=%llu direct_forwarding=%llu\n", gnb_core->local_node->uuid64, dst_node->uuid64, direct_forwarding_node->uuid64);
 
 }
 
@@ -205,11 +201,11 @@ static void unifield_forwarding_notify(gnb_core_t *gnb_core, gnb_node_t *dst_nod
 
         df_node = &gnb_core->ctl_block->node_zone->node[i];
 
-        if ( dst_node->uuid32 == df_node->uuid32 ) {
+        if ( dst_node->uuid64 == df_node->uuid64 ) {
             continue;
         }
 
-        if ( gnb_core->local_node->uuid32 == df_node->uuid32 ) {
+        if ( gnb_core->local_node->uuid64 == df_node->uuid64 ) {
             continue;
         }
 
@@ -250,12 +246,12 @@ static void send_ping_frame(gnb_core_t *gnb_core, gnb_node_t *node){
     node_ping_frame_t *node_ping_frame = (node_ping_frame_t *)node_worker_ctx->node_frame_payload->data;
     memset(node_ping_frame, 0, sizeof(node_ping_frame_t));
 
-    node_ping_frame->data.src_uuid32 = htonl(gnb_core->local_node->uuid32);
-    node_ping_frame->data.dst_uuid32 = htonl(node->uuid32);
+    node_ping_frame->data.src_uuid64 = gnb_htonll(gnb_core->local_node->uuid64);
+    node_ping_frame->data.dst_uuid64 = gnb_htonll(node->uuid64);
 
     node_ping_frame->data.src_ts_usec = gnb_htonll(node_worker_ctx->now_time_usec);
 
-    snprintf((char *)node_ping_frame->data.text,32,"%d --PING-> %d", gnb_core->local_node->uuid32, node->uuid32);
+    snprintf((char *)node_ping_frame->data.text, 32, "%llu --PING-> %llu", gnb_core->local_node->uuid64, node->uuid64);
 
     if ( 0 == gnb_core->conf->lite_mode ) {
         ed25519_sign(node_ping_frame->src_sign, (const unsigned char *)&node_ping_frame->data, sizeof(struct ping_frame_data), gnb_core->ed25519_public_key, gnb_core->ed25519_private_key);
@@ -268,8 +264,8 @@ static void send_ping_frame(gnb_core_t *gnb_core, gnb_node_t *node){
     node->ping_ts_sec  = node_worker_ctx->now_time_sec;
     node->ping_ts_usec = node_worker_ctx->now_time_usec;
 
-    GNB_LOG3(gnb_core->log,GNB_LOG_ID_NODE_WORKER, "ping src[%u]->dst[%u] %s %s ping_ts=%"PRIu64"\n",
-            gnb_core->local_node->uuid32, node->uuid32,
+    GNB_LOG3(gnb_core->log,GNB_LOG_ID_NODE_WORKER, "ping src[%llu]->dst[%llu] %s %s ping_ts=%"PRIu64"\n",
+            gnb_core->local_node->uuid64, node->uuid64,
             GNB_SOCKADDR6STR1(&node->udp_sockaddr6), GNB_SOCKADDR4STR2(&node->udp_sockaddr4),
             node->ping_ts_usec
     );
@@ -283,24 +279,24 @@ static void handle_ping_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *node_w
     node_worker_ctx_t *node_worker_ctx = gnb_core->node_worker->ctx;
     node_ping_frame_t *node_ping_frame = (node_ping_frame_t *)&node_worker_in_data->payload_st.data;
 
-    uint32_t src_uuid32 = ntohl(node_ping_frame->data.src_uuid32);
-    uint32_t dst_uuid32 = ntohl(node_ping_frame->data.dst_uuid32);
+    gnb_uuid_t src_uuid64 = gnb_ntohll(node_ping_frame->data.src_uuid64);
+    gnb_uuid_t dst_uuid64 = gnb_ntohll(node_ping_frame->data.dst_uuid64);
 
     //收到ping frame，需要更新node的addr
     gnb_sockaddress_t *node_addr = &node_worker_in_data->node_addr_st;
 
     uint8_t addr_update = 0;
 
-    if (src_uuid32 == gnb_core->local_node->uuid32) {
+    if (src_uuid64 == gnb_core->local_node->uuid64) {
         //目标节点和当前节点在同一个子网里，当前节点发 ping frame 经过路由的nat又转回给了当前节点
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_ping_frame local_node[%u] src[%u]=>dst[%u]\n", gnb_core->local_node->uuid32, src_uuid32, dst_uuid32);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_ping_frame local_node[%llu] src[%llu]=>dst[%llu]\n", gnb_core->local_node->uuid64, src_uuid64, dst_uuid64);
         return;
     }
 
-    gnb_node_t *src_node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, src_uuid32);
+    gnb_node_t *src_node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, src_uuid64);
 
     if ( NULL==src_node ) {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_ping_frame error node=%u is miss\n", src_uuid32);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_ping_frame error node=%llu is miss\n", src_uuid64);
         return;
     }
 
@@ -314,7 +310,7 @@ static void handle_ping_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *node_w
     }
 
     if ( 0 == gnb_core->conf->lite_mode && !ed25519_verify(node_ping_frame->src_sign, (const unsigned char *)&node_ping_frame->data, sizeof(struct ping_frame_data), src_node->public_key) ) {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_ping_frame error invalid signature src=%u %s\n", src_uuid32, GNB_SOCKETADDRSTR1(node_addr));
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_ping_frame error invalid signature src=%llu %s\n", src_uuid64, GNB_SOCKETADDRSTR1(node_addr));
         return;
     }
 
@@ -326,8 +322,8 @@ static void handle_ping_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *node_w
 
         if ( 0 != gnb_determine_subnet6_prefixlen96(node_addr->addr.in6.sin6_addr, gnb_core->local_node->tun_ipv6_addr ) ) {
 
-            GNB_LOG3(gnb_core->log,GNB_LOG_ID_NODE_WORKER, "handle_ping_frame IPV6 Warning src[%u]->dst[%u] idx=%u %s\n",
-                    src_node->uuid32, dst_uuid32,
+            GNB_LOG3(gnb_core->log,GNB_LOG_ID_NODE_WORKER, "handle_ping_frame IPV6 Warning src[%llu]->dst[%llu] idx=%u %s\n",
+                    src_node->uuid64, dst_uuid64,
                     node_worker_in_data->socket_idx,
                     GNB_ADDR6STR1(&node_addr->addr.in6.sin6_addr)
             );
@@ -346,8 +342,8 @@ static void handle_ping_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *node_w
         src_node->udp_addr_status |= GNB_NODE_STATUS_IPV6_PING;
         src_node->addr6_update_ts_sec = node_worker_ctx->now_time_sec;
 
-        GNB_LOG3(gnb_core->log,GNB_LOG_ID_NODE_WORKER, "handle_ping_frame IPV6 src[%u]->dst[%u] idx=%u %s now=%"PRIu64" src_ts=%"PRIu64" up=%u different=%"PRId64"\n",
-                src_node->uuid32, dst_uuid32,
+        GNB_LOG3(gnb_core->log,GNB_LOG_ID_NODE_WORKER, "handle_ping_frame IPV6 src[%llu]->dst[%llu] idx=%u %s now=%"PRIu64" src_ts=%"PRIu64" up=%u different=%"PRId64"\n",
+                src_node->uuid64, dst_uuid64,
                 node_worker_in_data->socket_idx,
                 GNB_SOCKADDR6STR1(&src_node->udp_sockaddr6),
                 node_worker_ctx->now_time_usec, src_ts_usec, addr_update, latency_usec);
@@ -358,8 +354,8 @@ static void handle_ping_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *node_w
 
         if ( 0 != gnb_determine_subnet4(node_addr->addr.in.sin_addr,  gnb_core->local_node->tun_addr4, gnb_core->local_node->tun_netmask_addr4) ) {
 
-            GNB_LOG3(gnb_core->log,GNB_LOG_ID_NODE_WORKER, "handle_ping_frame IPV4 Warning src[%u]->dst[%u] idx=%u %s\n",
-                    src_node->uuid32, dst_uuid32,
+            GNB_LOG3(gnb_core->log,GNB_LOG_ID_NODE_WORKER, "handle_ping_frame IPV4 Warning src[%llu]->dst[%llu] idx=%u %s\n",
+                    src_node->uuid64, dst_uuid64,
                     node_worker_in_data->socket_idx,
                     GNB_ADDR4STR1(&node_addr->addr.in.sin_addr)
             );
@@ -385,8 +381,8 @@ static void handle_ping_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *node_w
             src_node->socket4_idx   = node_worker_in_data->socket_idx;
             addr_update = 1;
 
-            GNB_LOG3(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_ping_frame IPV4 LAN src[%u]->dst[%u] idx=%u %s now=%"PRIu64" src_ts=%"PRIu64" up=%u different=%"PRId64"\n",
-                    src_node->uuid32, dst_uuid32,
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_ping_frame IPV4 LAN src[%llu]->dst[%llu] idx=%u %s now=%"PRIu64" src_ts=%"PRIu64" up=%u different=%"PRId64"\n",
+                    src_node->uuid64, dst_uuid64,
                     node_worker_in_data->socket_idx,
                     GNB_SOCKADDR4STR1(&src_node->udp_sockaddr4),
                     node_worker_ctx->now_time_usec, src_ts_usec, addr_update, latency_usec);
@@ -396,8 +392,8 @@ static void handle_ping_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *node_w
         src_node->udp_addr_status |= GNB_NODE_STATUS_IPV4_PING;
         src_node->addr4_update_ts_sec = node_worker_ctx->now_time_sec;
         
-        GNB_LOG3(gnb_core->log,GNB_LOG_ID_NODE_WORKER, "handle_ping_frame IPV4 src[%u]->dst[%u] idx=%u %s now=%"PRIu64" src_ts=%"PRIu64" up=%u different=%"PRId64"\n",
-                src_node->uuid32, dst_uuid32,
+        GNB_LOG3(gnb_core->log,GNB_LOG_ID_NODE_WORKER, "handle_ping_frame IPV4 src[%llu]->dst[%llu] idx=%u %s now=%"PRIu64" src_ts=%"PRIu64" up=%u different=%"PRId64"\n",
+                src_node->uuid64, dst_uuid64,
                 node_worker_in_data->socket_idx,
                 GNB_SOCKADDR4STR1(&src_node->udp_sockaddr4),
                 node_worker_ctx->now_time_usec, src_ts_usec, addr_update, latency_usec);
@@ -412,8 +408,8 @@ static void handle_ping_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *node_w
 
     memset(node_pong_frame, 0, sizeof(node_pong_frame_t));
 
-    node_pong_frame->data.src_uuid32 = htonl(gnb_core->local_node->uuid32);
-    node_pong_frame->data.dst_uuid32 = htonl(src_node->uuid32);
+    node_pong_frame->data.src_uuid64 = gnb_htonll(gnb_core->local_node->uuid64);
+    node_pong_frame->data.dst_uuid64 = gnb_htonll(src_node->uuid64);
 
     node_pong_frame->data.src_ts_usec = gnb_htonll(node_worker_ctx->now_time_usec);
     node_pong_frame->data.dst_ts_usec = node_ping_frame->data.src_ts_usec;
@@ -427,7 +423,7 @@ static void handle_ping_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *node_w
     memcpy(&attachment_tun_sockaddress->tun_addr4, &gnb_core->local_node->tun_addr4.s_addr, 4);
     attachment_tun_sockaddress->tun_sin_port4 = gnb_core->local_node->tun_sin_port4;
 
-    snprintf((char *)node_pong_frame->data.text,32,"%d --PONG-> %d",gnb_core->local_node->uuid32,src_node->uuid32);
+    snprintf((char *)node_pong_frame->data.text,32,"%llu --PONG-> %llu",gnb_core->local_node->uuid64,src_node->uuid64);
 
     if ( 0 == gnb_core->conf->lite_mode ) {
         ed25519_sign(node_pong_frame->src_sign, (const unsigned char *)&node_pong_frame->data, sizeof(struct pong_frame_data), gnb_core->ed25519_public_key, gnb_core->ed25519_private_key);
@@ -455,8 +451,8 @@ static void handle_pong_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *node_w
 
     node_pong_frame_t *node_pong_frame = (node_pong_frame_t *)&node_worker_in_data->payload_st.data;
 
-    uint32_t src_uuid32 = ntohl(node_pong_frame->data.src_uuid32);
-    uint32_t dst_uuid32 = ntohl(node_pong_frame->data.dst_uuid32);
+    gnb_uuid_t src_uuid64 = gnb_ntohll(node_pong_frame->data.src_uuid64);
+    gnb_uuid_t dst_uuid64 = gnb_ntohll(node_pong_frame->data.dst_uuid64);
 
     uint64_t dst_ts_usec = gnb_ntohll(node_pong_frame->data.dst_ts_usec);
 
@@ -468,15 +464,15 @@ static void handle_pong_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *node_w
 
     uint8_t addr_update = 0;
 
-    if ( dst_uuid32 != gnb_core->local_node->uuid32 ) {
-        GNB_LOG3(gnb_core->log,GNB_LOG_ID_NODE_WORKER, "handle_pong_frame dst_uuid32[%u] != local_node[%u] addr_type=%d\n", dst_uuid32, gnb_core->local_node->uuid32, node_worker_in_data->node_addr_st.addr_type);
+    if ( dst_uuid64 != gnb_core->local_node->uuid64 ) {
+        GNB_LOG3(gnb_core->log,GNB_LOG_ID_NODE_WORKER, "handle_pong_frame dst_uuid64[%llu] != local_node[%llu] addr_type=%d\n", dst_uuid64, gnb_core->local_node->uuid64, node_worker_in_data->node_addr_st.addr_type);
         return;
     }
 
-    gnb_node_t *src_node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, src_uuid32);
+    gnb_node_t *src_node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, src_uuid64);
 
     if ( NULL==src_node ) {
-        GNB_LOG3(gnb_core->log,GNB_LOG_ID_NODE_WORKER, "handle_pong_frame error node=%u is miss\n", src_uuid32);
+        GNB_LOG3(gnb_core->log,GNB_LOG_ID_NODE_WORKER, "handle_pong_frame error node=%llu is miss\n", src_uuid64);
         return;
     }
 
@@ -490,7 +486,7 @@ static void handle_pong_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *node_w
     }
 
     if ( 0 == gnb_core->conf->lite_mode && !ed25519_verify(node_pong_frame->src_sign, (const unsigned char *)&node_pong_frame->data, sizeof(struct pong_frame_data), src_node->public_key) ) {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_pong_frame error node=%u invalid signature\n", src_uuid32);
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_pong_frame error node=%llu invalid signature\n", src_uuid64);
         return;
     }
 
@@ -504,8 +500,8 @@ static void handle_pong_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *node_w
 
         if ( 0 != gnb_determine_subnet6_prefixlen96(node_addr->addr.in6.sin6_addr, gnb_core->local_node->tun_ipv6_addr ) ) {
 
-            GNB_LOG3(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_pong_frame IPV6 Warning src[%u]->dst[%u] idx=%u %s\n",
-                    src_node->uuid32, dst_uuid32,
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_pong_frame IPV6 Warning src[%llu]->dst[%llu] idx=%u %s\n",
+                    src_node->uuid64, dst_uuid64,
                     node_worker_in_data->socket_idx,
                     GNB_ADDR6STR1(&node_addr->addr.in6.sin6_addr)
             );
@@ -540,8 +536,8 @@ static void handle_pong_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *node_w
 
         }
 
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_pong_frame IPV6 src[%u]->dst[%u] idx=%u %s now=%"PRIu64" dst_ts=%"PRIu64" up=%u latency=%"PRId64"\n",
-                src_node->uuid32, dst_uuid32,
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_pong_frame IPV6 src[%llu]->dst[%llu] idx=%u %s now=%"PRIu64" dst_ts=%"PRIu64" up=%u latency=%"PRId64"\n",
+                src_node->uuid64, dst_uuid64,
                 node_worker_in_data->socket_idx,
                 GNB_SOCKADDR6STR1(&src_node->udp_sockaddr6),
                 node_worker_ctx->now_time_usec, dst_ts_usec, addr_update, src_node->addr6_ping_latency_usec);
@@ -553,8 +549,8 @@ static void handle_pong_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *node_w
 
         if ( 0 != gnb_determine_subnet4(node_addr->addr.in.sin_addr,  gnb_core->local_node->tun_addr4, gnb_core->local_node->tun_netmask_addr4) ) {
 
-            GNB_LOG3(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_pong_frame IPV4 Warning src[%u]->dst[%u] idx=%u %s\n",
-                    src_node->uuid32, dst_uuid32,
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_pong_frame IPV4 Warning src[%llu]->dst[%llu] idx=%u %s\n",
+                    src_node->uuid64, dst_uuid64,
                     node_worker_in_data->socket_idx,
                     GNB_ADDR4STR1(&node_addr->addr.in.sin_addr)
             );
@@ -584,13 +580,13 @@ static void handle_pong_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *node_w
 
             src_node->addr4_ping_latency_usec = node_worker_ctx->now_time_usec - dst_ts_usec  + 1;
             if ( 0 == src_node->addr4_ping_latency_usec ) {
-                GNB_LOG3(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "addr4_ping_latency_usec==0 now=%"PRIu64" dst_ts=%"PRIu64"\n", node_worker_ctx->now_time_usec, dst_ts_usec);
+                GNB_LOG3(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "addr4_ping_latency_usec=0 now=%"PRIu64" dst_ts=%"PRIu64"\n", node_worker_ctx->now_time_usec, dst_ts_usec);
             }
 
         }
 
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_pong_frame IPV4 src[%u]->dst[%u] idx=%u %s now=%"PRIu64" dst_ts=%"PRIu64" up=%u latency=%"PRId64"\n",
-                src_node->uuid32, dst_uuid32,
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "handle_pong_frame IPV4 src[%llu]->dst[%llu] idx=%u %s now=%"PRIu64" dst_ts=%"PRIu64" up=%u latency=%"PRId64"\n",
+                src_node->uuid64, dst_uuid64,
                 node_worker_in_data->socket_idx,
                 GNB_SOCKADDR4STR1(&src_node->udp_sockaddr4),
                 node_worker_ctx->now_time_usec, dst_ts_usec, addr_update, src_node->addr4_ping_latency_usec);
@@ -614,8 +610,8 @@ static void handle_pong_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *node_w
 
     if ( PAYLOAD_SUB_TYPE_PONG2 == node_worker_in_data->payload_st.sub_type ) {
 
-        GNB_LOG3(gnb_core->log,GNB_LOG_ID_NODE_WORKER, "handle_pong2_frame  src[%u]->dst[%u] idx=%u\n",
-                src_node->uuid32, dst_uuid32,
+        GNB_LOG3(gnb_core->log,GNB_LOG_ID_NODE_WORKER, "handle_pong2_frame  src[%llu]->dst[%llu] idx=%u\n",
+                src_node->uuid64, dst_uuid64,
                 node_worker_in_data->socket_idx);
 
         return;
@@ -629,8 +625,8 @@ static void handle_pong_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *node_w
 
     memset(node_pong2_frame,0,sizeof(node_pong_frame_t));
 
-    node_pong2_frame->data.src_uuid32 = htonl(gnb_core->local_node->uuid32);
-    node_pong2_frame->data.dst_uuid32 = htonl(src_node->uuid32);
+    node_pong2_frame->data.src_uuid64 = gnb_htonll(gnb_core->local_node->uuid64);
+    node_pong2_frame->data.dst_uuid64 = gnb_htonll(src_node->uuid64);
 
     node_pong2_frame->data.src_ts_usec = gnb_htonll(node_worker_ctx->now_time_usec);
     node_pong2_frame->data.dst_ts_usec = node_pong2_frame->data.src_ts_usec;
@@ -639,7 +635,7 @@ static void handle_pong_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t *node_w
     gnb_payload16_set_data_len(payload_attachment2, 0);
     payload_attachment2->type = GNB_NODE_ATTACHMENT_TYPE_TUN_EMPTY;
 
-    snprintf((char *)node_pong2_frame->data.text,32,"%d --PONG2-> %d",gnb_core->local_node->uuid32,src_node->uuid32);
+    snprintf((char *)node_pong2_frame->data.text,32,"%llu --PONG2-> %llu",gnb_core->local_node->uuid64,src_node->uuid64);
 
     if ( 0 == gnb_core->conf->lite_mode ) {
         ed25519_sign(node_pong2_frame->src_sign, (const unsigned char *)&node_pong2_frame->data, sizeof(struct pong_frame_data), gnb_core->ed25519_public_key, gnb_core->ed25519_private_key);
@@ -687,7 +683,7 @@ static void update_node_crypto_key(gnb_core_t *gnb_core, uint64_t now_sec){
 
         node = &gnb_core->ctl_block->node_zone->node[i];
 
-        if ( gnb_core->local_node->uuid32 == node->uuid32 ) {
+        if ( gnb_core->local_node->uuid64 == node->uuid64 ) {
             continue;
         }
 
@@ -718,7 +714,7 @@ static void sync_node(gnb_worker_t *gnb_node_worker){
 
         node = &gnb_core->ctl_block->node_zone->node[i];
 
-        if ( gnb_core->local_node->uuid32 == node->uuid32 ) {
+        if ( gnb_core->local_node->uuid64 == node->uuid64 ) {
             continue;
         }
 
@@ -756,7 +752,7 @@ static void sync_node(gnb_worker_t *gnb_node_worker){
                 continue;
             }
 
-            GNB_LOG3(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "unifield_forwarding_notify nodeid=%u\n", node->uuid32);
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_NODE_WORKER, "unifield_forwarding_notify nodeid=%llu\n", node->uuid64);
             unifield_forwarding_notify(gnb_core, node);
             node->last_notify_uf_nodes_ts_sec = node_worker_ctx->now_time_sec;
 

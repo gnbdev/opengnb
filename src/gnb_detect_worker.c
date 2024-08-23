@@ -76,7 +76,7 @@ static void detect_node_address(gnb_worker_t *gnb_detect_worker, gnb_node_t *nod
 
     detect_worker_ctx->index_frame_payload->sub_type = PAYLOAD_SUB_TYPE_DETECT_ADDR;
 
-    gnb_payload16_set_data_len( detect_worker_ctx->index_frame_payload,  sizeof(detect_addr_frame_t) );
+    gnb_payload16_set_data_len( detect_worker_ctx->index_frame_payload, sizeof(detect_addr_frame_t) );
 
     detect_addr_frame_t *detect_addr_frame = (detect_addr_frame_t *)detect_worker_ctx->index_frame_payload->data;
 
@@ -86,12 +86,12 @@ static void detect_node_address(gnb_worker_t *gnb_detect_worker, gnb_node_t *nod
 
     memcpy(detect_addr_frame->data.src_key512, gnb_core->local_node->key512, 64);
 
-    detect_addr_frame->data.src_uuid32 = htonl(gnb_core->local_node->uuid32);
-    detect_addr_frame->data.dst_uuid32 = htonl(node->uuid32);
+    detect_addr_frame->data.src_uuid64 = gnb_htonll(gnb_core->local_node->uuid64);
+    detect_addr_frame->data.dst_uuid64 = gnb_htonll(node->uuid64);
     detect_addr_frame->data.src_ts_usec = gnb_htonll(detect_worker_ctx->now_time_usec);
 
     //debug_text
-    snprintf(detect_addr_frame->data.text,32,"[%u]FULL_DETECT[%u]", gnb_core->local_node->uuid32, node->uuid32);
+    snprintf(detect_addr_frame->data.text,32,"[%llu]FULL_DETECT[%llu]", gnb_core->local_node->uuid64, node->uuid64);
 
     ed25519_sign(detect_addr_frame->src_sign, (const unsigned char *)&detect_addr_frame->data, sizeof(struct detect_addr_frame_data), gnb_core->ed25519_public_key, gnb_core->ed25519_private_key);
 
@@ -103,7 +103,7 @@ static void detect_node_address(gnb_worker_t *gnb_detect_worker, gnb_node_t *nod
 
     node->last_send_detect_usec = detect_worker_ctx->now_time_usec;
 
-    GNB_LOG4(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "Try node address [%d]->[%d]%s status=%d\n", gnb_core->local_node->uuid32, node->uuid32, GNB_IP_PORT_STR1(&address_st), node->udp_addr_status);
+    GNB_LOG4(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "Try node address [%llu]->[%llu]%s status=%d\n", gnb_core->local_node->uuid64, node->uuid64, GNB_IP_PORT_STR1(&address_st), node->udp_addr_status);
 
 }
 
@@ -177,51 +177,58 @@ static void detect_loop(gnb_worker_t *gnb_detect_worker){
     for ( i=0; i<num; i++ ) {
 
         node = &gnb_core->ctl_block->node_zone->node[i];
-        if ( gnb_core->local_node->uuid32 == node->uuid32 ) {
+        if ( gnb_core->local_node->uuid64 == node->uuid64 ) {
             continue;
         }
 
         //如果本地节点带有 GNB_NODE_TYPE_SLIENCE 属性 将只探测带有 GNB_NODE_TYPE_FWD 属性的节点的地址
         if ( (gnb_core->local_node->type & GNB_NODE_TYPE_SLIENCE) && !(node->type & GNB_NODE_TYPE_FWD) ) {
-            GNB_LOG5(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "Skip Detect [%d]->[%d] node type is SLIENCE and not FWD\n", gnb_core->local_node->uuid32, node->uuid32);
+            GNB_LOG5(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "Skip Detect [%llu]->[%llu] node type is SLIENCE and not FWD\n", gnb_core->local_node->uuid64, node->uuid64);
             continue;
         }
 
-        if ( ( GNB_NODE_STATUS_IPV6_PONG | GNB_NODE_STATUS_IPV4_PONG) & node->udp_addr_status ) {
-            GNB_LOG5(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "Skip Detect [%d]->[%d] already P2P status=%d\n", gnb_core->local_node->uuid32, node->uuid32, node->udp_addr_status);
+        if ( (GNB_NODE_STATUS_IPV6_PONG | GNB_NODE_STATUS_IPV4_PONG) & node->udp_addr_status ) {
+            GNB_LOG5(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "Skip Detect [%llu]->[%llu] already P2P status=%d\n", gnb_core->local_node->uuid64, node->uuid64, node->udp_addr_status);
             continue;
         }
 
         time_difference = detect_worker_ctx->now_time_sec - node->last_push_addr_sec;
         if ( time_difference > GNB_DETECT_PUSH_ADDRESS_INTERVAL_SEC ) {
-            GNB_LOG5(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "Skip Detect [%d]->[%d] status=%d time_difference(%"PRIu64") > GNB_DETECT_PUSH_ADDRESS_INTERVAL_SEC(%"PRIu64") last_push_addr_sec=%"PRIu64"\n", 
-                     gnb_core->local_node->uuid32, node->uuid32, node->udp_addr_status, time_difference, GNB_DETECT_PUSH_ADDRESS_INTERVAL_SEC, node->last_push_addr_sec);
+            GNB_LOG5(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "Skip Detect [%llu]->[%llu] status=%d time_difference(%"PRIu64") > GNB_DETECT_PUSH_ADDRESS_INTERVAL_SEC(%"PRIu64") last_push_addr_sec=%"PRIu64"\n", 
+                     gnb_core->local_node->uuid64, node->uuid64, node->udp_addr_status, time_difference, GNB_DETECT_PUSH_ADDRESS_INTERVAL_SEC, node->last_push_addr_sec);
             continue;
         }
 
         full_detect_time_difference = detect_worker_ctx->now_time_sec - node->last_full_detect_sec;
         if ( full_detect_time_difference < gnb_core->conf->full_detect_interval_sec ) {
 
-            GNB_LOG5(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "Skip Detect [%d]->[%d] status=%d full_detect_time_difference(%"PRIu64") < full_detect_interval_sec(%"PRIu64") last_full_detect_sec=%"PRIu64"\n", 
-                     gnb_core->local_node->uuid32, node->uuid32, node->udp_addr_status, full_detect_time_difference, gnb_core->conf->full_detect_interval_sec, node->last_full_detect_sec);
+            GNB_LOG5(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "Skip Detect [%llu]->[%llu] status=%d full_detect_time_difference(%"PRIu64") < full_detect_interval_sec(%"PRIu64") last_full_detect_sec=%"PRIu64"\n", 
+                     gnb_core->local_node->uuid64, node->uuid64, node->udp_addr_status, full_detect_time_difference, gnb_core->conf->full_detect_interval_sec, node->last_full_detect_sec);
 
             continue;
         }
 
-        if ( gnb_core->conf->address_detect_interval_usec >0 ) {
+        if ( gnb_core->conf->address_detect_interval_usec > 0 ) {
             GNB_SLEEP_MILLISECOND( gnb_core->conf->address_detect_interval_usec/1000 );
         }
 
         detect_node_set_address(gnb_detect_worker, node);
+
+        if ( 0 == node->detect_addr4.s_addr ) {
+            GNB_LOG5(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "Skip Detect [%llu]->[%llu] detect_addr4=0 status=%d \n", 
+                     gnb_core->local_node->uuid64, node->uuid64, node->udp_addr_status);
+            continue;
+        }
+
         if ( gnb_core->conf->port_detect_start == node->detect_port4 ) {
-            GNB_LOG3(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "#START FULL DECETE node[%d] idx[%d]\n", node->uuid32, node->detect_address4_idx);
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "#START FULL DECETE node[%llu] idx[%d]\n", node->uuid64, node->detect_address4_idx);
         }
 
         detect_node_address(gnb_detect_worker, node);
 
         if ( gnb_core->conf->port_detect_end == node->detect_port4 ) {
             node->last_full_detect_sec = detect_worker_ctx->now_time_sec;
-            GNB_LOG3(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "#END FULL DECETE node[%d] idx[%d]\n", node->uuid32, node->detect_address4_idx);
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "#END FULL DECETE node[%llu] idx[%d]\n", node->uuid64, node->detect_address4_idx);
         }
 
     }

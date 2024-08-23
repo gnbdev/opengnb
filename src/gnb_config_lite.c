@@ -22,7 +22,7 @@ gnb_conf_ext_lite_t gnb_conf_ext_lite;
 
 char * check_domain_name(char *host_string);
 char * check_node_route(char *config_line_string);
-gnb_node_t * gnb_node_init(gnb_core_t *gnb_core, uint32_t uuid32);
+gnb_node_t * gnb_node_init(gnb_core_t *gnb_core, gnb_uuid_t uuid64);
 
 int gnb_test_field_separator(char *config_string);
 
@@ -92,7 +92,7 @@ static void setup_node_address(gnb_core_t *gnb_core, char *node_address_string) 
     int num;
 
     char attrib_string[16+1];
-    uint32_t uuid32;
+    gnb_uuid_t uuid64;
     char     host_string[INET6_ADDRSTRLEN+1];
     uint16_t port = 0;
 
@@ -113,9 +113,9 @@ static void setup_node_address(gnb_core_t *gnb_core, char *node_address_string) 
         ret = gnb_test_field_separator(line_buffer);
 
         if ( GNB_CONF_FIELD_SEPARATOR_TYPE_SLASH == ret ) {
-            num = sscanf(line_buffer,"%16[^/]/%u/%46[^/]/%hu\n", attrib_string, &uuid32, host_string, &port);
+            num = sscanf(line_buffer,"%16[^/]/%llu/%46[^/]/%hu\n", attrib_string, &uuid64, host_string, &port);
         } else if ( GNB_CONF_FIELD_SEPARATOR_TYPE_VERTICAL == ret ) {
-            num = sscanf(line_buffer,"%16[^|]|%u|%46[^|]|%hu\n", attrib_string, &uuid32, host_string, &port);
+            num = sscanf(line_buffer,"%16[^|]|%llu|%46[^|]|%hu\n", attrib_string, &uuid64, host_string, &port);
         } else {
             num = 0;
         }
@@ -146,15 +146,15 @@ static void setup_node_address(gnb_core_t *gnb_core, char *node_address_string) 
         }
 
         //加入到 index address list
-        if ( NULL != strchr(attrib_string, 'i') && uuid32 != gnb_core->local_node->uuid32 ) {
+        if ( NULL != strchr(attrib_string, 'i') && uuid64 != gnb_core->local_node->uuid64 ) {
             gnb_address_list_update(gnb_core->index_address_ring.address_list, &address_st);
         }
 
-        if ( NULL != strchr(attrib_string, 'u') && uuid32 != gnb_core->local_node->uuid32 ) {
+        if ( NULL != strchr(attrib_string, 'u') && uuid64 != gnb_core->local_node->uuid64 ) {
             gnb_address_list_update(gnb_core->fwdu0_address_ring.address_list, &address_st);
         }
 
-        node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, uuid32);
+        node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, uuid64);
 
         if ( NULL==node ) {
             continue;
@@ -198,9 +198,9 @@ static void setup_node_address(gnb_core_t *gnb_core, char *node_address_string) 
             node->type |= GNB_NODE_TYPE_SLIENCE;
         }
 
-        if ( NULL != strchr(attrib_string, 'f') && uuid32 != gnb_core->local_node->uuid32 ) {
+        if ( NULL != strchr(attrib_string, 'f') && uuid64 != gnb_core->local_node->uuid64 ) {
             node->type |= GNB_NODE_TYPE_FWD;
-            gnb_add_forward_node_ring(gnb_core, uuid32);
+            gnb_add_forward_node_ring(gnb_core, uuid64);
         }
 
 
@@ -219,7 +219,7 @@ static void setup_node_route(gnb_core_t *gnb_core, char *node_route_string) {
     char line_buffer[1024+1];
     size_t line_buffer_size;
 
-    uint32_t uuid32;
+    gnb_uuid_t uuid64;
     uint32_t tun_addr4;
     uint32_t tun_subnet_addr4;
     uint32_t tun_netmask_addr4;
@@ -253,9 +253,9 @@ static void setup_node_route(gnb_core_t *gnb_core, char *node_route_string) {
         ret = gnb_test_field_separator(line_buffer);
 
         if ( GNB_CONF_FIELD_SEPARATOR_TYPE_SLASH == ret ) {
-            num = sscanf(line_buffer,"%u/%16[^/]/%16[^/]", &uuid32, tun_ipv4_string, tun_netmask_string);
+            num = sscanf(line_buffer,"%llu/%16[^/]/%16[^/]", &uuid64, tun_ipv4_string, tun_netmask_string);
         } else if ( GNB_CONF_FIELD_SEPARATOR_TYPE_VERTICAL == ret ) {
-            num = sscanf(line_buffer,"%u|%16[^|]|%16[^|]", &uuid32, tun_ipv4_string, tun_netmask_string);
+            num = sscanf(line_buffer,"%llu|%16[^|]|%16[^|]", &uuid64, tun_ipv4_string, tun_netmask_string);
         } else {
             num = 0;
         }
@@ -264,11 +264,11 @@ static void setup_node_route(gnb_core_t *gnb_core, char *node_route_string) {
             continue;
         }
 
-        node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, uuid32);
+        node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, uuid64);
 
         if ( NULL==node ) {
-            node = gnb_node_init(gnb_core, uuid32);
-            GNB_HASH32_UINT32_SET(gnb_core->uuid_node_map, uuid32, node);
+            node = gnb_node_init(gnb_core, uuid64);
+            GNB_HASH32_UINT64_SET(gnb_core->uuid_node_map, uuid64, node);
             gnb_core->node_nums++;
         }
 
@@ -332,10 +332,10 @@ void gnb_config_lite(gnb_core_t *gnb_core){
 
     gnb_init_node_key512(gnb_core);
 
-    gnb_core->local_node = GNB_HASH32_UINT32_GET_PTR(gnb_core->uuid_node_map, gnb_core->conf->local_uuid);
+    gnb_core->local_node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, gnb_core->conf->local_uuid);
 
     if ( NULL==gnb_core->local_node ) {
-        printf("miss local_node[%u] is NULL\n", gnb_core->conf->local_uuid);
+        printf("miss local_node[%llu] is NULL\n", gnb_core->conf->local_uuid);
         exit(1);
     }
 

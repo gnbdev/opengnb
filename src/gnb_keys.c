@@ -67,8 +67,8 @@ int gnb_load_keypair(gnb_core_t *gnb_core){
 
     ssize_t rlen;
 
-    snprintf(node_private_file_name, PATH_MAX+NAME_MAX, "%s/security/%u.private", gnb_core->conf->conf_dir, gnb_core->conf->local_uuid);
-    snprintf(node_public_file_name,  PATH_MAX+NAME_MAX, "%s/security/%u.public",  gnb_core->conf->conf_dir, gnb_core->conf->local_uuid);
+    snprintf(node_private_file_name, PATH_MAX+NAME_MAX, "%s/security/%llu.private", gnb_core->conf->conf_dir, gnb_core->conf->local_uuid);
+    snprintf(node_public_file_name,  PATH_MAX+NAME_MAX, "%s/security/%llu.public",  gnb_core->conf->conf_dir, gnb_core->conf->local_uuid);
 
     private_file_fd = open(node_private_file_name, O_RDONLY);
 
@@ -121,7 +121,7 @@ int gnb_load_keypair(gnb_core_t *gnb_core){
 }
 
 
-int gnb_load_public_key(gnb_core_t *gnb_core, uint32_t uuid32, unsigned char *public_key){
+int gnb_load_public_key(gnb_core_t *gnb_core, gnb_uuid_t uuid64, unsigned char *public_key){
 
     char node_public_file_name[PATH_MAX+NAME_MAX];
 
@@ -131,7 +131,7 @@ int gnb_load_public_key(gnb_core_t *gnb_core, uint32_t uuid32, unsigned char *pu
 
     ssize_t rlen;
 
-    snprintf(node_public_file_name, PATH_MAX+NAME_MAX, "%s/ed25519/%u.public", gnb_core->conf->conf_dir, uuid32);
+    snprintf(node_public_file_name, PATH_MAX+NAME_MAX, "%s/ed25519/%llu.public", gnb_core->conf->conf_dir, uuid64);
 
     public_file_fd = open(node_public_file_name, O_RDONLY);
 

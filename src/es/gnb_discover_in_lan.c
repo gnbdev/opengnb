@@ -71,10 +71,10 @@ static void send_broadcast4(gnb_es_ctx *es_ctx, struct sockaddr_in *src_address_
     int on;
 
 #if 0
-    local_node = (gnb_node_t *)GNB_HASH32_UINT32_GET_PTR(es_ctx->uuid_node_map, es_ctx->ctl_block->core_zone->local_uuid);
+    local_node = (gnb_node_t *)GNB_HASH32_UINT64_GET_PTR(es_ctx->uuid_node_map, es_ctx->ctl_block->core_zone->local_uuid);
 
     if ( NULL == local_node ) {
-        GNB_LOG1(es_ctx->log, GNB_LOG_ID_ES_DISCOVER_IN_LAN, "send broadcast4 error local node=%lu\n", es_ctx->ctl_block->core_zone->local_uuid);
+        GNB_LOG1(es_ctx->log, GNB_LOG_ID_ES_DISCOVER_IN_LAN, "send broadcast4 error local node=%llu\n", es_ctx->ctl_block->core_zone->local_uuid);
         return;
     }
 #endif
@@ -91,7 +91,7 @@ static void send_broadcast4(gnb_es_ctx *es_ctx, struct sockaddr_in *src_address_
 
     memset(discover_lan_in_frame, 0, sizeof(discover_lan_in_frame_t));
     memcpy(discover_lan_in_frame->data.src_key512, local_node->key512, 64);
-    discover_lan_in_frame->data.src_uuid32 = htonl(local_node->uuid32);
+    discover_lan_in_frame->data.src_uuid64 = gnb_htonll(local_node->uuid64);
     memcpy(discover_lan_in_frame->data.src_addr4, &src_address_in->sin_addr.s_addr, sizeof(struct in_addr));
     discover_lan_in_frame->data.src_port4 = htons(es_ctx->ctl_block->conf_zone->conf_st.udp4_ports[0]);
     discover_lan_in_frame->data.src_ts_usec = gnb_htonll(es_ctx->now_time_usec);
@@ -107,8 +107,8 @@ static void send_broadcast4(gnb_es_ctx *es_ctx, struct sockaddr_in *src_address_
         broadcast_address_st.sin_addr.s_addr = INADDR_BROADCAST;
     }
 
-    snprintf(discover_lan_in_frame->data.text, 256, "GNB LAN DISCOVER node=%u address=%s,port=%d,broadcast_address=%s",
-                                                    local_node->uuid32,
+    snprintf(discover_lan_in_frame->data.text, 256, "GNB LAN DISCOVER node=%llu address=%s,port=%d,broadcast_address=%s",
+                                                    local_node->uuid64,
                                                     gnb_get_address4string(&src_address_in->sin_addr.s_addr,        gnb_static_ip_port_string_buffer1, 0),
                                                     es_ctx->ctl_block->conf_zone->conf_st.udp4_ports[0],
                                                     gnb_get_address4string(&broadcast_address_st.sin_addr.s_addr,   gnb_static_ip_port_string_buffer2, 0) );
@@ -138,7 +138,7 @@ static void send_broadcast4(gnb_es_ctx *es_ctx, struct sockaddr_in *src_address_
 
 static void handle_discover_lan_in_frame(gnb_es_ctx *es_ctx, gnb_payload16_t *in_payload, gnb_sockaddress_t *node_addr){
 
-    uint32_t in_src_uuid32;
+    gnb_uuid_t in_src_uuid64;
     gnb_node_t *local_node;
     gnb_node_t *dst_node;
 
@@ -157,28 +157,28 @@ static void handle_discover_lan_in_frame(gnb_es_ctx *es_ctx, gnb_payload16_t *in
         return;
     }
 
-    local_node = (gnb_node_t *)GNB_HASH32_UINT32_GET_PTR(es_ctx->uuid_node_map, es_ctx->ctl_block->core_zone->local_uuid);
+    local_node = (gnb_node_t *)GNB_HASH32_UINT64_GET_PTR(es_ctx->uuid_node_map, es_ctx->ctl_block->core_zone->local_uuid);
 
     if ( NULL == local_node ) {
-        GNB_LOG1(es_ctx->log, GNB_LOG_ID_ES_DISCOVER_IN_LAN, "handle_discover_lan_in_frame error local_uuid=%lu\n", es_ctx->ctl_block->core_zone->local_uuid);
+        GNB_LOG1(es_ctx->log, GNB_LOG_ID_ES_DISCOVER_IN_LAN, "handle_discover_lan_in_frame error local_uuid=%llu\n", es_ctx->ctl_block->core_zone->local_uuid);
         return;
     }
 
     discover_lan_in_frame = (discover_lan_in_frame_t *)in_payload->data;
 
-    in_src_uuid32 = ntohl(discover_lan_in_frame->data.src_uuid32);
+    in_src_uuid64 = gnb_ntohll(discover_lan_in_frame->data.src_uuid64);
 
-    GNB_LOG1(es_ctx->log, GNB_LOG_ID_ES_DISCOVER_IN_LAN, "handle_discover_lan_in_frame src_node[%lu]\n", in_src_uuid32);
+    GNB_LOG1(es_ctx->log, GNB_LOG_ID_ES_DISCOVER_IN_LAN, "handle_discover_lan_in_frame src_node[%llu]\n", in_src_uuid64);
 
-    if ( in_src_uuid32 == local_node->uuid32 ) {
-        GNB_LOG1(es_ctx->log, GNB_LOG_ID_ES_DISCOVER_IN_LAN, "handle_discover_lan_in_frame error in_src_uuid32=%lu local_node->uuid32=%lu\n", in_src_uuid32, local_node->uuid32);
+    if ( in_src_uuid64 == local_node->uuid64 ) {
+        GNB_LOG1(es_ctx->log, GNB_LOG_ID_ES_DISCOVER_IN_LAN, "handle_discover_lan_in_frame error in_src_uuid64=%llu local_node->uuid64=%llu\n", in_src_uuid64, local_node->uuid64);
         return;
     }
 
-    dst_node = (gnb_node_t *)GNB_HASH32_UINT32_GET_PTR(es_ctx->uuid_node_map, in_src_uuid32);
+    dst_node = (gnb_node_t *)GNB_HASH32_UINT64_GET_PTR(es_ctx->uuid_node_map, in_src_uuid64);
 
     if ( NULL == dst_node ) {
-        GNB_LOG1(es_ctx->log, GNB_LOG_ID_ES_DISCOVER_IN_LAN, "handle_discover_lan_in_frame error dst node[%lu] not found!\n", in_src_uuid32);
+        GNB_LOG1(es_ctx->log, GNB_LOG_ID_ES_DISCOVER_IN_LAN, "handle_discover_lan_in_frame error dst node[%llu] not found!\n", in_src_uuid64);
         return;
     }
 
@@ -191,14 +191,14 @@ static void handle_discover_lan_in_frame(gnb_es_ctx *es_ctx, gnb_payload16_t *in
     node_ping_frame = (node_ping_frame_t *)payload->data;
     memset(node_ping_frame, 0, sizeof(node_ping_frame_t));
 
-    node_ping_frame->data.src_uuid32 = htonl(local_node->uuid32);
-    node_ping_frame->data.dst_uuid32 = discover_lan_in_frame->data.src_uuid32;
+    node_ping_frame->data.src_uuid64 = gnb_htonll(local_node->uuid64);
+    node_ping_frame->data.dst_uuid64 = discover_lan_in_frame->data.src_uuid64;
     node_ping_frame->data.src_ts_usec = gnb_htonll(es_ctx->now_time_usec);
 
     src_port4 = htons(es_ctx->ctl_block->conf_zone->conf_st.udp4_ports[0]);
     memcpy(node_ping_frame->data.attachment, &src_port4, sizeof(uint16_t));
 
-    snprintf((char *)node_ping_frame->data.text, 32, "(LAN)%d --PING-> %d", local_node->uuid32, dst_node->uuid32);
+    snprintf((char *)node_ping_frame->data.text, 32, "(LAN)%llu --PING-> %llu", local_node->uuid64, dst_node->uuid64);
 
     if ( 0 == es_ctx->ctl_block->conf_zone->conf_st.lite_mode ) {
         ed25519_sign(node_ping_frame->src_sign, (const unsigned char *)&node_ping_frame->data, sizeof(struct ping_frame_data), es_ctx->ctl_block->core_zone->ed25519_public_key, es_ctx->ctl_block->core_zone->ed25519_private_key);
