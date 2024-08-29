@@ -1251,9 +1251,9 @@ static void load_route_config(gnb_core_t *gnb_core){
     char route_file[PATH_MAX+NAME_MAX];
 
     gnb_uuid_t uuid64;
-    gnb_uuid_t tun_addr4;
-    gnb_uuid_t tun_subnet_addr4;
-    gnb_uuid_t tun_netmask_addr4;
+    uint32_t tun_addr4;
+    uint32_t tun_subnet_addr4;
+    uint32_t tun_netmask_addr4;
 
     char tun_ipv4_string[INET_ADDRSTRLEN+1];
     char tun_netmask_string[INET_ADDRSTRLEN+1];

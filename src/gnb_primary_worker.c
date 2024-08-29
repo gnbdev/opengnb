@@ -370,11 +370,11 @@ skip_tun:
 
         } else {
 
-        receive_queue_data->type = GNB_WORKER_QUEUE_DATA_TYPE_NODE_IN;
-        memcpy(&receive_queue_data->data.node_in.node_addr_st, &node_addr_st, sizeof(gnb_sockaddress_t));
-        receive_queue_data->data.node_in.socket_idx = socket_idx;
-        gnb_ring_buffer_fixed_push_submit(pf_worker->ring_buffer_in);
-        pf_worker->notify(pf_worker);
+            receive_queue_data->type = GNB_WORKER_QUEUE_DATA_TYPE_NODE_IN;
+            memcpy(&receive_queue_data->data.node_in.node_addr_st, &node_addr_st, sizeof(gnb_sockaddress_t));
+            receive_queue_data->data.node_in.socket_idx = socket_idx;
+            gnb_ring_buffer_fixed_push_submit(pf_worker->ring_buffer_in);
+            pf_worker->notify(pf_worker);
 
         }
 

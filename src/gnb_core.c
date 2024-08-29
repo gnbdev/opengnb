@@ -817,7 +817,7 @@ void gnb_core_start(gnb_core_t *gnb_core){
         }
 
         GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"if[%s] opened\n", gnb_core->ifname);
-        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"node[%d] ipv4[%s]\n", gnb_core->local_node->uuid64, GNB_ADDR4STR_PLAINTEXT1(&gnb_core->local_node->tun_addr4));
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"node[%llu] ipv4[%s]\n", gnb_core->local_node->uuid64, GNB_ADDR4STR_PLAINTEXT1(&gnb_core->local_node->tun_addr4));
 
         for ( i=0; i<gnb_core->pf_worker_ring->size; i++ ) {
             gnb_core->pf_worker_ring->worker[i]->start(gnb_core->pf_worker_ring->worker[i]);

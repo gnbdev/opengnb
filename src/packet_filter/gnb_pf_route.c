@@ -52,8 +52,6 @@ typedef struct _gnb_route_frame_head_t {
 
 #define MIN_ROUTE_FRAME_SIZE ( sizeof(gnb_route_frame_head_t) + sizeof(struct iphdr) )
 
-extern gnb_pf_t gnb_pf_route;
-
 static void pf_init_cb(gnb_core_t *gnb_core, gnb_pf_t *pf){
 
     gnb_route_ctx_t *ctx = (gnb_route_ctx_t*)gnb_heap_alloc(gnb_core->heap,sizeof(gnb_route_ctx_t));    
@@ -67,7 +65,7 @@ static void pf_init_cb(gnb_core_t *gnb_core, gnb_pf_t *pf){
 
     gnb_core->route_frame_head_size = sizeof(gnb_route_frame_head_t);
 
-    GNB_LOG1(gnb_core->log,GNB_LOG_ID_PF, "%s init\n", gnb_pf_route.name);
+    GNB_LOG1(gnb_core->log, GNB_LOG_ID_PF, "%s init\n", pf->name);
 
 }
 

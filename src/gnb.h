@@ -85,7 +85,7 @@ typedef struct _gnb_core_t{
 
 	gnb_conf_t *conf;
 
-	gnb_uuid_t node_nums;
+	uint64_t node_nums;
 
 	gnb_hash32_map_t *uuid_node_map;   //以节点的uuid64作为key的 node 表
 	gnb_hash32_map_t *ipv4_node_map;
@@ -171,7 +171,7 @@ typedef struct _gnb_core_t{
 #define GNB_LOG_ID_INDEX_SERVICE_WORKER  5
 #define GNB_LOG_ID_DETECT_WORKER         6
 
-#define GNB_VERSION_STRING    "GNB version 1.5.0.b protocol version 1.5.0"
+#define GNB_VERSION_STRING    "GNB version Dev 1.5.0.c  protocol version 1.5.0"
 #define GNB_COPYRIGHT_STRING  "Copyright (C) 2019 gnbdev<gnbdev@qq.com>"
 #define GNB_URL_STRING        "https://github.com/gnbdev/opengnb"
 

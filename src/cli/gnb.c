@@ -242,9 +242,9 @@ static void self_test(){
             node = &ctl_block->node_zone->node[i];
 
             if ( node->uuid64 != ctl_block->core_zone->local_uuid ) {
-                GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST ----- remote node %u -----\n", node->uuid64);
+                GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST ----- remote node %llu -----\n", node->uuid64);
             } else {
-                GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST local  node %u\n", node->uuid64);
+                GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST local  node %llu\n", node->uuid64);
             }
 
             GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST tun_ipv6 %s\n", GNB_ADDR6STR_PLAINTEXT1(&node->tun_ipv6_addr));
@@ -272,7 +272,7 @@ static void self_test(){
             GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST index node '%s'\n", GNB_IP_PORT_STR1(&gnb_core->index_address_ring.address_list->array[i]));
         }
 
-        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"SELF-TEST num of fwd node=%d\n", gnb_core->fwd_node_ring.num);
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"SELF-TEST num of fwd node:%d\n", gnb_core->fwd_node_ring.num);
 
         for ( i=0; i<gnb_core->fwd_node_ring.num; i++ ) {
             GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST fwd node=%llu\n", gnb_core->fwd_node_ring.nodes[i]->uuid64);

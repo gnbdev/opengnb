@@ -163,10 +163,10 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
     conf->crypto_key_update_interval = GNB_CRYPTO_KEY_UPDATE_INTERVAL_NONE;
 
-    conf->crypto_passcode[0] = 0x07;
-    conf->crypto_passcode[1] = 0x81;
-    conf->crypto_passcode[2] = 0x07;
-    conf->crypto_passcode[3] = 0x9d;
+    conf->crypto_passcode[0] = 0x00;
+    conf->crypto_passcode[1] = 0x00;
+    conf->crypto_passcode[2] = 0x00;
+    conf->crypto_passcode[3] = 0x91;
 
     conf->zip_level = 0;
 

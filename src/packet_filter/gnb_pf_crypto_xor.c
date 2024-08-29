@@ -32,8 +32,9 @@ gnb_pf_t gnb_pf_crypto_xor;
 static void pf_init_cb(gnb_core_t *gnb_core, gnb_pf_t *pf){
 
     gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t*)gnb_heap_alloc(gnb_core->heap,sizeof(gnb_pf_private_ctx_t));
-    
     pf->private_ctx = ctx;
+
+    GNB_LOG1(gnb_core->log, GNB_LOG_ID_PF, "%s init\n", pf->name);
 
 }
 

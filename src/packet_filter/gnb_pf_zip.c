@@ -85,6 +85,8 @@ static void pf_init_cb(gnb_core_t *gnb_core, gnb_pf_t *pf){
 
     pf->private_ctx = ctx;
 
+    GNB_LOG1(gnb_core->log, GNB_LOG_ID_PF, "%s init\n", pf->name);
+
 }
 
 
