@@ -1,5 +1,5 @@
 # OpenGNB
-
+The communication protocol of opengnb version 1.5.0 has been upgraded and is not compatible  
 [Chinese](/README_CN.md) [English](/README.md)
 
 *Note: Most of the content of this article is translated by Google translate from the Chinese version of the "OpenGNB User Manual", the content of this article is subject to the Chinese version.*
@@ -261,10 +261,7 @@ In extreme cases where peer-to-peer communication cannot be established, whether
 Here are the available `index` nodes provided by volunteers
 
 ```
-i|0|110.238.106.225|9001
 i|0|101.32.178.3|9001
-i|0|47.93.29.76|9001
-i|0|usa.homedns.net|9001
 ```
 
 

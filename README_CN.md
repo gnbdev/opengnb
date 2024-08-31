@@ -1,5 +1,5 @@
 # OpenGNB
-
+opengnb 1.5.0版本的通信协议已升级，不兼容兼容  
 version 1.3.0.0  protocol version 1.2.0
 
 [Chinese](/README_CN.md)  [English](/README.md)
@@ -266,10 +266,6 @@ GNB 主机之间的非对称数据加密使得 **forward** 节点无法窥探中
 
 ```
 i|0|101.32.178.3|9001
-i|0|47.93.29.76|9001
-i|0|45.78.14.231|9001
-i|0|110.238.106.225|9001
-i|0|usa.homedns.net|9001
 ```
 
 
