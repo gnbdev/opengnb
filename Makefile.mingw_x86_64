@@ -8,7 +8,7 @@ GNB_CRYPTO=gnb_crypto.exe
 GNB_CTL=gnb_ctl.exe
 GNB_ES=gnb_es.exe
 GNB_CLI=gnb.exe
-
+WINDRES=windres.exe
 
 include Makefile.inc
 
