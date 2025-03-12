@@ -636,7 +636,7 @@ wget http://api.myip.la -q -6 -O /tmp/wan6_addr.dump
 
 以节点 1002 为例
 ```
-gnb_es -b gnb/conf/1002/gnb.map --wan-address6-file=/tmp/wan6_addr.dump
+gnb_es -b gnb/conf/1002/gnb.map --resolv --wan-address6-file=/tmp/wan6_addr.dump
 ```
 通过 `gnb` 和 `gnb_es` 的共享内存，`gnb`进程就能获得本节点所在的 IPV6 地址并上报给 index 节点。
 
