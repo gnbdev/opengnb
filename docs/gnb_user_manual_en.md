@@ -626,7 +626,7 @@ wget http://api.myip.la -q -6 -O /tmp/wan6_addr.dump
 
 Take node 1002 as an example
 ```
-gnb_es -b gnb/conf/1002/gnb.map --wan-address6-file=/tmp/wan6_addr.dump
+gnb_es -b gnb/conf/1002/gnb.map --resolv --wan-address6-file=/tmp/wan6_addr.dump
 ```
 Through the shared memory of `gnb` and `gnb_es`, the `gnb` process can obtain the IPV6 address of this node and report it to the index node.
 
