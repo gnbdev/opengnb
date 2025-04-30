@@ -33,8 +33,8 @@ void gnb_send_udata_to_address(gnb_core_t *gnb_core, gnb_address_t *address, voi
 
 void gnb_send_address_list(gnb_core_t *gnb_core, gnb_address_list_t *address_list, gnb_payload16_t *payload);
 
-void gnb_send_to_address_through_all_sockets(gnb_core_t *gnb_core, gnb_address_t *address, gnb_payload16_t *payload);
-void gnb_send_address_list_through_all_sockets(gnb_core_t *gnb_core, gnb_address_list_t *address_list, gnb_payload16_t *payload);
+void gnb_send_to_address_through_all_sockets(gnb_core_t *gnb_core, gnb_address_t *address, gnb_payload16_t *payload, uint32_t interval_usec);
+void gnb_send_address_list_through_all_sockets(gnb_core_t *gnb_core, gnb_address_list_t *address_list, gnb_payload16_t *payload, uint32_t interval_usec);
 
 void gnb_send_available_address_list(gnb_core_t *gnb_core, gnb_address_list_t *address_list, gnb_payload16_t *payload, uint64_t now_sec);
 
@@ -46,6 +46,7 @@ gnb_address_t* gnb_select_available_address4(gnb_core_t *gnb_core, gnb_node_t *n
 
 int gnb_send_to_node(gnb_core_t *gnb_core, gnb_node_t *node, gnb_payload16_t *payload, unsigned char addr_type_bits);
 
-int gnb_forward_payload_to_node(gnb_core_t *gnb_core, gnb_node_t *node, gnb_payload16_t *payload);
+int gnb_p2p_forward_payload_to_node(gnb_core_t *gnb_core, gnb_node_t *node, gnb_payload16_t *payload);
+void gnb_std_uf_forward_payload_to_node(gnb_core_t *gnb_core, gnb_node_t *node, gnb_payload16_t *payload);
 
 #endif

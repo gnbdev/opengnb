@@ -44,10 +44,12 @@ void gnb_setup_es_argv(char *es_argv_string);
 
 #define SET_ADDR_SECURE                (GNB_OPT_INIT + 1)
 
+#define SET_STANDARD_FORWARDING        (GNB_OPT_INIT + 4)
 #define SET_DIRECT_FORWARDING          (GNB_OPT_INIT + 5)
+
 #define SET_MTU                        (GNB_OPT_INIT + 6)
 
-#define SET_CRYPTO_TPYE                (GNB_OPT_INIT + 7)
+#define SET_CRYPTO_TYPE                (GNB_OPT_INIT + 7)
 #define SET_CRYPTO_KEY_UPDATE_INTERVAL (GNB_OPT_INIT + 8)
 
 #define SET_MULTI_INDEX_TYPE           (GNB_OPT_INIT + 9)
@@ -117,6 +119,7 @@ gnb_arg_list_t *gnb_es_arg_list;
 int is_self_test = 0;
 int is_verbose   = 0;
 int is_trace     = 0;
+int is_extreme_nat_traversal = 0;
 
 gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
@@ -148,8 +151,10 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
     conf->pf_worker_num = 0;
     conf->direct_forwarding  = 1;
+    conf->standard_forwarding = 1;
     conf->unified_forwarding = GNB_UNIFIED_FORWARDING_AUTO;
     conf->universal_relay0   = 0;
+    conf->universal_relay1   = 0;
 
     /*
     IPv4最小MTU=576bytes
@@ -160,13 +165,12 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
     conf->mtu            = 1280;
 
     conf->pf_bits |= GNB_PF_BITS_CRYPTO_XOR;
-
     conf->crypto_key_update_interval = GNB_CRYPTO_KEY_UPDATE_INTERVAL_NONE;
 
-    conf->crypto_passcode[0] = 0x00;
-    conf->crypto_passcode[1] = 0x00;
-    conf->crypto_passcode[2] = 0x00;
-    conf->crypto_passcode[3] = 0x91;
+    conf->crypto_passcode[3] = 0xFF;
+    conf->crypto_passcode[2] = 0xFC;
+    conf->crypto_passcode[1] = 0xFF;
+    conf->crypto_passcode[0] = 0xFE;
 
     conf->zip_level = 0;
 
@@ -195,9 +199,9 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
     conf->pf_woker_in_queue_length  = 0xFFF;
     conf->pf_woker_out_queue_length = 0xFFF;
-    conf->node_woker_queue_length   = 0xFF;
-    conf->index_woker_queue_length  = 0xFF;
-    conf->index_service_woker_queue_length = 0xFF;
+    conf->node_woker_queue_length   = 0xFFF;
+    conf->index_woker_queue_length  = 0xFFF;
+    conf->index_service_woker_queue_length = 0xFFF;
 
     conf->udp6_socket_num = 1;
     conf->udp4_socket_num = 1;
@@ -279,8 +283,8 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
       { "ifname",   required_argument, 0, 'i' },
       { "if-drv",   required_argument, 0, SET_IF_DRV },
       { "mtu",      required_argument, 0, SET_MTU },
-      { "crypto",   required_argument, 0, SET_CRYPTO_TPYE },
-      { "passcode", required_argument,  0, 'p' },
+      { "crypto",   required_argument, 0, SET_CRYPTO_TYPE },
+      { "passcode", required_argument, 0, 'p' },
       { "crypto-key-update-interval", required_argument,  0, SET_CRYPTO_KEY_UPDATE_INTERVAL },
 
       { "zip",       required_argument,  0, SET_ZIP },
@@ -299,6 +303,8 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
       { "ipv4-only", no_argument,   0, '4'},
       { "ipv6-only", no_argument,   0, '6'},
+
+      { "extreme-nat-traversal",    no_argument,   0, 'E' },
 
       { "daemon",    no_argument,   0, 'd' },
 
@@ -326,15 +332,18 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
       { "index-worker",              required_argument,  0, SET_INDEX_WORKER },
       { "index-service-worker",      required_argument,  0, SET_INDEX_SERVICE_WORKER },
       { "node-detect-worker",        required_argument,  0, SET_DETECT_WORKER },
-
       { "pf-worker",                 required_argument,  0, SET_PF_WORKER_NUM },
 
       { "multi-socket",              required_argument,  0,  SET_MULTI_SOCKET },
-      { "set-ur0",                   required_argument,  0,  SET_UR0 },
 
-      { "pf-route",                  required_argument,  0, SET_PF_ROUTE },
+      { "ur0",                       required_argument,  0,  SET_UR0 },
+      { "ur1",                       required_argument,  0,  SET_UR1 },
+
+      { "pf-route",                  required_argument,  0,  SET_PF_ROUTE },
       { "unified-forwarding",        required_argument,  0, 'U' },
+      { "standard-forwarding",       required_argument,  0, SET_STANDARD_FORWARDING},
       { "direct-forwarding",         required_argument,  0, SET_DIRECT_FORWARDING },
+
       { "pid-file",                  required_argument,  0, SET_PID_FILE },
       { "node-cache-file",           required_argument,  0, SET_NODE_CACHE_FILE },
 
@@ -368,7 +377,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
     while (1) {
 
-        opt = getopt_long(argc, argv, "c:n:a:r:PI:b:l:i:46dp:e:tqVTh",long_options, &option_index);
+        opt = getopt_long(argc, argv, "c:n:a:r:PI:b:l:i:46Edp:e:tqVTh",long_options, &option_index);
 
         if ( -1 == opt ) {
             break;
@@ -448,6 +457,10 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
         case '6':
             conf->udp_socket_type = GNB_ADDR_TYPE_IPV6;
+            break;
+
+        case 'E':
+            is_extreme_nat_traversal = 1;
             break;
 
         case 'd':
@@ -573,18 +586,17 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
             conf->detect_log_level  = (uint8_t)strtoul(optarg, NULL, 10);
             break;
 
-        case SET_CRYPTO_TPYE:
-
+        case SET_CRYPTO_TYPE:
             if ( !strncmp(optarg, "none", 16) ) {
                 conf->pf_bits &= ~(GNB_PF_BITS_CRYPTO_XOR | GNB_PF_BITS_CRYPTO_ARC4);
             } else if ( !strncmp(optarg, "xor", 16) ) {
                 conf->pf_bits |= GNB_PF_BITS_CRYPTO_XOR;
             } else if ( !strncmp(optarg, "arc4", 16) ) {
+                conf->pf_bits &= ~(GNB_PF_BITS_CRYPTO_XOR); //先消除默认的 XOR bit
                 conf->pf_bits |= GNB_PF_BITS_CRYPTO_ARC4;
             } else {
                 conf->pf_bits |= GNB_PF_BITS_CRYPTO_XOR;
             }
-
             break;
 
         case SET_ZIP:
@@ -753,6 +765,18 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
             break;
 
+        case SET_UR1:
+
+            if ( !strncmp(optarg, "on", 2) ) {
+                conf->universal_relay1 = 1;
+            } else if ( !strncmp(optarg, "off", 3) ) {
+                conf->universal_relay1 = 0;
+            } else {
+                conf->universal_relay1 = 1;
+            }
+
+            break;
+
         case 'U':
 
             if ( !strncmp(optarg, "off", sizeof("off")-1) ) {
@@ -855,8 +879,16 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
         }
 
+
     }
 
+
+    if ( is_extreme_nat_traversal ) {
+        conf->multi_socket = 1;
+        conf->activate_detect_worker = 1;
+        conf->multi_index_type = GNB_MULTI_ADDRESS_TYPE_FULL;
+        gnb_setup_es_argv("--upnp");
+    }
 
     if ( 0 != conf->systemd_daemon ) {
         conf->daemon = 0;
@@ -881,30 +913,34 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]){
 
     gnb_addr_secure = conf->addr_secure;
 
-    switch (conf->memory) {
+	switch (conf->memory) {
 
-    case GNB_MEMORY_SCALE_TINY:
-        conf->payload_block_size = 1024*4;
-        conf->max_heap_fragment  = 1024*8;
-        break;
-    case GNB_MEMORY_SCALE_SMALL:
-        conf->payload_block_size = 1024*16;
-        conf->max_heap_fragment  = 1024*16;
-        break;
-    case GNB_MEMORY_SCALE_LARGE:
-        conf->payload_block_size = 1024*32;
-        conf->max_heap_fragment  = 1024*32;
-        break;
-    case GNB_MEMORY_SCALE_HUGE:
-        conf->payload_block_size = 1024*64;
-        conf->max_heap_fragment  = 1024*64;
-        break;
-    default:
-        conf->payload_block_size = 1024*4;
-        conf->max_heap_fragment  = 1024*8;
-        break;
-
-    }
+	case GNB_MEMORY_SCALE_TINY:
+		conf->payload_block_size = 1024*8;
+		conf->max_heap_fragment  = 1024*8;
+		conf->index_service_lru_size = 1024*2;
+		break;
+	case GNB_MEMORY_SCALE_SMALL:
+		conf->payload_block_size = 1024*16;
+		conf->max_heap_fragment  = 1024*16;
+		conf->index_service_lru_size = 1024*4;
+		break;
+	case GNB_MEMORY_SCALE_LARGE:
+		conf->payload_block_size = 1024*32;
+		conf->max_heap_fragment  = 1024*32;
+		conf->index_service_lru_size = 1024*32;
+		break;
+	case GNB_MEMORY_SCALE_HUGE:
+		conf->payload_block_size = 1024*64;
+		conf->max_heap_fragment  = 1024*64;
+		conf->index_service_lru_size = 1024*64;
+		break;
+	default:
+		conf->payload_block_size = 1024*8;
+		conf->max_heap_fragment  = 1024*8;
+		conf->index_service_lru_size = 1024*2;
+		break;
+	}
 
     if ( 1 == conf->multi_socket ) {
         conf->udp6_socket_num = 1;
@@ -1061,32 +1097,35 @@ static void show_useage(int argc,char *argv[]){
     printf("Usage: %s [-i IFNAME] -c CONFIG_PATH [OPTION]\n", argv[0]);
     printf("Command Summary:\n");
 
-    printf("  -c, --conf                       config path\n");
-    printf("  -n, --nodeid                     nodeid\n");
-    printf("  -P, --public-index-service       run as public index service\n");
+    printf("  -c, --conf                        config path\n");
+    printf("  -n, --nodeid                      nodeid\n");
+    printf("  -P, --public-index-service        run as public index service\n");
 
-    printf("  -I, --index-address              setup index address\n");
-    printf("  -a, --node-address               setup node ip address\n");
-    printf("  -r, --node-route                 setup node route\n");
-    printf("  -i, --ifname                     TUN Device Name\n");
+    printf("  -I, --index-address               setup index address\n");
+    printf("  -a, --node-address                setup node ip address\n");
+    printf("  -r, --node-route                  setup node route\n");
+    printf("  -i, --ifname                      TUN Device Name\n");
 
-    printf("  -4, --ipv4-only                  Use IPv4 Only\n");
-    printf("  -6, --ipv6-only                  Use IPv6 Only\n");
-    printf("  -d, --daemon                     daemon\n");
-    printf("  -q, --quiet                      disabled console output\n");
-    printf("  -t, --selftest                   self test\n");
-    printf("  -p, --passcode                   a hexadecimal string of 32-bit unsigned integer,use to strengthen safety default:0x9d078107\n");
-    printf("  -U, --unified-forwarding         \"off\",\"force\",\"auto\",\"super\",\"hyper\" default:\"auto\"; cannot be used with --pf-worker\n");
+    printf("  -4, --ipv4-only                   Use IPv4 Only\n");
+    printf("  -6, --ipv6-only                   Use IPv6 Only\n");
+
+    printf("  -E, --extreme-nat-traversal       extreme nat traversal\n");
+
+    printf("  -d, --daemon                      daemon\n");
+    printf("  -q, --quiet                       disabled console output\n");
+    printf("  -t, --selftest                    self test\n");
+    printf("  -p, --passcode                    a hexadecimal string of 32-bit unsigned integer,use to strengthen safety default:0xFFFCFFFE\n");
+    printf("  -U, --unified-forwarding          \"off\",\"force\",\"auto\",\"super\",\"hyper\" default:\"auto\"; cannot be used with --pf-worker\n");
 
 
-    printf("  -l, --listen                     listen address default:\"0.0.0.0:9001\"\n");
-    printf("  -b, --ctl-block                  ctl block mapper file\n");
-    printf("  -e, --es-argv                    pass-through gnb_es argv\n");
-    printf("  -V, --verbose                    verbose mode\n");
-    printf("  -T, --trace                      trace mode\n");
+    printf("  -l, --listen                      listen address default:\"0.0.0.0:9001\"\n");
+    printf("  -b, --ctl-block                   ctl block mapper file\n");
+    printf("  -e, --es-argv                     pass-through gnb_es argv\n");
+    printf("  -V, --verbose                     verbose mode\n");
+    printf("  -T, --trace                       trace mode\n");
 
 #if defined(__linux__)
-    printf("      --systemd                    systemd daemon\n");
+    printf("      --systemd                     systemd daemon\n");
 #endif
     
     printf("      --node-worker-queue           node  worker queue length\n");
@@ -1094,60 +1133,62 @@ static void show_useage(int argc,char *argv[]){
     printf("      --index-service-worker-queue  index service worker queue length\n");
     printf("      --packet-filter-worker-queue  packet filter worker queue length\n");
 
-    printf("      --port-detect                node address detect port range,start,end\n");
-    printf("      --detect-interval            node address detect interval default %u,%u\n", GNB_ADDRESS_DETECT_INTERVAL_USEC,GNB_FULL_DETECT_INTERVAL_SEC);
+    printf("      --port-detect                 node address detect port range,start,end\n");
+    printf("      --detect-interval             node address detect interval default %u,%u\n", GNB_ADDRESS_DETECT_INTERVAL_USEC,GNB_FULL_DETECT_INTERVAL_SEC);
 
-    printf("      --mtu                        TUN Device MTU ipv4:532~1500,ipv6:1280~1500\n");
-    printf("      --crypto                     ip frame crypto \"xor\",\"arc4\",\"none\" default:\"xor\"\n");
-    printf("      --crypto-key-update-interval crypto key update interval, \"hour\",\"minute\",none default:\"none\"\n");
-    printf("      --multi-index-type           \"simple-fault-tolerant\",\"simple-load-balance\",\"full\" default:\"simple-load-balance\"\n");
+    printf("      --mtu                         TUN Device MTU ipv4:532~1500,ipv6:1280~1500\n");
+    printf("      --crypto                      ip frame crypto \"xor\",\"arc4\",\"none\" default:\"xor\"\n");
+    printf("      --crypto-key-update-interval  crypto key update interval, \"hour\",\"minute\",none default:\"none\"\n");
+    printf("      --multi-index-type            \"simple-fault-tolerant\",\"simple-load-balance\",\"full\" default:\"simple-load-balance\"\n");
 
-    printf("      --zip                        \"auto\", \"force\" default:\"auto\"\n");
-    printf("      --zip-level                  \"0\": no compression \"1\": best speed,\"9\": best compression\n");
+    printf("      --zip                         \"auto\", \"force\" default:\"auto\"\n");
+    printf("      --zip-level                   \"0\": no compression \"1\": best speed,\"9\": best compression\n");
 
-    printf("      --multi-forward-type         \"simple-fault-tolerant\",\"simple-load-balance\" default:\"simple-fault-tolerant\"\n");
+    printf("      --multi-forward-type          \"simple-fault-tolerant\",\"simple-load-balance\" default:\"simple-fault-tolerant\"\n");
 
     #ifdef _WIN32
-    printf("      --if-drv                     interface driver \"tap-windows\",\"wintun\" default:\"tap-windows\"\n");
+    printf("      --if-drv                      interface driver \"tap-windows\",\"wintun\" default:\"tap-windows\"\n");
     #endif
 
     #ifdef __UNIX_LIKE_OS__
-    printf("      --socket-if-name             example: \"eth0\",\"eno1\", only for unix-like os\n");
+    printf("      --socket-if-name              example: \"eth0\",\"eno1\", only for unix-like os\n");
     #endif
 
-    printf("      --address-secure             hide part of ip address in logs \"on\",\"off\" default:\"on\"\n");
-    printf("      --if-dump                    dump the interface data frame \"on\",\"off\" default:\"off\"\n");
-    printf("      --pf-route                   packet filter route\n");
-    printf("      --safe-index                 \"on\",\"off\" default:\"off\"\n");
-    printf("      --multi-socket               \"on\",\"off\" default:\"off\"\n");
-    printf("      --direct-forwarding          \"on\",\"off\" default:\"on\"\n");
-    printf("      --set-tun                    \"on\",\"off\" default:\"on\"\n");
-    printf("      --index-worker               \"on\",\"off\" default:\"on\"\n");
-    printf("      --index-service-worker       \"on\",\"off\" default:\"on\"\n");
-    printf("      --node-detect-worker         \"on\",\"off\" default:\"on\"\n");
+    printf("      --address-secure              hide part of ip address in logs \"on\",\"off\" default:\"on\"\n");
+    printf("      --if-dump                     dump the interface data frame \"on\",\"off\" default:\"off\"\n");
+    printf("      --pf-route                    packet filter route\n");
+    printf("      --safe-index                  \"on\",\"off\" default:\"off\"\n");
+    printf("      --multi-socket                \"on\",\"off\" default:\"off\"\n");
+
+    printf("      --standard-forwarding         \"on\",\"off\" default:\"on\"\n");
+    printf("      --direct-forwarding           \"on\",\"off\" default:\"on\"\n");
+    printf("      --set-tun                     \"on\",\"off\" default:\"on\"\n");
+    printf("      --index-worker                \"on\",\"off\" default:\"on\"\n");
+    printf("      --index-service-worker        \"on\",\"off\" default:\"on\"\n");
+    printf("      --node-detect-worker          \"on\",\"off\" default:\"on\"\n");
 
     #ifdef __UNIX_LIKE_OS__
-    printf("      --pf-worker                  [0-128] number of the packet filter worker default:0; cannot be used with --unified-forwarding, only for unix-like os\n");
+    printf("      --pf-worker                   [0-128] number of the packet filter worker default:0; cannot be used with --unified-forwarding, only for unix-like os\n");
     #endif
 
-
-    printf("      --memory                     \"tiny\",\"small\",\"large\",\"huge\" default:\"tiny\"\n");
-    printf("      --set-ur0                    \"on\",\"off\" default:\"on\"\n");
-    printf("      --pid-file                   pid file\n");
-    printf("      --node-cache-file            node address cache file\n");
-    printf("      --log-file-path              log file path\n");
-    printf("      --log-udp4                   send log to the address ipv4 default:\"127.0.0.1:8666\"\n");
-    printf("      --log-udp-type               log udp type \"binary\",\"text\" default:\"binary\"\n");
-    printf("      --console-log-level          log console level 0-3\n");
-    printf("      --file-log-level             log file level    0-3\n" );
-    printf("      --udp-log-level              log udp level     0-3\n");
-    printf("      --core-log-level             core log level           0-3\n");
-    printf("      --pf-log-level               packet filter log level  0-3\n");
-    printf("      --main-log-level             main log level           0-3\n");
-    printf("      --node-log-level             node log level           0-3\n");
-    printf("      --index-log-level            index log level          0-3\n");
-    printf("      --index-service-log-level    index service log level  0-3\n");
-    printf("      --node-detect-log-level      node detect log level    0-3\n");
+    printf("      --memory                      \"tiny\",\"small\",\"large\",\"huge\" default:\"tiny\"\n");
+    printf("      --ur0                         universal relay type 0 \"on\",\"off\" default:\"off\"\n");
+    printf("      --ur1                         universal relay type 1 \"on\",\"off\" default:\"off\"\n");
+    printf("      --pid-file                    pid file\n");
+    printf("      --node-cache-file             node address cache file\n");
+    printf("      --log-file-path               log file path\n");
+    printf("      --log-udp4                    send log to the address ipv4 default:\"127.0.0.1:8666\"\n");
+    printf("      --log-udp-type                log udp type \"binary\",\"text\" default:\"binary\"\n");
+    printf("      --console-log-level           log console level 0-3\n");
+    printf("      --file-log-level              log file level    0-3\n" );
+    printf("      --udp-log-level               log udp level     0-3\n");
+    printf("      --core-log-level              core log level           0-3\n");
+    printf("      --pf-log-level                packet filter log level  0-3\n");
+    printf("      --main-log-level              main log level           0-3\n");
+    printf("      --node-log-level              node log level           0-3\n");
+    printf("      --index-log-level             index log level          0-3\n");
+    printf("      --index-service-log-level     index service log level  0-3\n");
+    printf("      --node-detect-log-level       node detect log level    0-3\n");
 
     printf("      --help\n");
 
@@ -1161,6 +1202,7 @@ static void show_useage(int argc,char *argv[]){
 
     printf("  %s -n 1001 -a \"i/0/$public_index_ip/$port\" --multi-socket=on -p $passcode\n",argv[0]);
     printf("  %s -n 1002 -a \"i/0/$public_index_ip/$port\" --multi-socket=on -p $passcode\n",argv[0]);
+        
 
 }
 

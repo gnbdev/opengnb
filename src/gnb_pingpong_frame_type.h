@@ -28,18 +28,14 @@ typedef struct _node_ping_frame_t {
     struct __attribute__((__packed__)) ping_frame_data {
       gnb_uuid_t src_uuid64;   //发送方的uuid64
       gnb_uuid_t dst_uuid64;   //接收方的uuid64
-      uint64_t src_ts_usec;  //发送方的时间戳
-
+      uint64_t src_ts_usec;    //发送方的时间戳
       /*让 dst 看到自己的 ip 地址，暂时还没启用*/
       uint8_t  dst_addr4[4];
       uint16_t dst_port4;
       uint8_t  dst_addr6[16];
       uint16_t dst_port6;
-
       unsigned char crypto_seed[64];
-
       unsigned char attachment[128+64];
-
       unsigned char text[32];
     }data;
 

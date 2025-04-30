@@ -23,9 +23,10 @@
 #include "gnb_pf.h"
 #include "gnb_payload16.h"
 #include "gnb_unified_forwarding.h"
-
+#include "gnb_binary.h"
 
 void gnb_send_ur0_frame(gnb_core_t *gnb_core, gnb_node_t *dst_node, gnb_payload16_t *payload);
+
 
 gnb_node_t* gnb_query_route4(gnb_core_t *gnb_core, uint32_t dst_ip_int){
 
@@ -92,27 +93,29 @@ finish:
 
 #define GNB_PF_INET_FRAME_INIT      15
 #define GNB_PF_INET_FRAME_ERROR     16
-#define GNB_PF_INET_FRAME_DROP      17
-#define GNB_PF_INET_FRAME_NEXT      18
-#define GNB_PF_INET_FRAME_FINISH    19
+#define GNB_PF_INET_FRAME_NOROUTE   17
+#define GNB_PF_INET_FRAME_DROP      18
+#define GNB_PF_INET_FRAME_NEXT      19
+#define GNB_PF_INET_FRAME_FINISH    20
 
 
-#define GNB_PF_INET_ROUTE_INIT      20
-#define GNB_PF_INET_ROUTE_ERROR     21
-#define GNB_PF_INET_ROUTE_DROP      22
-#define GNB_PF_INET_ROUTE_NEXT      23
-#define GNB_PF_INET_ROUTE_FINISH    24
+#define GNB_PF_INET_ROUTE_INIT      21
+#define GNB_PF_INET_ROUTE_ERROR     22
+#define GNB_PF_INET_ROUTE_DROP      23
+#define GNB_PF_INET_ROUTE_NOROUTE   24
 
-#define GNB_PF_INET_FORWARD_INIT    25
-#define GNB_PF_INET_FORWARD_ERROR   26
-#define GNB_PF_INET_FORWARD_DROP    27
-#define GNB_PF_INET_FORWARD_NEXT    28
-#define GNB_PF_INET_FORWARD_FINISH  29
-#define GNB_PF_INET_FORWARD_TO_TUN  30
-#define GNB_PF_INET_FORWARD_TO_INET 31
+#define GNB_PF_INET_ROUTE_NEXT      25
+#define GNB_PF_INET_ROUTE_FINISH    26
 
-static char* gnb_pf_status_strings[32];
+#define GNB_PF_INET_FORWARD_INIT    27
+#define GNB_PF_INET_FORWARD_ERROR   28
+#define GNB_PF_INET_FORWARD_DROP    29
+#define GNB_PF_INET_FORWARD_NEXT    30
+#define GNB_PF_INET_FORWARD_FINISH  31
+#define GNB_PF_INET_FORWARD_TO_TUN  32
+#define GNB_PF_INET_FORWARD_TO_INET 33
 
+static char* gnb_pf_status_strings[34];
 
 void gnb_pf_status_strings_init() {
 
@@ -136,6 +139,7 @@ void gnb_pf_status_strings_init() {
 
     gnb_pf_status_strings[GNB_PF_INET_FRAME_INIT]      = "INET_FRAME_INIT";
     gnb_pf_status_strings[GNB_PF_INET_FRAME_ERROR]     = "INET_FRAME_ERROR";
+    gnb_pf_status_strings[GNB_PF_INET_FRAME_NOROUTE]   = "INET_FRAME_NOROUTE";
     gnb_pf_status_strings[GNB_PF_INET_FRAME_DROP]      = "INET_FRAME_DROP";
     gnb_pf_status_strings[GNB_PF_INET_FRAME_NEXT]      = "INET_FRAME_NEXT";
     gnb_pf_status_strings[GNB_PF_INET_FRAME_FINISH]    = "INET_FRAME_FINISH";
@@ -143,6 +147,8 @@ void gnb_pf_status_strings_init() {
     gnb_pf_status_strings[GNB_PF_INET_ROUTE_INIT]      = "INET_ROUTE_INIT";
     gnb_pf_status_strings[GNB_PF_INET_ROUTE_ERROR]     = "INET_ROUTE_ERROR";
     gnb_pf_status_strings[GNB_PF_INET_ROUTE_DROP]      = "INET_ROUTE_DROP";
+    gnb_pf_status_strings[GNB_PF_INET_ROUTE_NOROUTE]   = "INET_ROUTE_NOROUTE";
+
     gnb_pf_status_strings[GNB_PF_INET_ROUTE_NEXT]      = "INET_ROUTE_NEXT";
     gnb_pf_status_strings[GNB_PF_INET_ROUTE_FINISH]    = "INET_ROUTE_FINISH";
 
@@ -156,7 +162,28 @@ void gnb_pf_status_strings_init() {
 }
 
 
-gnb_pf_array_t * gnb_pf_array_init(gnb_heap_t *heap, int size){
+static gnb_pf_t* find_pf_in_array(gnb_pf_array_t *pf_array, const char *pf_name)  {
+    
+    int i;
+
+    for ( i=0; i<pf_array->num; i++ ) {
+
+        if ( NULL==pf_array->pf[i] ) {
+            break;
+        }
+
+        if ( 0 == strncmp(pf_array->pf[i]->name, pf_name, 128) ) {
+            return pf_array->pf[i];
+        }        
+
+    }
+
+    return NULL;
+
+}
+
+
+static gnb_pf_array_t* gnb_pf_array_init(gnb_heap_t *heap, int size){
 
     gnb_pf_array_t *pf_array;
 
@@ -165,6 +192,135 @@ gnb_pf_array_t * gnb_pf_array_init(gnb_heap_t *heap, int size){
     pf_array->num = 0;
 
     return pf_array;
+
+}
+
+
+gnb_pf_core_t* gnb_pf_core_init(gnb_heap_t *heap, int size){
+    
+    gnb_pf_core_t *pf_core;
+
+    pf_core = gnb_heap_alloc(heap, sizeof(gnb_pf_core_t));
+
+    pf_core->pf_install_array    = gnb_pf_array_init(heap, size);
+
+    pf_core->pf_tun_frame_array  = gnb_pf_array_init(heap, size);
+    pf_core->pf_tun_route_array  = gnb_pf_array_init(heap, size);
+    pf_core->pf_tun_fwd_array    = gnb_pf_array_init(heap, size);
+
+    pf_core->pf_inet_frame_array = gnb_pf_array_init(heap, size);
+    pf_core->pf_inet_route_array = gnb_pf_array_init(heap, size);
+    pf_core->pf_inet_fwd_array   = gnb_pf_array_init(heap, size);
+
+    return pf_core;
+
+}
+
+
+void gnb_pf_core_release(gnb_core_t *gnb_core, gnb_pf_core_t *pf_core) {
+
+    int i;
+
+    for ( i=0; i<pf_core->pf_install_array->num; i++ ) {
+
+        if ( NULL==pf_core->pf_install_array->pf[i]->pf_release ) {
+            continue;
+        }
+
+        pf_core->pf_install_array->pf[i]->pf_release(gnb_core, pf_core->pf_install_array->pf[i]);
+
+    }
+
+}
+
+
+void gnb_pf_core_conf(gnb_core_t *gnb_core, gnb_pf_core_t *pf_core){
+
+    gnb_pf_array_t *pf_array;
+
+    pf_array = pf_core->pf_install_array;
+
+    gnb_pf_t *pf_dump;
+    gnb_pf_t *pf_route;
+    gnb_pf_t *pf_zip;
+    gnb_pf_t *pf_crypto;    
+
+    pf_dump   = find_pf_in_array(pf_array, "gnb_pf_dump");
+    pf_route  = find_pf_in_array(pf_array, gnb_core->conf->pf_route);
+
+
+
+    pf_zip    = find_pf_in_array(pf_array, "gnb_pf_zip");
+    pf_crypto = find_pf_in_array(pf_array, "gnb_pf_crypto_xor");
+
+    if ( NULL == pf_crypto ) {
+        pf_crypto = find_pf_in_array(pf_array, "gnb_pf_crypto_arc4");
+    }
+
+    int idx;
+
+    //pf_tun
+    //pf_tun_frame             gnb_pf_dump -> gnb_pf_route
+    idx = 0;    
+    if ( NULL != pf_dump ) {
+        pf_core->pf_tun_frame_array->pf[idx++] = pf_dump;
+    }
+    pf_core->pf_tun_frame_array->pf[idx++] = pf_route;
+    pf_core->pf_tun_frame_array->num = idx;
+
+
+    //pf_tun_route            gnb_pf_route[+] ->   gnb_pf_zip -> gnb_pf_crypto(p2p)
+    idx = 0;
+    pf_core->pf_tun_route_array->pf[idx++] = pf_route;
+    if ( NULL != pf_zip) {
+        pf_core->pf_tun_route_array->pf[idx++] = pf_zip;
+    }
+    if ( NULL != pf_crypto ) {
+        pf_core->pf_tun_route_array->pf[idx++] = pf_crypto; //p2p
+    }
+    pf_core->pf_tun_route_array->num = idx;
+
+
+    //pf_tun_fwd      gnb_pf_crypto(relay)
+    idx = 0;
+    if ( NULL != pf_crypto ) {
+        pf_core->pf_tun_fwd_array->pf[idx++] = pf_crypto; //relay
+    }
+    pf_core->pf_tun_fwd_array->num = idx;
+
+
+    //pf_inet
+    //pf_inet_frame   gnb_pf_crypto(relay) -> gnb_pf_route
+    idx = 0;
+    if ( NULL != pf_crypto ) {
+        pf_core->pf_inet_frame_array->pf[idx++] = pf_crypto; //relay
+    }    
+    pf_core->pf_inet_frame_array->pf[idx++] = pf_route;
+    pf_core->pf_inet_frame_array->num = idx;
+
+    //pf_inet_route    gnb_pf_route -> gnb_pf_crypto(p2p) -> gnb_pf_zip
+    idx = 0;
+    pf_core->pf_inet_route_array->pf[idx++] = pf_route;
+    if ( NULL != pf_crypto ) {
+        pf_core->pf_inet_route_array->pf[idx++] = pf_crypto; //p2p
+    }
+    if ( NULL != pf_zip ) {
+        pf_core->pf_inet_route_array->pf[idx++] = pf_zip;
+    }
+    pf_core->pf_inet_route_array->num   = idx;
+
+    //pf_inet_fwd              gnb_pf_dump -> gnb_pf_route -> gnb_pf_crypto(relay)
+    idx = 0;
+    if ( NULL != pf_dump ) {
+        pf_core->pf_inet_fwd_array->pf[idx++] = pf_dump;
+    }    
+    pf_core->pf_inet_fwd_array->pf[idx++] = pf_route;
+    if ( NULL != pf_crypto ) {
+        pf_core->pf_inet_fwd_array->pf[idx++] = pf_crypto; //relay
+    }
+    pf_core->pf_inet_fwd_array->num = idx;
+
+    return;
 
 }
 
@@ -219,12 +375,17 @@ void gnb_pf_conf(gnb_core_t *gnb_core, gnb_pf_array_t *pf_array){
 /*
 把输入的 payload 加上offset，这样pf模块处理的时候，就可以在offset之前填充pf的头部，减少一次通过 memcpy 重组payload
 */
-void gnb_pf_tun(gnb_core_t *gnb_core, gnb_pf_array_t *pf_array, gnb_payload16_t *payload){
+void gnb_pf_tun(gnb_core_t *gnb_core, gnb_pf_core_t *pf_core, gnb_payload16_t *payload){
 
     int i;
     int ret;
 
     gnb_pf_ctx_t pf_ctx_st;
+
+    gnb_pf_array_t *pf_tun_frame_array = pf_core->pf_tun_frame_array;
+    gnb_pf_array_t *pf_tun_route_array = pf_core->pf_tun_route_array;
+    gnb_pf_array_t *pf_tun_fwd_array   = pf_core->pf_tun_fwd_array;
+
 
     memset(&pf_ctx_st,0,sizeof(gnb_pf_ctx_t));
 
@@ -249,64 +410,82 @@ void gnb_pf_tun(gnb_core_t *gnb_core, gnb_pf_array_t *pf_array, gnb_payload16_t 
         GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "----- GNB PF TUN BEGIN -----\n");
     }
 
-    for ( i=0; i<pf_array->num; i++ ) {
+    for ( i=0; i<pf_tun_frame_array->num; i++ ) {
 
-        if ( NULL==pf_array->pf[i]->pf_tun_frame ) {
+        if ( NULL==pf_tun_frame_array->pf[i]->pf_tun_frame ) {
             continue;
         }
 
-        pf_ctx_st.pf_status = pf_array->pf[i]->pf_tun_frame(gnb_core, pf_array->pf[i], &pf_ctx_st);
+        pf_ctx_st.pf_status = pf_tun_frame_array->pf[i]->pf_tun_frame(gnb_core, pf_tun_frame_array->pf[i], &pf_ctx_st);
 
-        if ( GNB_PF_ERROR == pf_ctx_st.pf_status ) {
-            pf_tun_frame_status = GNB_PF_TUN_FRAME_ERROR;
-            goto pf_tun_finish;
+        switch (pf_ctx_st.pf_status) {
+
+            case GNB_PF_ERROR:
+                pf_tun_frame_status = GNB_PF_TUN_FRAME_ERROR;
+                break;
+            case GNB_PF_DROP:
+                pf_tun_frame_status = GNB_PF_TUN_FRAME_DROP;
+                break;
+            case GNB_PF_NEXT:
+                pf_tun_frame_status = GNB_PF_TUN_FRAME_NEXT;
+                break;
+            case GNB_PF_FINISH:
+                pf_tun_frame_status = GNB_PF_TUN_FRAME_FINISH;
+                break;
+            default:
+                break;
+
         }
 
-        if ( GNB_PF_DROP == pf_ctx_st.pf_status ) {
-            pf_tun_frame_status = GNB_PF_TUN_FRAME_DROP;
-            goto pf_tun_finish;
-        }
-
-        if ( GNB_PF_NEXT == pf_ctx_st.pf_status ) {
-            pf_tun_frame_status = GNB_PF_TUN_FRAME_NEXT;
-        }
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, ">>> tun payload pf_tun_frame:[%s] => %s\n", pf_tun_frame_array->pf[i]->name, gnb_pf_status_strings[pf_tun_frame_status]);
 
         if ( GNB_PF_FINISH == pf_ctx_st.pf_status ) {
-            pf_tun_frame_status = GNB_PF_TUN_FRAME_FINISH;
             break;
         }
+
+        if ( GNB_PF_ERROR == pf_ctx_st.pf_status || GNB_PF_DROP == pf_ctx_st.pf_status ) {
+            goto pf_tun_finish;
+        }        
 
     }
 
     pf_ctx_st.pf_status = GNB_PF_TUN_ROUTE_INIT;
 
-    for ( i=0; i<pf_array->num; i++ ) {
+    for ( i=0; i<pf_tun_route_array->num; i++ ) {
 
-        if ( NULL == pf_array->pf[i]->pf_tun_route ) {
+        if ( NULL == pf_tun_route_array->pf[i]->pf_tun_route ) {
             continue;
         }
 
-        pf_ctx_st.pf_status = pf_array->pf[i]->pf_tun_route(gnb_core, pf_array->pf[i], &pf_ctx_st);
+        pf_ctx_st.pf_status = pf_tun_route_array->pf[i]->pf_tun_route(gnb_core, pf_tun_route_array->pf[i], &pf_ctx_st);
+
+        switch (pf_ctx_st.pf_status) {
+
+            case GNB_PF_ERROR:
+                pf_tun_route_status = GNB_PF_TUN_ROUTE_ERROR;
+                break;
+            case GNB_PF_NOROUTE:
+                pf_tun_route_status = GNB_PF_TUN_ROUTE_NOROUTE;
+                break;
+            case GNB_PF_DROP:
+                pf_tun_route_status = GNB_PF_TUN_ROUTE_DROP;
+                break;
+            case GNB_PF_NEXT:
+                pf_tun_route_status = GNB_PF_TUN_ROUTE_NEXT;
+                break;
+            default:
+                break;
+
+        }
+
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, ">>> tun payload pf_tun_route:[%s] %s\n", pf_tun_route_array->pf[i]->name, gnb_pf_status_strings[pf_tun_route_status]);
 
         if ( GNB_PF_ERROR == pf_ctx_st.pf_status ) {
-            pf_tun_route_status = GNB_PF_TUN_ROUTE_ERROR;
             goto pf_tun_finish;
         }
 
-        if ( GNB_PF_NOROUTE == pf_ctx_st.pf_status ) {
-            pf_tun_route_status = GNB_PF_TUN_ROUTE_NOROUTE;
-        }
-
-        if ( GNB_PF_DROP == pf_ctx_st.pf_status ) {
-            pf_tun_route_status = GNB_PF_TUN_ROUTE_DROP;
-        }
-
-        if ( GNB_PF_NEXT == pf_ctx_st.pf_status ) {
-            pf_tun_route_status = GNB_PF_TUN_ROUTE_NEXT;
-        }
-
+        
     }
-
 
     /*
      * 一般的,forwarding 的优先级是 relay_forwarding > unified_forwarding > direct_forwarding > std_forwarding
@@ -318,6 +497,7 @@ void gnb_pf_tun(gnb_core_t *gnb_core, gnb_pf_array_t *pf_array, gnb_payload16_t 
 
 
     if ( GNB_UNIFIED_FORWARDING_OFF == gnb_core->conf->unified_forwarding ) {
+
         goto skip_unified_forwarding;
     }
 
@@ -353,7 +533,6 @@ void gnb_pf_tun(gnb_core_t *gnb_core, gnb_pf_array_t *pf_array, gnb_payload16_t 
 
     }
 
-
     if ( GNB_UNIFIED_FORWARDING_SUPER == gnb_core->conf->unified_forwarding || GNB_UNIFIED_FORWARDING_HYPER == gnb_core->conf->unified_forwarding ) {
 
         GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "Unified Forwarding Multi-Path src=%llu dst=%llu\n", pf_ctx_st.src_uuid64, pf_ctx_st.dst_uuid64);
@@ -381,32 +560,50 @@ pf_tun_fwd:
 
     pf_ctx_st.pf_status = GNB_PF_TUN_FORWARD_INIT;
 
-    for ( i=pf_array->num-1; i>=0; i-- ) {
+    for ( i=0; i < pf_tun_fwd_array->num;  i++ ) {
 
-        if ( NULL==pf_array->pf[i]->pf_tun_fwd ) {
+        if ( NULL==pf_tun_fwd_array->pf[i]->pf_tun_fwd ) {
             continue;
         }
 
-        pf_ctx_st.pf_status = pf_array->pf[i]->pf_tun_fwd(gnb_core, pf_array->pf[i], &pf_ctx_st);
+        pf_ctx_st.pf_status = pf_tun_fwd_array->pf[i]->pf_tun_fwd(gnb_core, pf_tun_fwd_array->pf[i], &pf_ctx_st);
+
+        switch (pf_ctx_st.pf_status) {
+
+            case GNB_PF_ERROR:
+                pf_tun_forward_status = GNB_PF_TUN_FORWARD_ERROR;
+                break;
+            case GNB_PF_NEXT:
+                pf_tun_forward_status = GNB_PF_TUN_FORWARD_NEXT;
+                break;
+            case GNB_PF_FINISH:
+                pf_tun_forward_status = GNB_PF_TUN_FORWARD_FINISH;
+                break;
+            default:
+                break;
+
+        }
+
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, ">>> tun payload pf_tun_fwd:[%s] %s\n", pf_tun_fwd_array->pf[i]->name, gnb_pf_status_strings[pf_tun_forward_status]);
 
         if ( GNB_PF_ERROR == pf_ctx_st.pf_status ) {
-            pf_tun_forward_status = GNB_PF_TUN_FORWARD_ERROR;
             goto pf_tun_finish;
         }
 
-        if ( GNB_PF_NEXT == pf_ctx_st.pf_status ) {
-            pf_tun_forward_status = GNB_PF_TUN_FORWARD_NEXT;
-        }
-
         if ( GNB_PF_FINISH == pf_ctx_st.pf_status ) {
-            pf_tun_forward_status = GNB_PF_TUN_FORWARD_FINISH;
             break;
         }
 
     }
 
 
-    gnb_forward_payload_to_node(gnb_core, pf_ctx_st.fwd_node, pf_ctx_st.fwd_payload);
+    gnb_p2p_forward_payload_to_node(gnb_core, pf_ctx_st.fwd_node, pf_ctx_st.fwd_payload);
+
+
+    if ( 1 == gnb_core->conf->if_dump ) {
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "payload frome TUN to INET node=%llu [%s]\n", pf_ctx_st.fwd_node->uuid64, GNB_HEX2_BYTE256((void *)pf_ctx_st.fwd_payload) );
+    }
+
 
     pf_ctx_st.fwd_node->in_bytes     += pf_ctx_st.ip_frame_size;
     gnb_core->local_node->out_bytes  += pf_ctx_st.ip_frame_size;
@@ -451,9 +648,14 @@ finish:
 }
 
 
-void gnb_pf_inet(gnb_core_t *gnb_core, gnb_pf_array_t *pf_array, gnb_payload16_t *payload, gnb_sockaddress_t *source_node_addr){
+void gnb_pf_inet(gnb_core_t *gnb_core, gnb_pf_core_t *pf_core, gnb_payload16_t *payload, gnb_sockaddress_t *source_node_addr){
 
     gnb_pf_ctx_t pf_ctx_st;
+
+    gnb_pf_array_t *pf_inet_frame_array = pf_core->pf_inet_frame_array;
+    gnb_pf_array_t *pf_inet_route_array = pf_core->pf_inet_route_array;
+    gnb_pf_array_t *pf_inet_fwd_array   = pf_core->pf_inet_fwd_array;
+
 
     memset(&pf_ctx_st,0,sizeof(gnb_pf_ctx_t));
 
@@ -502,93 +704,129 @@ void gnb_pf_inet(gnb_core_t *gnb_core, gnb_pf_array_t *pf_array, gnb_payload16_t
     }
 
 
-    for ( i=pf_array->num-1; i>=0; i-- ) {
+    for ( i=0; i<pf_inet_frame_array->num; i++ ) {
 
-        if ( NULL == pf_array->pf[i]->pf_inet_frame ) {
+        if ( NULL == pf_inet_frame_array->pf[i]->pf_inet_frame ) {
             continue;
         }
 
-        pf_ctx_st.pf_status = pf_array->pf[i]->pf_inet_frame(gnb_core, pf_array->pf[i], &pf_ctx_st);
 
-        if ( GNB_PF_ERROR == pf_ctx_st.pf_status ) {
-            pf_inet_frame_status = GNB_PF_INET_FRAME_ERROR;
-            goto pf_inet_finish;
+        pf_ctx_st.pf_status = pf_inet_frame_array->pf[i]->pf_inet_frame(gnb_core, pf_inet_frame_array->pf[i], &pf_ctx_st);
+
+        switch (pf_ctx_st.pf_status) {
+
+            case GNB_PF_NOROUTE:
+                pf_inet_frame_status = GNB_PF_INET_FRAME_NOROUTE;
+                break;
+            case GNB_PF_ERROR:
+                pf_inet_frame_status = GNB_PF_INET_FRAME_ERROR;
+                break;
+            case GNB_PF_DROP:
+                pf_inet_frame_status = GNB_PF_INET_FRAME_DROP;
+                break;
+            case GNB_PF_FINISH:
+                pf_inet_frame_status = GNB_PF_INET_FRAME_FINISH;
+                break;
+
+            default:
+                break;
+
         }
 
-        if ( GNB_PF_DROP == pf_ctx_st.pf_status ) {
-            pf_inet_frame_status = GNB_PF_INET_FRAME_DROP;
-            goto pf_inet_finish;
-        }
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "<<< inet payload pf_inet_frame:[%s] %s\n", pf_inet_frame_array->pf[i]->name, gnb_pf_status_strings[pf_inet_frame_status]);
 
-        if ( GNB_PF_NEXT == pf_ctx_st.pf_status ) {
-            pf_inet_frame_status = GNB_PF_INET_FRAME_NEXT;
+        if ( GNB_PF_ERROR == pf_ctx_st.pf_status || GNB_PF_DROP == pf_ctx_st.pf_status ) {
+            goto pf_inet_finish;
         }
 
         if ( GNB_PF_FINISH == pf_ctx_st.pf_status ) {
-            pf_inet_frame_status = GNB_PF_INET_FRAME_FINISH;
             break;
         }
 
     }
 
 
-    for ( i=0; i<pf_array->num; i++ ) {
+    for ( i=0; i<pf_inet_route_array->num; i++ ) {
 
-        if ( NULL == pf_array->pf[i]->pf_inet_route ) {
+        if ( NULL == pf_inet_route_array->pf[i]->pf_inet_route ) {
             continue;
         }
 
-        pf_ctx_st.pf_status = pf_array->pf[i]->pf_inet_route(gnb_core, pf_array->pf[i], &pf_ctx_st);
+        pf_ctx_st.pf_status = pf_inet_route_array->pf[i]->pf_inet_route(gnb_core, pf_inet_route_array->pf[i], &pf_ctx_st);
 
-        if ( GNB_PF_ERROR == pf_ctx_st.pf_status ) {
-            pf_inet_route_status = GNB_PF_INET_ROUTE_ERROR;
+        switch (pf_ctx_st.pf_status) {
+
+            case GNB_PF_ERROR:
+                pf_inet_route_status = GNB_PF_INET_ROUTE_ERROR;
+                break;
+            case GNB_PF_DROP:
+                pf_inet_route_status = GNB_PF_INET_ROUTE_DROP;
+                break;
+            case GNB_PF_NOROUTE:
+                pf_inet_route_status = GNB_PF_INET_ROUTE_NOROUTE;
+                break;
+            case GNB_PF_NEXT:
+                pf_inet_route_status = GNB_PF_INET_ROUTE_NEXT;
+                break;
+            case GNB_PF_FINISH:
+                pf_inet_route_status = GNB_PF_INET_ROUTE_FINISH;
+                break;
+            default:
+                break;
+
+        }
+
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "<<< inet payload pf_inet_route:[%s] %s\n", pf_inet_route_array->pf[i]->name, gnb_pf_status_strings[pf_inet_route_status]);
+
+        if ( GNB_PF_ERROR == pf_ctx_st.pf_status || GNB_PF_DROP == pf_ctx_st.pf_status || GNB_PF_NOROUTE == pf_ctx_st.pf_status ) {
             goto pf_inet_finish;
         }
-
-        if ( GNB_PF_DROP == pf_ctx_st.pf_status ) {
-            pf_inet_route_status = GNB_PF_INET_ROUTE_DROP;
-            goto pf_inet_finish;
-        }
-
-        if ( GNB_PF_NEXT == pf_ctx_st.pf_status ) {
-            pf_inet_route_status = GNB_PF_INET_ROUTE_NEXT;
-        }
-
 
         if ( GNB_PF_FINISH == pf_ctx_st.pf_status ) {
-            pf_inet_route_status = GNB_PF_INET_ROUTE_FINISH;
             break;
         }
 
     }
 
 
-    for ( i=0; i<pf_array->num; i++ ) {
 
-        if ( NULL == pf_array->pf[i]->pf_inet_fwd ) {
+    for ( i=0; i<pf_inet_fwd_array->num; i++ ) {
+
+        if ( NULL == pf_inet_fwd_array->pf[i]->pf_inet_fwd ) {
             continue;
         }
 
-        pf_ctx_st.pf_status = pf_array->pf[i]->pf_inet_fwd(gnb_core, pf_array->pf[i], &pf_ctx_st);
+        pf_ctx_st.pf_status = pf_inet_fwd_array->pf[i]->pf_inet_fwd(gnb_core, pf_inet_fwd_array->pf[i], &pf_ctx_st);
 
-        if ( GNB_PF_ERROR == pf_ctx_st.pf_status ) {
-            pf_inet_forwad_status = GNB_PF_INET_FORWARD_ERROR;
+        switch (pf_ctx_st.pf_status) {
+
+            case GNB_PF_ERROR:
+                pf_inet_forwad_status = GNB_PF_INET_FORWARD_ERROR;
+                break;
+            case GNB_PF_DROP:
+                pf_inet_forwad_status = GNB_PF_INET_FORWARD_DROP;
+                break;
+            case GNB_PF_NEXT:
+                pf_inet_forwad_status = GNB_PF_INET_FORWARD_NEXT;
+                break;
+            case GNB_PF_FINISH:
+                pf_inet_forwad_status = GNB_PF_INET_FORWARD_FINISH;
+                break;
+            default:
+                break;
+
+        }
+
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "<<< inet payload pf_inet_fwd:[%s] %s\n", pf_inet_fwd_array->pf[i]->name, gnb_pf_status_strings[pf_inet_forwad_status]);
+
+        if ( GNB_PF_ERROR == pf_ctx_st.pf_status || GNB_PF_DROP == pf_ctx_st.pf_status ) {
             goto pf_inet_finish;
         }
 
-        if ( GNB_PF_DROP == pf_ctx_st.pf_status ) {
-            pf_inet_forwad_status = GNB_PF_INET_FORWARD_DROP;
-            goto pf_inet_finish;
-        }
-
-        if ( GNB_PF_NEXT == pf_ctx_st.pf_status ) {
-            pf_inet_forwad_status = GNB_PF_INET_FORWARD_NEXT;
-        }
-
-        if ( GNB_PF_FINISH == pf_ctx_st.pf_status ) {
-            pf_inet_forwad_status = GNB_PF_INET_FORWARD_FINISH;
+        if ( GNB_PF_FINISH == pf_ctx_st.pf_status ) {            
             break;
         }
+
 
     }
 
@@ -601,6 +839,11 @@ void gnb_pf_inet(gnb_core_t *gnb_core, gnb_pf_array_t *pf_array, gnb_payload16_t
     if ( gnb_core->conf->activate_tun && GNB_PF_FWD_TUN == pf_ctx_st.pf_fwd ) {
 
         gnb_core->drv->write_tun(gnb_core, pf_ctx_st.ip_frame, pf_ctx_st.ip_frame_size);
+
+        if ( 1 == gnb_core->conf->if_dump ) {
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "payload frome INET to TUN src node=%llu [%s]\n", pf_ctx_st.src_node->uuid64, GNB_HEX2_BYTE256((void *)pf_ctx_st.fwd_payload) );
+        }
+
 
         fwd_uuid64 = pf_ctx_st.dst_uuid64;
 
@@ -617,7 +860,11 @@ void gnb_pf_inet(gnb_core_t *gnb_core, gnb_pf_array_t *pf_array, gnb_payload16_t
 
     if ( GNB_PF_FWD_INET == pf_ctx_st.pf_fwd && NULL != pf_ctx_st.fwd_node && NULL != pf_ctx_st.fwd_payload ) {
 
-        gnb_forward_payload_to_node(gnb_core, pf_ctx_st.fwd_node, pf_ctx_st.fwd_payload);
+        gnb_p2p_forward_payload_to_node(gnb_core, pf_ctx_st.fwd_node, pf_ctx_st.fwd_payload);
+
+        if ( 1 == gnb_core->conf->if_dump ) {
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "payload frome INET to INET dst node=%llu [%s]\n", pf_ctx_st.fwd_node->uuid64, GNB_HEX2_BYTE256((void *)pf_ctx_st.fwd_payload) );
+        }
 
         pf_inet_forwad_status = GNB_PF_INET_FORWARD_TO_INET;
 
@@ -642,22 +889,5 @@ pf_inet_finish:
     }
 
     return;
-
-}
-
-
-void gnb_pf_release(gnb_core_t *gnb_core, gnb_pf_array_t *pf_array){
-
-    int i;
-
-    for ( i=0; i<pf_array->num; i++ ) {
-
-        if ( NULL==pf_array->pf[i]->pf_release ) {
-            continue;
-        }
-
-        pf_array->pf[i]->pf_release(gnb_core, pf_array->pf[i]);
-
-    }
 
 }

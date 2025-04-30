@@ -166,8 +166,9 @@ void gnb_build_crypto_key(gnb_core_t *gnb_core, gnb_node_t *node){
     }
 
     memcpy(buffer+32,node->shared_secret,32);
-
     memcpy(buffer+64, gnb_core->conf->crypto_passcode, 4);
+
+    memcpy(node->pre_crypto_key,node->crypto_key, 64);
 
     sha512(buffer, 64+4, node->crypto_key);
 

@@ -156,24 +156,16 @@ static void self_test(){
 
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST zip_level=%d\n", gnb_core->conf->zip_level);
 
-
-    switch (gnb_core->conf->pf_bits) {
-    
-    case GNB_PF_BITS_CRYPTO_XOR:
-        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST crypto xor\n");
-        break;
-    case GNB_PF_BITS_CRYPTO_ARC4:
-        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST crypto arc4\n");
-        break;
-
-    case GNB_PF_BITS_NONE:
+    if ( GNB_PF_BITS_NONE == gnb_core->conf->pf_bits ) {
         GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST crypto none\n");
-        break;
+    }
 
-    default:
-        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST crypto config error\n");
-        break;
+    if ( gnb_core->conf->pf_bits & GNB_PF_BITS_CRYPTO_XOR ) {
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST crypto xor\n");
+    }
 
+    if ( gnb_core->conf->pf_bits & GNB_PF_BITS_CRYPTO_ARC4 ) {
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST crypto arc4\n");
     }
 
     switch (gnb_core->conf->unified_forwarding) {
@@ -201,8 +193,10 @@ static void self_test(){
 
     }
 
-
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST activate tun=%d\n", gnb_core->conf->activate_tun);
+
+    GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST universal relay0 ur0=%d\n", gnb_core->conf->universal_relay0);
+    GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST universal relay1 ur1=%d\n", gnb_core->conf->universal_relay1);
 
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST console_log_level=%d\n", gnb_core->conf->console_log_level);
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST file_log_level=%d\n",    gnb_core->conf->file_log_level);

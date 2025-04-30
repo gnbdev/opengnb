@@ -53,8 +53,9 @@
 #define DETECT_PORT_END   65535
 #define DETECT_PORT_RANGE    25
 
-#define GNB_ADDRESS_DETECT_INTERVAL_USEC       2000
-#define GNB_FULL_DETECT_INTERVAL_SEC            200
+#define GNB_ADDRESS_DETECT_INTERVAL_USEC         5000
+#define GNB_FULL_DETECT_INTERVAL_SEC              367
+
 
 typedef struct _gnb_conf_t {
 
@@ -67,13 +68,9 @@ typedef struct _gnb_conf_t {
 	gnb_uuid_t local_uuid;
 
 	char binary_dir[PATH_MAX];
-
 	char map_file[PATH_MAX+NAME_MAX];
-
 	char pid_file[PATH_MAX+NAME_MAX];
-
 	char node_cache_file[PATH_MAX+NAME_MAX];
-
 	char log_path[PATH_MAX];
 
 	uint8_t console_log_level;
@@ -117,6 +114,7 @@ typedef struct _gnb_conf_t {
     #define  GNB_MEMORY_SCALE_HUGE    (0x4)
     unsigned char memory;
 
+	uint32_t index_service_lru_size;
     uint32_t payload_block_size;
     uint32_t max_heap_fragment;
 
@@ -141,6 +139,7 @@ typedef struct _gnb_conf_t {
 	uint8_t unified_forwarding;
 
 	uint8_t direct_forwarding;
+	uint8_t standard_forwarding;
 
     #define GNB_IF_DRV_TYPE_DEFAULT        0x0
     #define GNB_IF_DRV_TYPE_TAP_WINDOWS    0xA
@@ -156,6 +155,7 @@ typedef struct _gnb_conf_t {
 	uint8_t pf_worker_num;
 
 	uint8_t universal_relay0;
+	uint8_t universal_relay1;
 
 	char listen_address6_string[46 + 2 + 1 + sizeof("65535") + 1];
 	char listen_address4_string[16 + 1 + sizeof("65535") + 1];

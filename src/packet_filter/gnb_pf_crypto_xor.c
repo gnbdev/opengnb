@@ -18,6 +18,7 @@
 #include "gnb.h"
 #include "gnb_payload16.h"
 #include "protocol/network_protocol.h"
+#include "gnb_binary.h"
 
 typedef struct _gnb_pf_private_ctx_t {
 
@@ -33,7 +34,6 @@ static void pf_init_cb(gnb_core_t *gnb_core, gnb_pf_t *pf){
 
     gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t*)gnb_heap_alloc(gnb_core->heap,sizeof(gnb_pf_private_ctx_t));
     pf->private_ctx = ctx;
-
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_PF, "%s init\n", pf->name);
 
 }
@@ -47,6 +47,7 @@ static void pf_conf_cb(gnb_core_t *gnb_core, gnb_pf_t *pf) {
 
 /*
  用dst node 的key 加密 ip frmae
+ for P2P
 */
 static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
 
@@ -78,114 +79,6 @@ static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_
     }
 
     return pf_ctx->pf_status;;
-
-}
-
-
-/*
-  只处理有 GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY 标记的 payload
-  用 relay node 的key 加密 payload
-*/
-static int pf_tun_fwd_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
-
-    if ( !(pf_ctx->fwd_payload->sub_type & GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY) ) {
-        return pf_ctx->pf_status;
-    }
-
-    gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t *)pf->private_ctx;
-
-    ctx->save_time_seed_update_factor = gnb_core->time_seed_update_factor;
-
-    int i;
-    int j = 0;
-
-    unsigned char *p;
-
-    if ( GNB_PF_FWD_INET==pf_ctx->pf_fwd ) {
-
-        p = (unsigned char *)pf_ctx->fwd_payload->data;
-
-        for ( i=0; i < (gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(gnb_uuid_t)); i++ ){
-
-            *p = *p ^ pf_ctx->fwd_node->crypto_key[j];
-
-            p++;
-
-            j++;
-
-            if ( j >= 64 ) {
-                j = 0;
-            }
-
-        }
-
-        goto finish;
-
-    }
-
-finish:
-
-    return pf_ctx->pf_status;;
-
-}
-
-
-/*
- 只处理有 GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY 标记的 payload
- 用上一跳的 relay 节点(src_fwd_nodeb)的密钥为 payload 解密
-*/
-static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
-
-    gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t *)pf->private_ctx;
-
-    ctx->save_time_seed_update_factor = gnb_core->time_seed_update_factor;
-
-    gnb_uuid_t *src_fwd_nodeid_ptr;
-    uint16_t payload_size;
-
-    if ( !(pf_ctx->fwd_payload->sub_type & GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY) ) {
-        return pf_ctx->pf_status;
-    }
-
-    payload_size = gnb_payload16_size(pf_ctx->fwd_payload);
-
-    src_fwd_nodeid_ptr = (gnb_uuid_t *)( (void *)pf_ctx->fwd_payload + payload_size - sizeof(gnb_uuid_t) );
-
-    pf_ctx->src_fwd_uuid64 = gnb_ntohll(*src_fwd_nodeid_ptr);
-
-    pf_ctx->src_fwd_node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, pf_ctx->src_fwd_uuid64);
-
-    if ( NULL==pf_ctx->src_fwd_node ) {
-        pf_ctx->pf_status = GNB_PF_NOROUTE;
-        goto finish;
-    }
-
-    int i;
-    int j = 0;
-
-    unsigned char *p;
-
-    p = (unsigned char *)pf_ctx->fwd_payload->data;
-
-    for ( i=0; i < (gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(gnb_uuid_t)); i++ ) {
-        *p = *p ^ pf_ctx->src_fwd_node->crypto_key[j];
-
-        p++;
-
-        j++;
-
-        if ( j >= 64 ) {
-            j = 0;
-        }
-
-    }
-
-    goto finish;
-
-
-finish:
-
-    return pf_ctx->pf_status;
 
 }
 
@@ -238,7 +131,7 @@ static int pf_inet_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf
 只处理有 GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY 标记的 payload
 payload 发往用下一跳前，用下一跳节点的的密钥加密 payload
 */
-static int pf_inet_fwd_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
+static int pf_chain_relay_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
 
     gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t *)pf->private_ctx;
     ctx->save_time_seed_update_factor = gnb_core->time_seed_update_factor;
@@ -276,9 +169,70 @@ static int pf_inet_fwd_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_c
 
         }
 
-        goto finish;
+        pf_ctx->pf_status = GNB_PF_NEXT;
 
     }
+
+finish:
+
+    return pf_ctx->pf_status;
+
+}
+
+
+/*
+ 只处理有 GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY 标记的 payload
+ 用上一跳的 relay 节点(src_fwd_nodeb)的密钥为 payload 解密
+*/
+static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
+
+    gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t *)pf->private_ctx;
+
+    ctx->save_time_seed_update_factor = gnb_core->time_seed_update_factor;
+
+    uint16_t payload_size;
+
+    if ( !(pf_ctx->fwd_payload->sub_type & GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY) ) {
+        return pf_ctx->pf_status;
+    }
+
+    payload_size = gnb_payload16_size(pf_ctx->fwd_payload);
+
+    gnb_uuid_t src_fwd_nodeid;
+    memcpy(&src_fwd_nodeid, ((void *)pf_ctx->fwd_payload + payload_size - sizeof(gnb_uuid_t)), sizeof(gnb_uuid_t));
+
+    pf_ctx->src_fwd_uuid64 = gnb_ntohll(src_fwd_nodeid);
+
+    pf_ctx->src_fwd_node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, pf_ctx->src_fwd_uuid64);
+
+    if ( NULL==pf_ctx->src_fwd_node ) {
+
+        pf_ctx->pf_status = GNB_PF_NOROUTE;
+        goto finish;
+    }
+
+    int i;
+    int j = 0;
+
+    unsigned char *p;
+
+    p = (unsigned char *)pf_ctx->fwd_payload->data;
+
+    for ( i=0; i < (gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(gnb_uuid_t)); i++ ) {
+        *p = *p ^ pf_ctx->src_fwd_node->crypto_key[j];
+
+        p++;
+
+        j++;
+
+        if ( j >= 64 ) {
+            j = 0;
+        }
+
+    }
+
+    goto finish;
+
 
 finish:
 
@@ -293,15 +247,16 @@ static void pf_release_cb(gnb_core_t *gnb_core, gnb_pf_t *pf){
 
 
 gnb_pf_t gnb_pf_crypto_xor = {
-    "gnb_pf_crypto_xor",
-    NULL,
-    pf_init_cb,
-    pf_conf_cb,
-    NULL,
-    pf_tun_route_cb,
-    pf_tun_fwd_cb,
-    pf_inet_frame_cb,
-    pf_inet_route_cb,
-    pf_inet_fwd_cb,
-    pf_release_cb
+    .name          = "gnb_pf_crypto_xor",
+    .type          = GNB_PF_TYEP_UNSET,
+    .private_ctx   = NULL,
+    .pf_init       = pf_init_cb,
+    .pf_conf       = pf_conf_cb,
+    .pf_tun_frame  = NULL,                  // pf_tun_frame
+    .pf_tun_route  = pf_tun_route_cb,       // pf_tun_route
+    .pf_tun_fwd    = pf_chain_relay_cb,     // pf_tun_fwd     GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY
+    .pf_inet_frame = pf_inet_frame_cb,      // pf_inet_frame  GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY
+    .pf_inet_route = pf_inet_route_cb,      // pf_inet_route
+    .pf_inet_fwd   = pf_chain_relay_cb,     // pf_inet_fwd    GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY
+    .pf_release    = pf_release_cb          // pf_release
 };

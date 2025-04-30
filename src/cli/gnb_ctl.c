@@ -44,7 +44,7 @@ void gnb_ctl_dump_address_list(gnb_ctl_block_t *ctl_block, gnb_uuid_t in_nodeid,
 
 static void show_useage(int argc,char *argv[]){
 
-    printf("GNB Ctl version 1.5.0.a protocol version 1.5.0\n");
+    printf("GNB Ctl version 1.6.0.a protocol version 1.6.0\n");
 
     printf("%s\n", GNB_BUILD_STRING);
 

@@ -35,30 +35,20 @@ typedef struct _gnb_lru32_node_t{
     void *udata;                                      // -> lru payload
 }gnb_lru32_node_t;
 
-
 typedef struct _gnb_lru32_t{
-
     gnb_heap_t *heap;
-
     gnb_doubly_linked_list_t *doubly_linked_list;
-    
     gnb_hash32_map_t *lru_node_map;     //save type: gnb_lru32_node_t
-    
     uint32_t size;
-
     uint32_t max_size;
-
     //lru 可以存数据的指针也可以申请一块内存把数据拷贝到该内存块
     //存入的数据块的大小，如果为0，用同样的key每次set进去都要释放此前为存储数据块申请的内存，
     //如果不等于0，存入数据的时候就使用之前申请好的内存
     uint32_t block_size;
-
     gnb_fixed_pool_t *lru_node_fixed_pool;
     gnb_fixed_pool_t *dl_node_fixed_pool;
-    gnb_fixed_pool_t *udata_fixed_pool;    
-    
+    gnb_fixed_pool_t *udata_fixed_pool;
 }gnb_lru32_t;
-
 
 /*
  如果用 gnb_lru32_set 和 gnb_lru32_store 保存 数据 到 lru， block_size 设为0
@@ -78,7 +68,6 @@ void gnb_lru32_release(gnb_lru32_t *lru);
 void* gnb_lru32_put(gnb_lru32_t *lru, unsigned char *key, uint32_t key_len, void *data);
 #define GNB_LRU32_PUT(lru,key,key_len,data) gnb_lru32_put(lru, (unsigned char *)key, (uint32_t)key_len, data)
 
-
 //传入的 data 会在 lru 内部申请一块内存，拷贝一份，当链表满了需要丢弃tail的节点时，tail节点绑定的这块内存也会被gnb_lru32_set释放
 void gnb_lru32_store(gnb_lru32_t *lru, unsigned char *key, uint32_t key_len, void *data, uint32_t size);
 #define GNB_LRU32_STORE(lru,key,key_len,data,size) gnb_lru32_store(lru, (unsigned char *)key, (uint32_t)key_len, data, (uint32_t)size)
@@ -89,7 +78,6 @@ void gnb_lru32_store(gnb_lru32_t *lru, unsigned char *key, uint32_t key_len, voi
 void gnb_lru32_fixed_store(gnb_lru32_t *lru, unsigned char *key, uint32_t key_len, void *data);
 #define GNB_LRU32_FIXED_STORE(lru,key,key_len,data) gnb_lru32_fixed_store(lru,(unsigned char *)key,(uint32_t)key_len, data)
 
-
 //这个函数不会把命中的节点移到链表首部，需要调用 gnb_lru32_movetohead 实现
 gnb_lru32_node_t* gnb_lru32_hash_get(gnb_lru32_t *lru, unsigned char *key, uint32_t key_len);
 #define GNB_LRU32_HASH_GET(lru,key,key_len)  gnb_lru32_hash_get(lru,key,(uint32_t)key_len);
@@ -98,18 +86,15 @@ gnb_lru32_node_t* gnb_lru32_hash_get(gnb_lru32_t *lru, unsigned char *key, uint3
 gnb_lru32_node_t* gnb_lru32_get(gnb_lru32_t *lru, unsigned char *key, uint32_t key_len);
 #define GNB_LRU32_GET(lru,key,key_len)  gnb_lru32_get(lru,key,(uint32_t)key_len);
 
-
 #define GNB_LRU32_VALUE(b) b!=NULL?b->udata:NULL
 #define GNB_LRU32_HASH_GET_VALUE(lru,key,key_len) GNB_LRU32_VALUE( gnb_lru32_hash_get(lru, (unsigned char *)key, (uint32_t)key_len) )
 #define GNB_LRU32_GET_VALUE(lru,key,key_len) GNB_LRU32_VALUE( gnb_lru32_get(lru, (unsigned char *)key, (uint32_t)key_len) )
 
-
-void gnb_lru32_movetohead(gnb_lru32_t *lru,  unsigned char *key, uint32_t key_len);
+void gnb_lru32_movetohead(gnb_lru32_t *lru, unsigned char *key, uint32_t key_len);
 #define GNB_LRU32_MOVETOHEAD(lru,key,key_len)  gnb_lru32_movetohead(lru, (unsigned char *)key, (uint32_t)key_len)
 
 void* gnb_lru32_pop_by_key(gnb_lru32_t *lru, unsigned char *key, uint32_t key_len);
 #define GNB_LRU32_POP_BY_KEY(lru,key,key_len)  gnb_lru32_pop_by_key(lru,key,(uint32_t)key_len)
-
 
 void* gnb_lru32_pop_head(gnb_lru32_t *lru);
 void* gnb_lru32_pop_tail(gnb_lru32_t *lru);
@@ -119,15 +104,22 @@ void* gnb_lru32_get_tail(gnb_lru32_t *lru);
 
 #define GNB_LRU32_UINT32_PUT(lru,key,data)         gnb_lru32_put(lru, (unsigned char *)(&key), sizeof(uint32_t), data)
 #define GNB_LRU32_UINT32_STORE(lru,key,data,size)  gnb_lru32_store(lru, (unsigned char *)(&key), sizeof(uint32_t), data, (uint32_t)size)
-#define GNB_LRU32_UINT32_FIX_STORE(lru,key,data)   gnb_lru32_fix_store(lru, (unsigned char *)(&key), sizeof(uint32_t), data)
+#define GNB_LRU32_UINT32_FIXED_STORE(lru,key,data) gnb_lru32_fixed_store(lru, (unsigned char *)(&key), sizeof(uint32_t), data)
 #define GNB_LRU32_UINT32_HASH_GET(lru,key)         gnb_lru32_hash_get(lru,(unsigned char *)*&key),sizeof(uint32_t));
 #define GNB_LRU32_UINT32_GET(lru,key)              gnb_lru32_get(lru,(unsigned char *)(&key),sizeof(uint32_t));
-
 #define GNB_LRU32_UINT32_POP_BY_KEY(lru,key)       gnb_lru32_pop_by_key(lru, (unsigned char *)(&key), sizeof(uint32_t))
 #define GNB_LRU32_UINT32_MOVETOHEAD(lru,key)       gnb_lru32_movetohead(lru, (unsigned char *)(&key), sizeof(uint32_t))
+#define GNB_LRU32_UINT32_HASH_GET_VALUE(lru,key)   GNB_LRU32_VALUE( gnb_lru32_hash_get(lru, (unsigned char *)(&key), sizeof(uint32_t)) )
+#define GNB_LRU32_UINT32_GET_VALUE(lru,key)        GNB_LRU32_VALUE( gnb_lru32_get(lru, (unsigned char *)(&key), sizeof(uint32_t)) )
 
-#define GNB_LRU32_UINT32_HASH_GET_VALUE(lru,key)  GNB_LRU32_VALUE( gnb_lru32_hash_get(lru, (unsigned char *)(&key), sizeof(uint32_t)) )
-#define GNB_LRU32_UINT32_GET_VALUE(lru,key)       GNB_LRU32_VALUE( gnb_lru32_get(lru, (unsigned char *)(&key), sizeof(uint32_t)) )
-
+#define GNB_LRU32_UINT64_PUT(lru,key,data)         gnb_lru32_put(lru, (unsigned char *)(&key), sizeof(uint64_t), data)
+#define GNB_LRU32_UINT64_STORE(lru,key,data,size)  gnb_lru32_store(lru, (unsigned char *)(&key), sizeof(uint64_t), data, (uint32_t)size)
+#define GNB_LRU32_UINT64_FIXED_STORE(lru,key,data) gnb_lru32_fixed_store(lru, (unsigned char *)(&key), sizeof(uint64_t), data)
+#define GNB_LRU32_UINT64_HASH_GET(lru,key)         gnb_lru32_hash_get(lru,(unsigned char *)*&key),sizeof(uint64_t));
+#define GNB_LRU32_UINT64_GET(lru,key)              gnb_lru32_get(lru,(unsigned char *)(&key),sizeof(uint64_t));
+#define GNB_LRU32_UINT64_POP_BY_KEY(lru,key)       gnb_lru32_pop_by_key(lru, (unsigned char *)(&key), sizeof(uint64_t))
+#define GNB_LRU32_UINT64_MOVETOHEAD(lru,key)       gnb_lru32_movetohead(lru, (unsigned char *)(&key), sizeof(uint64_t))
+#define GNB_LRU32_UINT64_HASH_GET_VALUE(lru,key)   GNB_LRU32_VALUE( gnb_lru32_hash_get(lru, (unsigned char *)(&key), sizeof(uint64_t)) )
+#define GNB_LRU32_UINT64_GET_VALUE(lru,key)        GNB_LRU32_VALUE( gnb_lru32_get(lru, (unsigned char *)(&key), sizeof(uint64_t)) )
 
 #endif

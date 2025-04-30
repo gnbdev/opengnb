@@ -56,7 +56,7 @@ typedef struct _post_addr_frame_t {
 		unsigned char arg3;              //保留
 
 		unsigned char src_key512[64];    //发送节点的key
-		gnb_uuid_t src_uuid64;             //发送方的uuid64,可选
+		gnb_uuid_t src_uuid64;           //发送方的uuid64,可选
 		uint64_t src_ts_usec;            //发送方的时间戳,可选
 
 		//源节点对自身探测的wan地址
@@ -80,6 +80,7 @@ typedef struct _post_addr_frame_t {
 	}data;
 
 	unsigned char src_sign[ED25519_SIGN_SIZE];
+    gnb_uuid_t  node_uuid64;
 
 }__attribute__ ((__packed__)) post_addr_frame_t;
 
@@ -139,6 +140,7 @@ typedef struct _request_addr_frame_t {
 	}data;
 
 	unsigned char src_sign[ED25519_SIGN_SIZE];
+    gnb_uuid_t  node_uuid64;
 
 }__attribute__ ((__packed__)) request_addr_frame_t;
 
@@ -207,8 +209,8 @@ typedef struct _detect_addr_frame_t {
 		unsigned char arg3;              //保留
 
 		unsigned char src_key512[64];    //发送节点的key
-		gnb_uuid_t src_uuid64;             //发送方的uuid64,可选
-		gnb_uuid_t dst_uuid64;             //目的方的uuid64,可选
+		gnb_uuid_t src_uuid64;           //发送方的uuid64,可选
+		gnb_uuid_t dst_uuid64;           //目的方的uuid64,可选
 
 		uint64_t src_ts_usec;            //发送方的时间戳
 
@@ -219,6 +221,7 @@ typedef struct _detect_addr_frame_t {
 	}data;
 
 	unsigned char src_sign[ED25519_SIGN_SIZE];
+    gnb_uuid_t  node_uuid64;
 
 }__attribute__ ((__packed__)) detect_addr_frame_t;
 

@@ -19,24 +19,26 @@
 #define GNB_UR1_FRAME_TYPE_H
 
 #include "stdint.h"
+#include "gnb_type.h"
 #include "gnb_core_frame_type_defs.h"
 
 #pragma pack(push, 1)
 
 typedef struct _gnb_ur1_frame_head_t{
 
-	gnb_uuid_t dst_uuid64;     //网络字节序
+	gnb_uuid_t src_uuid64;       //由第一个转发的node设置,应用构造时设置为0, 网络字节序
+	gnb_uuid_t dst_uuid64;       //由应用构造时设置,网络字节序
 
-	uint8_t  relay_addr_type;
-	uint8_t  relay_addr[16];
-	uint16_t relay_in_port;    //网络字节序
-	uint16_t relay_out_port;   //网络字节序 //废弃
+	uint8_t  src_addr[16];       //src_addr,src_port 由转发的node设置
+	uint16_t src_port;           //网络字节序
 
-	uint8_t  dst_addr_type;
-	uint8_t  dst_addr[16];
-	uint16_t dst_port;       //网络字节序
+	uint8_t  dst_addr[16];       //由应用构造时设置
+	uint16_t dst_port;           //网络字节序
 
 	unsigned char passcode[4];
+	unsigned char verifycode[4];  //由第一个转发的node设置
+
+	uint8_t ttl;                  //由第一个转发的node设置为2, 应用构造时设置为0,
 
 }__attribute__ ((__packed__)) gnb_ur1_frame_head_t;
 

@@ -36,9 +36,9 @@
 #include "gnb_worker.h"
 #include "gnb_time.h"
 #include "gnb_binary.h"
-#include "ed25519/ed25519.h"
 #include "gnb_index_frame_type.h"
-
+#include "ed25519/ed25519.h"
+#include "crypto/xor/xor.h"
 
 typedef struct _detect_worker_ctx_t{
 
@@ -58,7 +58,7 @@ typedef struct _detect_worker_ctx_t{
 
 #define GNB_DETECT_PUSH_ADDRESS_INTERVAL_SEC   145
 
-static void detect_node_address(gnb_worker_t *gnb_detect_worker, gnb_node_t *node){
+static void detect_node_address(gnb_worker_t *gnb_detect_worker, gnb_node_t *node, uint32_t interval_usec){
 
     detect_worker_ctx_t *detect_worker_ctx = gnb_detect_worker->ctx;
 
@@ -69,6 +69,8 @@ static void detect_node_address(gnb_worker_t *gnb_detect_worker, gnb_node_t *nod
     if ( 0 == node->detect_port4 ) {
         return;
     }
+
+    gnb_node_t *dst_node;
 
     memcpy(&address_st.m_address4, &node->detect_addr4, 4);
     address_st.port = htons(node->detect_port4);
@@ -93,11 +95,25 @@ static void detect_node_address(gnb_worker_t *gnb_detect_worker, gnb_node_t *nod
     //debug_text
     snprintf(detect_addr_frame->data.text,32,"[%llu]FULL_DETECT[%llu]", gnb_core->local_node->uuid64, node->uuid64);
 
-    ed25519_sign(detect_addr_frame->src_sign, (const unsigned char *)&detect_addr_frame->data, sizeof(struct detect_addr_frame_data), gnb_core->ed25519_public_key, gnb_core->ed25519_private_key);
+    if ( 1 == gnb_core->conf->safe_index && 0 == gnb_core->conf->lite_mode ) {
+
+        dst_node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, node->uuid64);
+
+        if ( NULL==dst_node ) {
+            GNB_LOG3(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "SEND DETECT ADDR dst=%llu nodeid not found!\n", node->uuid64);
+            return;
+        }
+
+        xor_crypto(dst_node->crypto_key, (unsigned char *)&detect_addr_frame->data, sizeof(struct detect_addr_frame_data));
+        ed25519_sign(detect_addr_frame->src_sign, (const unsigned char *)&detect_addr_frame->data, sizeof(struct detect_addr_frame_data), gnb_core->ed25519_public_key, gnb_core->ed25519_private_key);
+
+    }
+
+    detect_addr_frame->node_uuid64 = gnb_htonll(gnb_core->local_node->uuid64);
 
     address_st.port = htons(node->detect_port4);
 
-    gnb_send_to_address_through_all_sockets(gnb_core, &address_st, detect_worker_ctx->index_frame_payload);
+    gnb_send_to_address_through_all_sockets(gnb_core, &address_st, detect_worker_ctx->index_frame_payload, interval_usec);
 
     detect_worker_ctx->is_send_detect = 1;
 
@@ -201,7 +217,6 @@ static void detect_loop(gnb_worker_t *gnb_detect_worker){
 
         full_detect_time_difference = detect_worker_ctx->now_time_sec - node->last_full_detect_sec;
         if ( full_detect_time_difference < gnb_core->conf->full_detect_interval_sec ) {
-
             GNB_LOG5(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "Skip Detect [%llu]->[%llu] status=%d full_detect_time_difference(%"PRIu64") < full_detect_interval_sec(%"PRIu64") last_full_detect_sec=%"PRIu64"\n", 
                      gnb_core->local_node->uuid64, node->uuid64, node->udp_addr_status, full_detect_time_difference, gnb_core->conf->full_detect_interval_sec, node->last_full_detect_sec);
 
@@ -224,7 +239,7 @@ static void detect_loop(gnb_worker_t *gnb_detect_worker){
             GNB_LOG3(gnb_core->log, GNB_LOG_ID_DETECT_WORKER, "#START FULL DECETE node[%llu] idx[%d]\n", node->uuid64, node->detect_address4_idx);
         }
 
-        detect_node_address(gnb_detect_worker, node);
+        detect_node_address(gnb_detect_worker, node, gnb_core->conf->address_detect_interval_usec);
 
         if ( gnb_core->conf->port_detect_end == node->detect_port4 ) {
             node->last_full_detect_sec = detect_worker_ctx->now_time_sec;
@@ -282,11 +297,11 @@ static void* thread_worker_func( void *data ) {
 static void init(gnb_worker_t *gnb_worker, void *ctx){
 
     gnb_core_t *gnb_core = (gnb_core_t *)ctx;
-
+	
     detect_worker_ctx_t *detect_worker_ctx =  (detect_worker_ctx_t *)gnb_heap_alloc(gnb_core->heap, sizeof(detect_worker_ctx_t));
     memset(detect_worker_ctx, 0, sizeof(detect_worker_ctx_t));
 
-    detect_worker_ctx->index_frame_payload =  gnb_payload16_init(0,GNB_MAX_PAYLOAD_SIZE);
+	detect_worker_ctx->index_frame_payload = (gnb_payload16_t *)gnb_heap_alloc(gnb_core->heap, gnb_core->conf->payload_block_size);
     detect_worker_ctx->index_frame_payload->type = GNB_PAYLOAD_TYPE_INDEX;
     detect_worker_ctx->gnb_core = (gnb_core_t *)ctx;
     gnb_worker->ctx = detect_worker_ctx;

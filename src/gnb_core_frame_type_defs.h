@@ -37,6 +37,7 @@
 #define PAYLOAD_SUB_TYPE_PUSH_ADDR            (0x4)
 #define PAYLOAD_SUB_TYPE_DETECT_ADDR          (0x5)
 
+
 #define GNB_PAYLOAD_TYPE_NODE                 (0x9)
 #define PAYLOAD_SUB_TYPE_PING                 (0x1)
 #define PAYLOAD_SUB_TYPE_PONG                 (0x2)
@@ -44,15 +45,35 @@
 #define PAYLOAD_SUB_TYPE_LAN_PING             (0x4)
 #define PAYLOAD_SUB_TYPE_NODE_UNIFIED_NOTIFY  (0x5)
 
+
 #define GNB_PAYLOAD_TYPE_LAN_DISCOVER         (0x43)
+
 
 #define GNB_PAYLOAD_TYPE_UDPLOG               (0x44)
 #define GNB_ES_PAYLOAD_TYPE_UDPLOG            (0x45)
 
+
 #define GNB_PAYLOAD_TYPE_UR1                  (0x46)
-#define GNB_PAYLOAD_SUB_TYPE_UR1_IPV6         '6'
-#define GNB_PAYLOAD_SUB_TYPE_UR1_IPV4         '4'
+
+#define GNB_PAYLOAD_SUB_TYPE_UR1_UNSET            (0x0)
+
+//IPV6:bit=0,IPV4:bit=1
+#define GNB_PAYLOAD_SUB_TYPE_UR1_SRC_ADDRESS6     (0x0)
+#define GNB_PAYLOAD_SUB_TYPE_UR1_SRC_ADDRESS4     (0x1)
+
+//IPV6:bit=0,IPV4:bit=1
+#define GNB_PAYLOAD_SUB_TYPE_UR1_DST_ADDRESS6     (0x0)
+#define GNB_PAYLOAD_SUB_TYPE_UR1_DST_ADDRESS4     (0x1 << 1)
+
+//不转发header:bit=0,转发header:bit=1
+#define GNB_PAYLOAD_SUB_TYPE_UR1_NOHEADER         (0x0)
+#define GNB_PAYLOAD_SUB_TYPE_UR1_HEADER           (0x1 << 2)
+
+#define GNB_PAYLOAD_SUB_TYPE_UR1_STD              (0x1 << 3)
+#define GNB_PAYLOAD_SUB_TYPE_UR1_UNIFIED          (0x1 << 4)
+
 
 #define ED25519_SIGN_SIZE   64
+
 
 #endif

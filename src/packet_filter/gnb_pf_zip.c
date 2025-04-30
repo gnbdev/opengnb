@@ -18,9 +18,8 @@
 #include "gnb.h"
 #include "gnb_payload16.h"
 #include "protocol/network_protocol.h"
-
 #include "zlib/zlib.h"
-
+#include "gnb_binary.h"
 
 typedef struct _gnb_pf_private_ctx_t {
     
@@ -45,10 +44,8 @@ static void pf_init_cb(gnb_core_t *gnb_core, gnb_pf_t *pf){
 
     gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t*)gnb_heap_alloc(gnb_core->heap,sizeof(gnb_pf_private_ctx_t));
 
-
     ctx->max_deflate_chunk_size = gnb_core->conf->payload_block_size;
     ctx->max_inflate_chunk_size = gnb_core->conf->payload_block_size;
-
 
     if ( 0==gnb_core->conf->pf_worker_num  ) {
         ctx->deflated_payload = (gnb_payload16_t *)gnb_core->ctl_block->core_zone->pf_worker_payload_blocks;
@@ -98,6 +95,8 @@ static void pf_conf_cb(gnb_core_t *gnb_core, gnb_pf_t *pf){
 
 /*
  deflate 压缩 payload
+对 pf_ctx->ip_frame 起 pf_ctx->ip_frame_size 个字节压缩
+对于包含 GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY 标志的 payload 尾部的relay node id 数组需要保留
 */
 static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
 
@@ -105,22 +104,25 @@ static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_
 
     int deflate_chunk_size;
 
-    uint16_t in_payload_data_len;
+    //uint16_t in_payload_data_len;
+    uint16_t frame_header_size;
+    uint16_t frame_tail_size;
 
     if ( 0==gnb_core->conf->zip_level ) {
         return pf_ctx->pf_status;
     }
 
+    frame_header_size = gnb_core->tun_payload_offset;
+
     gnb_pf_private_ctx_t *ctx = pf->private_ctx;
 
     deflateReset(&ctx->deflate_strm);
 
-    in_payload_data_len = gnb_payload16_data_len(pf_ctx->fwd_payload);
+    ctx->deflate_strm.next_in   = pf_ctx->ip_frame;
+    ctx->deflate_strm.avail_in  = pf_ctx->ip_frame_size;
 
-    ctx->deflate_strm.next_in   = pf_ctx->fwd_payload->data;
-    ctx->deflate_strm.avail_in  = in_payload_data_len;
+    ctx->deflate_strm.next_out  = ctx->deflated_payload->data + frame_header_size;
     ctx->deflate_strm.avail_out = gnb_core->conf->payload_block_size;
-    ctx->deflate_strm.next_out  = ctx->deflated_payload->data;
 
     ret = deflate(&ctx->deflate_strm, Z_FINISH);
 
@@ -128,6 +130,8 @@ static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_
         return GNB_PF_ERROR;
     }
 
+
+    // deflate_chunk_size is new ip_frame_size
     deflate_chunk_size = gnb_core->conf->payload_block_size - ctx->deflate_strm.avail_out;
 
     if ( deflate_chunk_size >= gnb_core->conf->payload_block_size ) {
@@ -138,18 +142,42 @@ static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_
         return GNB_PF_ERROR;
     }
 
-    if ( GNB_ZIP_AUTO == gnb_core->conf->zip && deflate_chunk_size >= in_payload_data_len ) {
-        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "Deflate Skip in payload size=%d deflate chunk size=%d\n", in_payload_data_len, deflate_chunk_size);
+    if ( GNB_ZIP_AUTO == gnb_core->conf->zip && deflate_chunk_size >= pf_ctx->ip_frame_size ) {
+        GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "Deflate Skip in payload ip_frame_size=%d deflate chunk size=%d\n", pf_ctx->ip_frame_size, deflate_chunk_size);
         goto skip_deflate;
     }
 
-    GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "Deflate in payload size=%d deflate_chunk_size=%d\n", in_payload_data_len, deflate_chunk_size);
+    GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "Deflate in payload size=%d deflate_chunk_size=%d\n", pf_ctx->ip_frame_size, deflate_chunk_size);
 
     ctx->deflated_payload->type     = pf_ctx->fwd_payload->type;
     ctx->deflated_payload->sub_type = pf_ctx->fwd_payload->sub_type | GNB_PAYLOAD_SUB_TYPE_IPFRAME_ZIP;    
 
+    
+    //拷贝 ip_frame 前的 frame header 数据
+    memcpy(ctx->deflated_payload->data, pf_ctx->fwd_payload->data, gnb_core->tun_payload_offset);
+
+    if ( !(pf_ctx->fwd_payload->sub_type & GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY) ) {
+
+        gnb_payload16_set_data_len(ctx->deflated_payload, frame_header_size + deflate_chunk_size);
+
+    } else {
+
+        //GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY
+        //拷贝 ip_frame 后的数据
+
+        frame_tail_size   = gnb_payload16_data_len(pf_ctx->fwd_payload) - frame_header_size - pf_ctx->ip_frame_size;
+
+        memcpy((ctx->deflated_payload->data + frame_header_size + deflate_chunk_size), (pf_ctx->ip_frame + pf_ctx->ip_frame_size), frame_tail_size);
+        gnb_payload16_set_data_len(ctx->deflated_payload, frame_header_size + deflate_chunk_size + frame_tail_size);
+    
+    }
+
     pf_ctx->fwd_payload = ctx->deflated_payload;
-    gnb_payload16_set_data_len(pf_ctx->fwd_payload, deflate_chunk_size);
+
+    //重新指定 ip_frame 位置 和 ip_frame_size
+    pf_ctx->ip_frame = pf_ctx->fwd_payload->data + frame_header_size;
+    pf_ctx->ip_frame_size = deflate_chunk_size;
+
 
 skip_deflate:
 
@@ -158,17 +186,18 @@ skip_deflate:
 }
 
 
+
 /*
   inflate 解压 payload
 */
-static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
-
+static int pf_inet_route(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
 
     int ret;
 
     int inflate_chunk_size;
 
     uint16_t in_payload_data_len;
+    uint16_t frame_header_size;
 
     if ( 0==gnb_core->conf->zip_level ) {
         return pf_ctx->pf_status;
@@ -178,16 +207,25 @@ static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf
         return pf_ctx->pf_status;
     }
 
+    //目标节点不是本地节点，就不要解压数据
+    if ( pf_ctx->dst_uuid64 != gnb_core->local_node->uuid64 ) {
+        return pf_ctx->pf_status;
+    }
+
+    frame_header_size = gnb_core->tun_payload_offset;
+
     gnb_pf_private_ctx_t *ctx = pf->private_ctx;
 
     inflateReset(&ctx->inflate_strm);
 
     in_payload_data_len = gnb_payload16_data_len(pf_ctx->fwd_payload);
 
-    ctx->inflate_strm.next_in   = pf_ctx->fwd_payload->data;
-    ctx->inflate_strm.avail_in  = in_payload_data_len;
+    ctx->inflate_strm.next_in   = pf_ctx->fwd_payload->data + frame_header_size;
+    ctx->inflate_strm.avail_in  = in_payload_data_len - frame_header_size;
+
+    ctx->inflate_strm.next_out  = ctx->inflate_payload->data + frame_header_size;
     ctx->inflate_strm.avail_out = gnb_core->conf->payload_block_size;
-    ctx->inflate_strm.next_out  = ctx->inflate_payload->data;
+
 
     ret = inflate(&ctx->inflate_strm, Z_FINISH);
 
@@ -202,9 +240,17 @@ static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf
     ctx->inflate_payload->type     = pf_ctx->fwd_payload->type;
     ctx->inflate_payload->sub_type = pf_ctx->fwd_payload->sub_type;
 
+    memcpy(ctx->inflate_payload->data, pf_ctx->fwd_payload->data, frame_header_size);
+
+
     pf_ctx->fwd_payload = ctx->inflate_payload;
 
-    gnb_payload16_set_data_len(pf_ctx->fwd_payload, inflate_chunk_size);
+    //new ip_frame_size
+    pf_ctx->ip_frame_size = inflate_chunk_size;
+    //new payload size
+    gnb_payload16_set_data_len(pf_ctx->fwd_payload, frame_header_size + pf_ctx->ip_frame_size);
+    
+    pf_ctx->ip_frame = pf_ctx->fwd_payload->data + frame_header_size;
 
     return GNB_PF_NEXT;
 
@@ -217,15 +263,16 @@ static void pf_release_cb(gnb_core_t *gnb_core, gnb_pf_t *pf){
 
 
 gnb_pf_t gnb_pf_zip = {
-    "gnb_pf_zip",
-    NULL,
-    pf_init_cb,
-    pf_conf_cb,
-    NULL,
-    pf_tun_route_cb,
-    NULL,
-    pf_inet_frame_cb,
-    NULL,
-    NULL,
-    pf_release_cb
+    .name          = "gnb_pf_zip",
+    .type          = GNB_PF_TYEP_UNSET,
+    .private_ctx   = NULL,
+    .pf_init       = pf_init_cb,
+    .pf_conf       = pf_conf_cb,
+    .pf_tun_frame  = NULL,                  // pf_tun_frame
+    .pf_tun_route  = pf_tun_route_cb,       // pf_tun_route
+    .pf_tun_fwd    = NULL,                  // pf_tun_fwd
+    .pf_inet_frame = NULL,                  // pf_inet_frame
+    .pf_inet_route = pf_inet_route,         // pf_inet_route
+    .pf_inet_fwd   = NULL,                  // pf_inet_fwd
+    .pf_release    = pf_release_cb          // pf_release
 };

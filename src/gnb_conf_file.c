@@ -202,7 +202,6 @@ static void address_file_config(gnb_core_t *gnb_core){
 }
 
 
-
 static void load_node_cache(gnb_core_t *gnb_core){
 
     int ret;
@@ -362,7 +361,7 @@ void local_node_file_config(gnb_conf_t *conf){
 
         if ( !strncmp(line_buffer, "ifname", sizeof("ifname")-1) ) {
 
-            num = sscanf(line_buffer, "%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer, "%32[^ ] %16s", field, value);
 
             if ( 2 != num ) {
                 printf("config ifname error in [%s]\n", node_conf_file);
@@ -518,9 +517,9 @@ void local_node_file_config(gnb_conf_t *conf){
         }
 
 
-        if (!strncmp(line_buffer, "multi-socket", sizeof("multi-socket")-1) ) {
+        if ( !strncmp(line_buffer, "multi-socket", sizeof("multi-socket")-1) ) {
 
-            num = sscanf(line_buffer, "%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer, "%32[^ ] %4s", field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "multi-socket", node_conf_file);
@@ -536,9 +535,26 @@ void local_node_file_config(gnb_conf_t *conf){
         }
 
 
-        if (!strncmp(line_buffer, "direct-forwarding", sizeof("direct-forwarding")-1) ) {
+        if ( !strncmp(line_buffer, "standard-forwarding", sizeof("standard-forwarding")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer,"%32[^ ] %4s", field, value);
+
+            if ( 2 != num ) {
+                printf("config %s error in [%s]\n", "standard-forwarding", node_conf_file);
+                exit(1);
+            }
+
+            if ( !strncmp(value, "on", sizeof("on")-1) ) {
+                conf->standard_forwarding = 1;
+            } else {
+                conf->standard_forwarding = 0;
+            }
+
+        }
+
+        if ( !strncmp(line_buffer, "direct-forwarding", sizeof("direct-forwarding")-1) ) {
+
+            num = sscanf(line_buffer,"%32[^ ] %4s", field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "direct-forwarding", node_conf_file);
@@ -553,8 +569,7 @@ void local_node_file_config(gnb_conf_t *conf){
 
         }
 
-
-        if (!strncmp(line_buffer, "unified-forwarding", sizeof("unified-forwarding")-1) ) {
+        if ( !strncmp(line_buffer, "unified-forwarding", sizeof("unified-forwarding")-1) ) {
 
             num = sscanf(line_buffer,"%32[^ ] %10s", field, value);
 
@@ -580,9 +595,9 @@ void local_node_file_config(gnb_conf_t *conf){
         }
 
 
-        if (!strncmp(line_buffer, "ipv4-only", sizeof("ipv4-only")-1) ) {
+        if ( !strncmp(line_buffer, "ipv4-only", sizeof("ipv4-only")-1) ) {
 
-            num = sscanf(line_buffer, "%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer, "%32[^ ] %4s", field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "ipv4-only", node_conf_file);
@@ -596,9 +611,9 @@ void local_node_file_config(gnb_conf_t *conf){
         }
 
 
-        if (!strncmp(line_buffer, "ipv6-only", sizeof("ipv6-only")-1) ) {
+        if ( !strncmp(line_buffer, "ipv6-only", sizeof("ipv6-only")-1) ) {
 
-            num = sscanf(line_buffer, "%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer, "%32[^ ] %4s", field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "ipv6-only", node_conf_file);
@@ -628,7 +643,7 @@ void local_node_file_config(gnb_conf_t *conf){
 
         if ( !strncmp(line_buffer, "quiet", sizeof("quiet")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer,"%32[^ ] %4s", field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "quiet", node_conf_file);
@@ -646,7 +661,7 @@ void local_node_file_config(gnb_conf_t *conf){
 
         if ( !strncmp(line_buffer, "daemon", sizeof("daemon")-1) ) {
 
-            num = sscanf(line_buffer, "%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer, "%32[^ ] %4s", field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "daemon", node_conf_file);
@@ -676,7 +691,7 @@ void local_node_file_config(gnb_conf_t *conf){
 
         if ( !strncmp(line_buffer, "set-tun", sizeof("set-tun")-1) ) {
 
-            num = sscanf(line_buffer, "%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer, "%32[^ ] %4s", field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "set-tun", node_conf_file);
@@ -694,7 +709,7 @@ void local_node_file_config(gnb_conf_t *conf){
 
         if ( !strncmp(line_buffer, "address-secure", sizeof("address-secure")-1) ) {
 
-            num = sscanf(line_buffer, "%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer, "%32[^ ] %4s", field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "address-secure", node_conf_file);
@@ -714,7 +729,7 @@ void local_node_file_config(gnb_conf_t *conf){
 
         if ( !strncmp(line_buffer, "node-worker", sizeof("node-worker")-1) ) {
 
-            num = sscanf(line_buffer,"%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer,"%32[^ ] %4s", field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "node-worker", node_conf_file);
@@ -732,7 +747,7 @@ void local_node_file_config(gnb_conf_t *conf){
 
         if ( !strncmp(line_buffer, "index-worker", sizeof("index-worker")-1) ) {
 
-            num = sscanf(line_buffer, "%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer, "%32[^ ] %4s", field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "index-worker", node_conf_file);
@@ -750,7 +765,7 @@ void local_node_file_config(gnb_conf_t *conf){
 
         if ( !strncmp(line_buffer, "index-service-worker", sizeof("index-service-worker")-1) ) {
 
-            num = sscanf(line_buffer, "%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer, "%32[^ ] %4s", field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "index-service-worker", node_conf_file);
@@ -767,7 +782,7 @@ void local_node_file_config(gnb_conf_t *conf){
 
         if ( !strncmp(line_buffer, "node-detect-worker", sizeof("node-detect-worker")-1) ) {
 
-            num = sscanf(line_buffer, "%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer, "%32[^ ] %4s", field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "node-detect-worker", node_conf_file);
@@ -801,7 +816,7 @@ void local_node_file_config(gnb_conf_t *conf){
 
         if ( !strncmp(line_buffer, "safe-index", sizeof("safe-index")-1) ) {
 
-            num = sscanf(line_buffer, "%32[^ ] %2s", field, value);
+            num = sscanf(line_buffer, "%32[^ ] %4s", field, value);
 
             if ( 2 != num ) {
                 printf("config %s error in [%s]\n", "safe-index", node_conf_file);
@@ -1130,6 +1145,40 @@ void local_node_file_config(gnb_conf_t *conf){
 
         }
 
+        if ( !strncmp(line_buffer, "ur0", sizeof("ur0")-1) ) {
+
+            num = sscanf(line_buffer, "%32[^ ] %4s", field, value);
+
+            if ( 2 != num ) {
+                printf("config %s error in [%s]\n", "ur0", node_conf_file);
+                exit(1);
+            }
+
+            if ( !strncmp(value, "on", sizeof("on")-1) ) {
+                conf->universal_relay0 = 1;
+            } else {
+                conf->universal_relay0 = 0;
+            }
+
+        }
+
+        if ( !strncmp(line_buffer, "ur1", sizeof("ur1")-1) ) {
+
+            num = sscanf(line_buffer, "%32[^ ] %4s", field, value);
+
+            if ( 2 != num ) {
+                printf("config %s error in [%s]\n", "ur1", node_conf_file);
+                exit(1);
+            }
+
+            if ( !strncmp(value, "on", sizeof("on")-1) ) {
+                conf->universal_relay1 = 1;
+            } else {
+                conf->universal_relay1 = 0;
+            }
+
+        }
+
 
     }while(1);
 
@@ -1155,26 +1204,30 @@ void local_node_file_config(gnb_conf_t *conf){
     switch (conf->memory) {
 
     case GNB_MEMORY_SCALE_TINY:
-        conf->payload_block_size = 1024*4;
+        conf->payload_block_size = 1024*8;
         conf->max_heap_fragment  = 1024*8;
+		conf->index_service_lru_size = 1024*2;
         break;
     case GNB_MEMORY_SCALE_SMALL:
         conf->payload_block_size = 1024*16;
         conf->max_heap_fragment  = 1024*16;
+		conf->index_service_lru_size = 1024*4;
         break;
     case GNB_MEMORY_SCALE_LARGE:
         conf->payload_block_size = 1024*32;
         conf->max_heap_fragment  = 1024*32;
+		conf->index_service_lru_size = 1024*32;
         break;
     case GNB_MEMORY_SCALE_HUGE:
         conf->payload_block_size = 1024*64;
         conf->max_heap_fragment  = 1024*64;
+		conf->index_service_lru_size = 1024*64;
         break;
     default:
-        conf->payload_block_size = 1024*4;
+        conf->payload_block_size = 1024*8;
         conf->max_heap_fragment  = 1024*8;
+		conf->index_service_lru_size = 1024*2;
         break;
-
     }
 
 }
@@ -1501,9 +1554,9 @@ static void load_route_node_config(gnb_core_t *gnb_core){
         ret = gnb_test_field_separator(line_buffer);
 
         if ( GNB_CONF_FIELD_SEPARATOR_TYPE_SLASH == ret ) {
-            num = sscanf(line_buffer,"%llu/%512s]", &uuid64, row2_string);
+            num = sscanf(line_buffer,"%llu/%512s", &uuid64, row2_string);
         } else if ( GNB_CONF_FIELD_SEPARATOR_TYPE_VERTICAL == ret ) {
-            num = sscanf(line_buffer,"%llu|%512s]", &uuid64, row2_string);
+            num = sscanf(line_buffer,"%llu|%512s", &uuid64, row2_string);
         } else {
             num = 0;
         }

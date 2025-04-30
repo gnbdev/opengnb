@@ -37,14 +37,11 @@ gnb_node_t* gnb_query_route4(gnb_core_t *gnb_core, uint32_t dst_ip_int);
 typedef struct _gnb_route_frame_head_t {
 
     unsigned char magic[2];
-
     unsigned char pf_type_bits; //用于加密,压缩标识
-
     uint8_t ttl;
-
     gnb_uuid_t src_uuid64;
-
     gnb_uuid_t dst_uuid64;
+    unsigned char verifycode[4]; // 用于校验解密是否成功,暂未使用
 
 } __attribute__ ((__packed__)) gnb_route_frame_head_t;
 
@@ -71,6 +68,7 @@ static void pf_init_cb(gnb_core_t *gnb_core, gnb_pf_t *pf){
 
 
 static void pf_conf_cb(gnb_core_t *gnb_core, gnb_pf_t *pf){
+
 
 }
 
@@ -172,7 +170,6 @@ static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_
     uint16_t org_payload_size;
     uint16_t new_payload_size;
 
-    gnb_uuid_t *src_fwd_nodeid_ptr;
     gnb_uuid_t *relay_nodeid_ptr;
 
     int relay_nodeid_idx;
@@ -217,7 +214,6 @@ static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_
         ret = GNB_PF_NEXT;
         goto handle_relay;
     }
-
 
     if ( gnb_core->fwdu0_address_ring.address_list->num > 0 && NULL == gnb_core->select_fwd_node ) {
         ret = GNB_PF_NOROUTE;
@@ -267,13 +263,15 @@ handle_relay:
         pf_ctx->dst_node->selected_route_node = 0;
     }
 
-    relay_nodeid_ptr = (gnb_uuid_t *)( pf_ctx->fwd_payload->data + sizeof(gnb_route_frame_head_t) + pf_ctx->ip_frame_size );
-
+    relay_nodeid_ptr = pf_ctx->relay_nodeid_array;
+    
     for ( relay_nodeid_idx=0; relay_nodeid_idx < relay_count; relay_nodeid_idx++ ) {
         relay_nodeid_ptr[ relay_nodeid_idx ] = gnb_htonll( pf_ctx->dst_node->route_node[ pf_ctx->dst_node->selected_route_node ][ relay_nodeid_idx ] );
     }
 
     relay_nodeid_ptr[ relay_nodeid_idx ] = gnb_htonll(gnb_core->local_node->uuid64);
+
+    memcpy((pf_ctx->fwd_payload->data + sizeof(gnb_route_frame_head_t) + pf_ctx->ip_frame_size ), relay_nodeid_ptr,  sizeof(gnb_uuid_t)*(relay_count+1));
 
     org_payload_size = gnb_payload16_size(pf_ctx->fwd_payload);
 
@@ -281,7 +279,7 @@ handle_relay:
 
     new_payload_size = org_payload_size + relay_count*sizeof(gnb_uuid_t) + sizeof(gnb_uuid_t);
 
-    if ( new_payload_size > GNB_MAX_PAYLOAD_SIZE ) {
+    if ( new_payload_size > gnb_core->conf->payload_block_size ) {
         ret = GNB_PF_DROP;
         goto finish_relay;
     }
@@ -321,8 +319,7 @@ handle_relay:
 
 finish_relay:
 
-    if ( 0==pf_ctx->relay_forwarding && 1==pf_ctx->direct_forwarding ) {
-
+    if ( 0==pf_ctx->relay_forwarding ) {
         if ( 0 == pf_ctx->dst_node->last_relay_nodeid ) {
             goto finish;
         }
@@ -339,10 +336,12 @@ finish_relay:
 
         if ( (last_relay_node->udp_addr_status & GNB_NODE_STATUS_IPV6_PONG) || (last_relay_node->udp_addr_status & GNB_NODE_STATUS_IPV4_PONG) ) {
             pf_ctx->fwd_node = last_relay_node;
+            ret = GNB_PF_NEXT;
             GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "pf_tun_route_cb forward through last relay node %llu => %llu => %llu\n", gnb_core->local_node->uuid64, last_relay_node->uuid64, pf_ctx->dst_node->uuid64 );
         }
 
     }
+
 
 finish:
 
@@ -356,16 +355,13 @@ finish:
 static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
 
     int ret = GNB_PF_NEXT;
-
     uint16_t payload_data_size;
-    gnb_uuid_t *pre_src_fwd_nodeid_ptr;
 
-    //gnb_route_ctx_t *ctx = (gnb_route_ctx_t *)GNB_PF_GET_CTX(gnb_core,gnb_pf_route);
+    gnb_uuid_t *relay_nodeid_ptr;
 
     gnb_route_frame_head_t *route_frame_head;
 
     int i;
-    gnb_uuid_t *nodeid_ptr;
 
     if ( NULL == pf_ctx->fwd_payload ) {
         ret = GNB_PF_ERROR;
@@ -378,10 +374,6 @@ static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf
         ret = GNB_PF_ERROR;
         goto finish;
     }
-
-    pre_src_fwd_nodeid_ptr = (gnb_uuid_t *)( pf_ctx->fwd_payload->data + payload_data_size );
-
-    pf_ctx->src_fwd_uuid64 = gnb_ntohll(*pre_src_fwd_nodeid_ptr);
 
     //从payload中得到 route_frame 首地址
     route_frame_head = (gnb_route_frame_head_t *)pf_ctx->fwd_payload->data;
@@ -397,18 +389,10 @@ static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf
 
     pf_ctx->pf_type_bits = &route_frame_head->pf_type_bits;
 
+
     if ( route_frame_head->ttl > GNB_PAYLOAD_MAX_TTL ) {
         ret = GNB_PF_DROP;
         goto finish;
-    }
-
-    //把 ip frame 和 size，保存在ctx中
-    pf_ctx->ip_frame = pf_ctx->fwd_payload->data + sizeof(gnb_route_frame_head_t);
-
-    if ( GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY & pf_ctx->fwd_payload->sub_type ) {
-        pf_ctx->ip_frame_size = gnb_payload16_data_len(pf_ctx->fwd_payload) - sizeof(gnb_route_frame_head_t) - route_frame_head->ttl*sizeof(gnb_uuid_t);
-    } else {
-        pf_ctx->ip_frame_size = gnb_payload16_data_len(pf_ctx->fwd_payload) - sizeof(gnb_route_frame_head_t);
     }
 
     pf_ctx->in_ttl = route_frame_head->ttl;
@@ -421,6 +405,23 @@ static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf
         route_frame_head->ttl = 0;
     }
 
+    //把 ip frame 和 size，保存在ctx中
+    pf_ctx->ip_frame = pf_ctx->fwd_payload->data + sizeof(gnb_route_frame_head_t);
+
+    if ( !(GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY & pf_ctx->fwd_payload->sub_type) ) {
+
+        pf_ctx->ip_frame_size = gnb_payload16_data_len(pf_ctx->fwd_payload) - sizeof(gnb_route_frame_head_t);
+
+    } else {
+
+        // 处理带有 GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY 标志的 payload
+        pf_ctx->ip_frame_size = gnb_payload16_data_len(pf_ctx->fwd_payload) - sizeof(gnb_route_frame_head_t) - pf_ctx->in_ttl*sizeof(gnb_uuid_t);
+        relay_nodeid_ptr = pf_ctx->relay_nodeid_array;
+        memcpy((void *)relay_nodeid_ptr, pf_ctx->fwd_payload->data + sizeof(gnb_route_frame_head_t) + pf_ctx->ip_frame_size, sizeof(gnb_uuid_t) * GNB_MAX_NODE_RELAY);
+        pf_ctx->src_fwd_uuid64 = gnb_ntohll(pf_ctx->relay_nodeid_array[ pf_ctx->in_ttl -1 ]);
+
+    }
+
     ret = GNB_PF_NEXT;
 
 finish:
@@ -429,14 +430,12 @@ finish:
 
         if( GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY & pf_ctx->fwd_payload->sub_type ) {
 
-            nodeid_ptr = (gnb_uuid_t *)(pf_ctx->fwd_payload->data + sizeof(gnb_route_frame_head_t) + pf_ctx->ip_frame_size);
-
             GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "pf_inet_frame_cb src_fwd[%llu] [%llu]>[%llu] in_ttl[%u] ip_frame_size[%u]\n", pf_ctx->src_fwd_uuid64, pf_ctx->src_uuid64, pf_ctx->dst_uuid64, pf_ctx->in_ttl, pf_ctx->ip_frame_size);
 
             for ( i=0; i<pf_ctx->in_ttl; i++ ) {
-                GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "pf_inet_frame_cb [%llu]>[%llu] relay[%llu]\n", pf_ctx->src_uuid64, pf_ctx->dst_uuid64, gnb_ntohll(*nodeid_ptr) );
-                nodeid_ptr++;
+                GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "pf_inet_frame_cb [%llu]>[%llu] relay[%llu]\n", pf_ctx->src_uuid64, pf_ctx->dst_uuid64, gnb_ntohll(pf_ctx->relay_nodeid_array[i]) );
             }
+
 
         } else {
 
@@ -453,8 +452,6 @@ finish:
 
 static int pf_inet_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
 
-    //gnb_route_ctx_t *ctx = (gnb_route_ctx_t *)GNB_PF_GET_CTX(gnb_core,gnb_pf_route);
-
     gnb_route_frame_head_t *route_frame_head;
 
     gnb_payload16_t *payload_in = pf_ctx->fwd_payload;
@@ -464,6 +461,7 @@ static int pf_inet_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf
     int ret = GNB_PF_NEXT;
 
     gnb_uuid_t *src_fwd_nodeid_ptr;
+
     gnb_uuid_t *relay_nodeid_ptr;
     gnb_uuid_t  relay_nodeid;
 
@@ -485,12 +483,12 @@ static int pf_inet_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf
 
     if ( gnb_core->local_node->uuid64 == pf_ctx->dst_uuid64 ) {
 
+        // 如果设置了加密和压缩 此时 ip_frame 还没解密和解压
         pf_ctx->pf_fwd = GNB_PF_FWD_TUN;
         ret = GNB_PF_NEXT;
 
         if ( GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY & pf_ctx->fwd_payload->sub_type ) {
-            src_fwd_nodeid_ptr = (gnb_uuid_t *)(pf_ctx->fwd_payload->data + payload_data_size - sizeof(gnb_uuid_t));
-            pf_ctx->src_node->last_relay_nodeid = gnb_ntohll( *(src_fwd_nodeid_ptr) );
+            pf_ctx->src_node->last_relay_nodeid = gnb_ntohll(pf_ctx->relay_nodeid_array[pf_ctx->in_ttl-1]);
             pf_ctx->src_node->last_relay_node_ts_sec = gnb_core->now_time_sec;
             GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "pf_inet_route_cb GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY src_nodeid=%llu set last_relay_nodeid=%llu\n", pf_ctx->src_node->uuid64, pf_ctx->src_node->last_relay_nodeid);
         } else {
@@ -513,6 +511,12 @@ static int pf_inet_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf
 
 route_default:
 
+    //如果目标节点不是本地就尝试往默认路由发
+    if ( !gnb_core->conf->standard_forwarding ) {
+        ret = GNB_PF_DROP;
+        goto finish;
+    }
+
     pf_ctx->dst_node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, pf_ctx->dst_uuid64);
 
     if ( NULL != pf_ctx->dst_node ) {
@@ -533,18 +537,20 @@ route_default:
 
 route_relay:
 
-    if ( 1 == pf_ctx->in_ttl ) {
+    if ( pf_ctx->in_ttl <= 1 ) {
         //不可能到这里
         ret = GNB_PF_ERROR;
         goto finish;
     }
 
-    src_fwd_nodeid_ptr = (gnb_uuid_t *)(pf_ctx->fwd_payload->data + payload_data_size - sizeof(gnb_uuid_t));
+
+    src_fwd_nodeid_ptr = &pf_ctx->relay_nodeid_array[pf_ctx->in_ttl - 1];
 
     current_nodeid = gnb_ntohll( *(src_fwd_nodeid_ptr-1) );
 
     if ( pf_ctx->in_ttl > 2 ) {
 
+        // 下一个要转发的 node id
         relay_nodeid_ptr = src_fwd_nodeid_ptr-2;
 
         if ( current_nodeid != gnb_core->local_node->uuid64 ) {
@@ -588,12 +594,8 @@ route_relay:
     if ( 1==gnb_core->conf->if_dump ) {
 
         GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "pf_inet_route_cb [%llu]>[%llu] out_ttl[%u] ip_frame_size[%u] route relay node\n", pf_ctx->src_uuid64, pf_ctx->dst_uuid64, route_frame_head->ttl, pf_ctx->ip_frame_size);
-
-        nodeid_ptr = (gnb_uuid_t *)(pf_ctx->fwd_payload->data + sizeof(gnb_route_frame_head_t) + pf_ctx->ip_frame_size);
-
         for ( i=0; i<(pf_ctx->in_ttl-1); i++ ) {
-            GNB_LOG3( gnb_core->log,GNB_LOG_ID_PF, "pf_inet_frame_cb [%llu]>[%llu] in_ttl[%u] relay[%llu]\n", pf_ctx->src_uuid64, pf_ctx->dst_uuid64, pf_ctx->in_ttl, gnb_ntohll(*nodeid_ptr) );
-            nodeid_ptr++;
+            GNB_LOG3( gnb_core->log,GNB_LOG_ID_PF, "pf_inet_route_cb [%llu]>[%llu] in_ttl[%u] relay[%llu]\n", pf_ctx->src_uuid64, pf_ctx->dst_uuid64, pf_ctx->in_ttl, gnb_ntohll(pf_ctx->relay_nodeid_array[i]));
         }
 
     }
@@ -607,6 +609,43 @@ finish:
 
 static int pf_inet_fwd_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
 
+    if ( GNB_PF_FWD_TUN != pf_ctx->pf_fwd ) {
+        return pf_ctx->pf_status;
+    }
+
+    struct iphdr   *ip_frame_head  = (struct iphdr  *)pf_ctx->ip_frame;
+    struct ip6_hdr *ip6_frame_head = (struct ip6_hdr*)pf_ctx->ip_frame;
+
+    uint32_t dst_ip_int;
+    gnb_node_t *dst_node;
+
+    if ( 0x6 == ip_frame_head->version ) {
+
+        ip6_frame_head = (struct ip6_hdr *)(pf_ctx->fwd_payload->data + gnb_core->tun_payload_offset);
+        dst_ip_int = ip6_frame_head->ip6_dst.__in6_u.__u6_addr32[3];
+        pf_ctx->ipproto = ip6_frame_head->ip6_ctlun.ip6_un1.ip6_un1_nxt;
+
+    } else if ( 0x4 == ip_frame_head->version ) {
+
+        dst_ip_int = *((uint32_t *)&ip_frame_head->daddr);
+        pf_ctx->ipproto =ip_frame_head->protocol;
+
+    } else {
+
+        pf_ctx->pf_status = GNB_PF_ERROR;
+        goto finish;
+
+    }
+
+    //根据目的ip地址做检查
+    dst_node = gnb_query_route4(gnb_core,dst_ip_int);
+
+    if ( NULL == dst_node ) {
+        pf_ctx->pf_status = GNB_PF_NOROUTE;
+    }
+
+finish:
+
     return pf_ctx->pf_status;
 
 }
@@ -619,18 +658,16 @@ static void pf_release_cb(gnb_core_t *gnb_core, gnb_pf_t *pf){
 
 
 gnb_pf_t gnb_pf_route = {
-    "gnb_pf_route",
-    NULL,
-    pf_init_cb,
-    pf_conf_cb,
-
-    pf_tun_frame_cb,
-    pf_tun_route_cb,
-    NULL,
-
-    pf_inet_frame_cb,
-    pf_inet_route_cb,
-    NULL,
-
-    pf_release_cb
+    .name          = "gnb_pf_route",
+    .type          = GNB_PF_TYEP_UNSET,
+    .private_ctx   = NULL,
+    .pf_init       = pf_init_cb,
+    .pf_conf       = pf_conf_cb,
+    .pf_tun_frame  = pf_tun_frame_cb,
+    .pf_tun_route  = pf_tun_route_cb,
+    .pf_tun_fwd    = NULL,
+    .pf_inet_frame = pf_inet_frame_cb,
+    .pf_inet_route = pf_inet_route_cb,
+    .pf_inet_fwd   = pf_inet_fwd_cb,
+    .pf_release    = pf_release_cb
 };

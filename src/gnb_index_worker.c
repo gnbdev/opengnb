@@ -32,7 +32,6 @@
 #include <pthread.h>
 #include <unistd.h>
 
-#include "ed25519/ed25519.h"
 
 #include "gnb.h"
 #include "gnb_node.h"
@@ -42,7 +41,7 @@
 #include "gnb_binary.h"
 #include "gnb_worker_queue_data.h"
 #include "gnb_index_frame_type.h"
-
+#include "ed25519/ed25519.h"
 
 typedef struct _index_worker_ctx_t {
 
@@ -142,12 +141,12 @@ static void send_request_addr_frame(gnb_worker_t *gnb_index_worker, gnb_node_t *
         address = gnb_select_index_address(gnb_core, index_worker_ctx->now_time_sec);
 
         if (NULL!=address) {
-            gnb_send_to_address_through_all_sockets(gnb_core, address, index_worker_ctx->index_frame_payload);
+            gnb_send_to_address_through_all_sockets(gnb_core, address, index_worker_ctx->index_frame_payload,1);
         }
 
     } else {
         //向所有index节点发请求
-        gnb_send_address_list_through_all_sockets(gnb_core, gnb_core->index_address_ring.address_list, index_worker_ctx->index_frame_payload);
+        gnb_send_address_list_through_all_sockets(gnb_core, gnb_core->index_address_ring.address_list, index_worker_ctx->index_frame_payload,1);
     }
 
     node->last_request_addr_sec = index_worker_ctx->now_time_sec;
@@ -196,7 +195,7 @@ static void send_detect_addr_frame(gnb_worker_t *gnb_index_worker, gnb_address_t
         ed25519_sign(detect_addr_frame->src_sign, (const unsigned char *)&detect_addr_frame->data, sizeof(struct detect_addr_frame_data), gnb_core->ed25519_public_key, gnb_core->ed25519_private_key);
     }
 
-    gnb_send_to_address_through_all_sockets(gnb_core, &address_st, index_worker_ctx->index_frame_payload);
+    gnb_send_to_address_through_all_sockets(gnb_core, &address_st, index_worker_ctx->index_frame_payload, gnb_core->conf->address_detect_interval_usec);
 
     //以下小范围端口探测，只针对ipv4
     if ( AF_INET != address_st.type ) {
@@ -220,9 +219,7 @@ static void send_detect_addr_frame(gnb_worker_t *gnb_index_worker, gnb_address_t
         }
 
         address_st.port = htons(i);
-
-        gnb_send_to_address_through_all_sockets(gnb_core, &address_st, index_worker_ctx->index_frame_payload);
-        //need delay
+        gnb_send_to_address_through_all_sockets(gnb_core, &address_st, index_worker_ctx->index_frame_payload, 1);
 
     }
 
@@ -233,8 +230,7 @@ static void send_detect_addr_frame(gnb_worker_t *gnb_index_worker, gnb_address_t
         }
 
         address_st.port = htons(i);
-        gnb_send_to_address_through_all_sockets(gnb_core, &address_st, index_worker_ctx->index_frame_payload);
-        //need delay
+        gnb_send_to_address_through_all_sockets(gnb_core, &address_st, index_worker_ctx->index_frame_payload, 1);
 
     }
 
@@ -807,7 +803,7 @@ static void init(gnb_worker_t *gnb_worker, void *ctx){
     index_worker_ctx_t *index_worker_ctx = (index_worker_ctx_t *)gnb_heap_alloc(gnb_core->heap, sizeof(index_worker_ctx_t));
     memset(index_worker_ctx, 0, sizeof(index_worker_ctx_t));
 
-    index_worker_ctx->index_frame_payload = (gnb_payload16_t *)gnb_heap_alloc(gnb_core->heap,GNB_MAX_PAYLOAD_SIZE);
+    index_worker_ctx->index_frame_payload = (gnb_payload16_t *)gnb_heap_alloc(gnb_core->heap, gnb_core->conf->payload_block_size);
     index_worker_ctx->index_frame_payload->type = GNB_PAYLOAD_TYPE_INDEX;
     index_worker_ctx->gnb_core = gnb_core;
 
@@ -817,6 +813,7 @@ static void init(gnb_worker_t *gnb_worker, void *ctx){
     gnb_worker->ring_buffer_out = NULL;
     gnb_worker->ctx = index_worker_ctx;
 
+    GNB_LOG1(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "%s in ring buffer size = %d\n", gnb_worker->name, gnb_core->conf->index_woker_queue_length);
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_INDEX_WORKER, "%s init finish\n", gnb_worker->name);
 
 }

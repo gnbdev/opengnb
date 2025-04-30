@@ -20,9 +20,7 @@
 
 #include <stdint.h>
 #include "gnb_address_type.h"
-
-/* 64 bits node id*/
-typedef unsigned long long int gnb_uuid_t; 
+#include "gnb_type.h"
 
 typedef struct _gnb_unified_forwarding_node_t {
 
@@ -139,7 +137,10 @@ typedef struct _gnb_node_t{
 	unsigned char shared_secret[32];
 
 	//shared_secret 与 gnb_core->time_seed & 运算后再经过 sha512 的摘要信息
-	unsigned char crypto_key[64];
+	unsigned char crypto_key[64];     //当前通信密钥
+	//由于 crypto_key 可以随时间变更,通信密钥在更换瞬间有一定概率会出现用新密钥解密对端发来的数据
+	//保留上一个的旧通信密钥,用于解密旧密钥加密的数据,当前支持 ur1 freame
+	unsigned char pre_crypto_key[64]; //上一个通信密钥
 
 	unsigned char key512[64];
 

@@ -41,8 +41,10 @@
 #include "gnb_keys.h"
 #include "gnb_time.h"
 #include "gnb_udp.h"
+#include "gnb_hash32.h"
 #include "ed25519/ed25519.h"
 #include "ed25519/sha512.h"
+#include "gnb_unified_forwarding.h"
 #include "gnb_binary.h"
 
 
@@ -377,18 +379,18 @@ void gnb_send_available_address_list(gnb_core_t *gnb_core, gnb_address_list_t *a
 }
 
 
-void gnb_send_address_list_through_all_sockets(gnb_core_t *gnb_core, gnb_address_list_t *address_list, gnb_payload16_t *payload){
+void gnb_send_address_list_through_all_sockets(gnb_core_t *gnb_core, gnb_address_list_t *address_list, gnb_payload16_t *payload, uint32_t interval_usec){
 
     int i;
 
     for ( i=0; i<address_list->num; i++ ) {
-         gnb_send_to_address_through_all_sockets(gnb_core, &address_list->array[i], payload);
+         gnb_send_to_address_through_all_sockets(gnb_core, &address_list->array[i], payload, interval_usec);
     }
 
 }
 
 
-void gnb_send_to_address_through_all_sockets(gnb_core_t *gnb_core, gnb_address_t *address, gnb_payload16_t *payload){
+void gnb_send_to_address_through_all_sockets(gnb_core_t *gnb_core, gnb_address_t *address, gnb_payload16_t *payload, uint32_t interval_usec){
 
     struct sockaddr_in  in;
     struct sockaddr_in6 in6;
@@ -410,6 +412,7 @@ void gnb_send_to_address_through_all_sockets(gnb_core_t *gnb_core, gnb_address_t
 
         for (i=0; i<gnb_core->conf->udp6_socket_num; i++) {
             sendto(gnb_core->udp_ipv6_sockets[i], (void *)payload, GNB_PAYLOAD16_FRAME_SIZE(payload), 0, (struct sockaddr *)&in6, sizeof(struct sockaddr_in6) );
+            GNB_SLEEP_MILLISECOND( interval_usec/1000 );
         }
 
     }
@@ -424,6 +427,7 @@ void gnb_send_to_address_through_all_sockets(gnb_core_t *gnb_core, gnb_address_t
 
         for (i=0; i<gnb_core->conf->udp4_socket_num; i++) {
             sendto(gnb_core->udp_ipv4_sockets[i], (void *)payload, GNB_PAYLOAD16_FRAME_SIZE(payload), 0, (struct sockaddr *)&in, sizeof(struct sockaddr_in));
+            GNB_SLEEP_MILLISECOND( interval_usec/1000 );
         }
 
     }
@@ -712,47 +716,12 @@ finish:
 
 }
 
-int gnb_send_to_node_secure(gnb_core_t *gnb_core, gnb_node_t *node, gnb_payload16_t *payload, int secure, unsigned char addr_type_bits){
 
-    if ( GNB_ADDR_TYPE_IPV6 == gnb_core->conf->udp_socket_type ) {
-        goto send_by_ipv6;
-    }
-
-    int i;
-
-    if ( (GNB_ADDR_TYPE_IPV4 & addr_type_bits) && (gnb_core->conf->udp_socket_type & GNB_ADDR_TYPE_IPV4) && INADDR_ANY != node->udp_sockaddr4.sin_addr.s_addr ) {
-
-        for (i=0; i<gnb_core->conf->udp4_socket_num; i++) {
-            sendto(gnb_core->udp_ipv4_sockets[ i ], (void *)payload, GNB_PAYLOAD16_FRAME_SIZE(payload), 0, (struct sockaddr *)&node->udp_sockaddr4, sizeof(struct sockaddr_in));
-        }
-
-    }
-
-    if ( GNB_ADDR_TYPE_IPV4 == gnb_core->conf->udp_socket_type ) {
-        goto finish;
-    }
-
-send_by_ipv6:
-
-    if ( (GNB_ADDR_TYPE_IPV6 & addr_type_bits) && (gnb_core->conf->udp_socket_type & GNB_ADDR_TYPE_IPV6) > 0 && memcmp(&node->udp_sockaddr6.sin6_addr,&in6addr_any,sizeof(struct in6_addr)) ) {
-
-        for (i=0; i<gnb_core->conf->udp6_socket_num; i++) {
-            sendto(gnb_core->udp_ipv6_sockets[i],(void *)payload, GNB_PAYLOAD16_FRAME_SIZE(payload), 0, (struct sockaddr *)&node->udp_sockaddr6, sizeof(struct sockaddr_in6) );
-        }
-
-    }
-
-finish:
-
-    return 0;
-
-}
-
-
-int gnb_forward_payload_to_node(gnb_core_t *gnb_core, gnb_node_t *node, gnb_payload16_t *payload){
+int gnb_p2p_forward_payload_to_node(gnb_core_t *gnb_core, gnb_node_t *node, gnb_payload16_t *payload){
 
     int ret;
 
+    // gnb_core->conf->udp_socket_type 默认是 GNB_ADDR_TYPE_IPV4 | GNB_ADDR_TYPE_IPV6;
     if ( GNB_ADDR_TYPE_IPV4 == gnb_core->conf->udp_socket_type ) {
         goto send_by_ipv4;
     } else if ( GNB_ADDR_TYPE_IPV6 == gnb_core->conf->udp_socket_type ) {
@@ -794,5 +763,197 @@ send_by_ipv4:
 finish:
 
     return 0;
+
+}
+
+
+#define GNB_SEND_BY_UNSET    (0x0)
+#define GNB_SEND_BY_P2P_IPV6 (0x1)
+#define GNB_SEND_BY_P2P_IPV4 (0x2)
+#define GNB_SEND_BY_FWD_IPV6 (0x3)
+#define GNB_SEND_BY_FWD_IPV4 (0x4)
+void gnb_std_uf_forward_payload_to_node(gnb_core_t *gnb_core, gnb_node_t *node, gnb_payload16_t *payload){
+
+    int ret;
+    int send_flag = GNB_SEND_BY_UNSET;
+    gnb_node_t *fwd_node;
+
+    if ( (node->udp_addr_status & GNB_NODE_STATUS_IPV6_PONG) && (node->udp_addr_status & GNB_NODE_STATUS_IPV4_PONG) ) {
+
+        if ( 0 == node->addr4_ping_latency_usec ) {
+            send_flag = GNB_SEND_BY_P2P_IPV6;
+            goto p2p_forwarding;
+        }
+
+        if ( 0 == node->addr6_ping_latency_usec ) {
+            send_flag = GNB_SEND_BY_P2P_IPV4;
+            goto p2p_forwarding;
+        }
+
+        if ( node->addr4_ping_latency_usec >= node->addr6_ping_latency_usec ) {
+            send_flag = GNB_SEND_BY_P2P_IPV6;
+            goto p2p_forwarding;
+        } else {
+            send_flag = GNB_SEND_BY_P2P_IPV4;
+            goto p2p_forwarding;
+        }            
+
+    } else if ( (node->udp_addr_status & GNB_NODE_STATUS_IPV6_PONG) && (GNB_ADDR_TYPE_IPV6 & gnb_core->conf->udp_socket_type) ) {
+        send_flag = GNB_SEND_BY_P2P_IPV6;
+    } else if ( (node->udp_addr_status & GNB_NODE_STATUS_IPV4_PONG) && (GNB_ADDR_TYPE_IPV4 & gnb_core->conf->udp_socket_type) ) {
+        send_flag = GNB_SEND_BY_P2P_IPV4;
+    } else {
+        send_flag = GNB_SEND_BY_UNSET;
+        goto try_to_standard_forwarding;
+    }
+
+p2p_forwarding:
+
+    if ( GNB_SEND_BY_P2P_IPV6 == send_flag ) {
+
+        if ( memcmp(&node->udp_sockaddr6.sin6_addr, &in6addr_any,sizeof(struct in6_addr)) ) {
+            return;
+        }
+
+        sendto(gnb_core->udp_ipv6_sockets[node->socket6_idx],(void *)payload, GNB_PAYLOAD16_FRAME_SIZE(payload), 0, (struct sockaddr *)&node->udp_sockaddr6, sizeof(struct sockaddr_in6) );
+        return;
+
+    } else if ( GNB_SEND_BY_P2P_IPV4 == send_flag ) {
+
+        if ( INADDR_ANY == node->udp_sockaddr4.sin_addr.s_addr ) {
+            return;
+        }
+
+        sendto(gnb_core->udp_ipv4_sockets[node->socket4_idx], (void *)payload, GNB_PAYLOAD16_FRAME_SIZE(payload), 0, (struct sockaddr *)&node->udp_sockaddr4, sizeof(struct sockaddr_in));
+        return;
+
+    }
+
+try_to_standard_forwarding:
+
+    //如果无法 point to point forwarding 就尝试通过 standard forwarding 节点转发
+    fwd_node = gnb_select_forward_node(gnb_core);
+
+    if ( NULL == fwd_node ) {
+        goto try_to_unified_forwarding;
+    }
+
+    if ( (fwd_node->udp_addr_status & GNB_NODE_STATUS_IPV6_PONG) && (fwd_node->udp_addr_status & GNB_NODE_STATUS_IPV4_PONG) ) {
+
+        if ( 0 == fwd_node->addr4_ping_latency_usec ) {
+            send_flag = GNB_SEND_BY_FWD_IPV6;
+            goto standard_forwarding;
+        }
+
+        if ( 0 == fwd_node->addr6_ping_latency_usec ) {
+            send_flag = GNB_SEND_BY_FWD_IPV4;
+            goto standard_forwarding;
+        }
+
+        if ( fwd_node->addr4_ping_latency_usec >= fwd_node->addr6_ping_latency_usec ) {
+            send_flag = GNB_SEND_BY_FWD_IPV6;
+            goto standard_forwarding;
+        } else {
+            send_flag = GNB_SEND_BY_FWD_IPV4;
+            goto standard_forwarding;
+        }            
+
+    } else if ( (fwd_node->udp_addr_status & GNB_NODE_STATUS_IPV6_PONG) && (GNB_ADDR_TYPE_IPV6 & gnb_core->conf->udp_socket_type) ) {
+        send_flag = GNB_SEND_BY_FWD_IPV6;
+    } else if ( (fwd_node->udp_addr_status & GNB_NODE_STATUS_IPV4_PONG) && (GNB_ADDR_TYPE_IPV4 & gnb_core->conf->udp_socket_type) ) {
+        send_flag = GNB_SEND_BY_FWD_IPV4;
+    } else {
+        send_flag = GNB_SEND_BY_UNSET;
+        goto try_to_unified_forwarding;
+    }
+
+standard_forwarding:
+
+    if ( GNB_SEND_BY_FWD_IPV6 == send_flag ) {
+
+        if ( memcmp(&fwd_node->udp_sockaddr6.sin6_addr, &in6addr_any,sizeof(struct in6_addr)) ) {
+            return;
+        }
+
+        sendto(gnb_core->udp_ipv6_sockets[fwd_node->socket6_idx],(void *)payload, GNB_PAYLOAD16_FRAME_SIZE(payload), 0, (struct sockaddr *)&fwd_node->udp_sockaddr6, sizeof(struct sockaddr_in6) );
+        return;
+
+    } else if ( GNB_SEND_BY_FWD_IPV4 == send_flag ) {
+
+        if ( INADDR_ANY == fwd_node->udp_sockaddr4.sin_addr.s_addr ) {
+            return;
+        }
+
+        sendto(gnb_core->udp_ipv4_sockets[fwd_node->socket4_idx], (void *)payload, GNB_PAYLOAD16_FRAME_SIZE(payload), 0, (struct sockaddr *)&fwd_node->udp_sockaddr4, sizeof(struct sockaddr_in));
+        return;
+
+    }
+
+try_to_unified_forwarding:
+    //如果无法 standard forwarding 就尝试通过 unified forwarding 节点转发
+    gnb_setup_unified_forwarding_nodeid(gnb_core, node);
+
+    if ( 0 == node->unified_forwarding_nodeid ) {
+        return;
+    }
+
+    fwd_node = GNB_HASH32_UINT64_GET_PTR(gnb_core->uuid_node_map, node->unified_forwarding_nodeid);
+
+    if ( NULL == fwd_node ) {
+        return;
+    }
+
+    //如果对端的fwd_node 关闭了 std forwarding, payload 转过去后会被 drop 掉
+    if ( (fwd_node->udp_addr_status & GNB_NODE_STATUS_IPV6_PONG) && (fwd_node->udp_addr_status & GNB_NODE_STATUS_IPV4_PONG) ) {
+
+        if ( 0 == fwd_node->addr4_ping_latency_usec ) {
+            send_flag = GNB_SEND_BY_FWD_IPV6;
+            goto unified_forwarding;
+        }
+
+        if ( 0 == fwd_node->addr6_ping_latency_usec ) {
+            send_flag = GNB_SEND_BY_FWD_IPV4;
+            goto unified_forwarding;
+        }
+
+        if ( fwd_node->addr4_ping_latency_usec >= fwd_node->addr6_ping_latency_usec ) {
+            send_flag = GNB_SEND_BY_FWD_IPV6;
+            goto unified_forwarding;
+        } else {
+            send_flag = GNB_SEND_BY_FWD_IPV4;
+            goto unified_forwarding;
+        }            
+
+    } else if ( (fwd_node->udp_addr_status & GNB_NODE_STATUS_IPV6_PONG) && (GNB_ADDR_TYPE_IPV6 & gnb_core->conf->udp_socket_type) ) {
+        send_flag = GNB_SEND_BY_FWD_IPV6;
+    } else if ( (fwd_node->udp_addr_status & GNB_NODE_STATUS_IPV4_PONG) && (GNB_ADDR_TYPE_IPV4 & gnb_core->conf->udp_socket_type) ) {
+        send_flag = GNB_SEND_BY_FWD_IPV4;
+    } else {
+        send_flag = GNB_SEND_BY_UNSET;
+    }
+
+unified_forwarding:
+
+    if ( GNB_SEND_BY_FWD_IPV6 == send_flag ) {
+
+        if ( memcmp(&fwd_node->udp_sockaddr6.sin6_addr,&in6addr_any,sizeof(struct in6_addr)) ) {
+            return;
+        }
+
+        sendto(gnb_core->udp_ipv6_sockets[fwd_node->socket6_idx],(void *)payload, GNB_PAYLOAD16_FRAME_SIZE(payload), 0, (struct sockaddr *)&fwd_node->udp_sockaddr6, sizeof(struct sockaddr_in6) );
+        return;
+
+    } else if ( GNB_SEND_BY_FWD_IPV4 == send_flag ) {
+
+        if ( INADDR_ANY == fwd_node->udp_sockaddr4.sin_addr.s_addr ) {
+            return;
+        }
+
+        sendto(gnb_core->udp_ipv4_sockets[fwd_node->socket4_idx], (void *)payload, GNB_PAYLOAD16_FRAME_SIZE(payload), 0, (struct sockaddr *)&fwd_node->udp_sockaddr4, sizeof(struct sockaddr_in));
+        return;
+
+    }
+
+    return;
 
 }

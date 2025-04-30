@@ -15,33 +15,10 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef GNB_ARG_LIST_H
-#define GNB_ARG_LIST_H
+#ifndef XOR_H
+#define XOR_H
 
-#include <stddef.h>
-
-#define GNB_ARG_STRING_MAX_SIZE 1024*4
-#define GNB_ARG_MAX_SIZE        1024
-
-typedef struct _gnb_arg_list_t {
-    
-    size_t size;
-    
-    int argc;
-    
-    char *argv[0];
-    
-}gnb_arg_list_t;
-
-
-gnb_arg_list_t *gnb_arg_list_init(int size);
-
-void gnb_arg_list_release(gnb_arg_list_t *arg_list);
-
-int gnb_arg_append(gnb_arg_list_t *arg_list,const char *arg);
-
-int gnb_arg_list_to_string(gnb_arg_list_t *arg_list, char *string, size_t string_len);
-
-gnb_arg_list_t *gnb_arg_string_to_list(char *string, int num);
+void xor_crypto(unsigned char *crypto_key, unsigned char *data, unsigned int len);
+void xor_crypto_copy(unsigned char *crypto_key, unsigned char *dest, unsigned char *src, unsigned int len);
 
 #endif

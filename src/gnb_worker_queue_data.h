@@ -53,8 +53,8 @@ typedef struct _gnb_worker_queue_data_t {
 }gnb_worker_queue_data_t;
 
 //这个块不能太大，在嵌入设备上，这里是占用内存的大头
-#define GNB_NODE_WORKER_QUEUE_BLOCK_SIZE          720
-#define GNB_INDEX_WORKER_QUEUE_BLOCK_SIZE         720
-#define GNB_INDEX_SERVICE_WORKER_QUEUE_BLOCK_SIZE 720
+#define GNB_NODE_WORKER_QUEUE_BLOCK_SIZE          512
+#define GNB_INDEX_WORKER_QUEUE_BLOCK_SIZE         512
+#define GNB_INDEX_SERVICE_WORKER_QUEUE_BLOCK_SIZE 512
 
 #endif

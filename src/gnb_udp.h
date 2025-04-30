@@ -19,9 +19,6 @@
 #define GNB_UDP_H
 
 int gnb_bind_udp_socket_ipv4(int socketfd,const char *host, int port);
-
-int gnb_send_udp_ipv4(int socketfd, char *host, int port,void *data, size_t data_size);
-
 int gnb_bind_udp_socket_ipv6(int socketfd,const char *host, int port);
 
 #endif

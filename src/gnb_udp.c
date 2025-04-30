@@ -41,16 +41,11 @@
 
 #include "gnb_udp.h"
 
-
-int gnb_bind_udp_socket_ipv4(int socketfd,const char *host, int port){
-
+int gnb_bind_udp_socket_ipv4(int socketfd,const char *host, int port) {
     struct sockaddr_in svr_addr;
-
     memset(&svr_addr, 0, sizeof(struct sockaddr_in));
-
     svr_addr.sin_family = AF_INET;
     svr_addr.sin_port = htons(port);
-
     if ( NULL != host ) {
         svr_addr.sin_addr.s_addr = inet_addr(host);
     } else {
@@ -64,16 +59,12 @@ int gnb_bind_udp_socket_ipv4(int socketfd,const char *host, int port){
         perror("bind");
         return -1;
     }
-
     return 0;
-
 }
 
 
-int gnb_bind_udp_socket_ipv6(int socketfd,const char *host, int port){
-
+int gnb_bind_udp_socket_ipv6(int socketfd,const char *host, int port) {
     struct sockaddr_in6 svr_addr;
-
     memset(&svr_addr,0, sizeof(struct sockaddr_in6));
 
     svr_addr.sin6_family = AF_INET6;
@@ -86,19 +77,13 @@ int gnb_bind_udp_socket_ipv6(int socketfd,const char *host, int port){
     }
 
     int on;
-
     on = 1;
     setsockopt(socketfd, SOL_SOCKET, SO_REUSEADDR,(const char *)&on, sizeof(on) );
-
     on = 1;
     setsockopt(socketfd, IPPROTO_IPV6, IPV6_V6ONLY,(char *)&on, sizeof(on) );
-
     if ( bind(socketfd, (struct sockaddr *)&svr_addr, sizeof(struct sockaddr_in6))<0 ) {
-        printf("bind host[%s] port[%d]\n",host, port);
         perror("bind");
         return -1;
     }
-
     return 0;
-
 }

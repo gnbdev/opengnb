@@ -361,7 +361,7 @@ static int open_tun_freebsd(gnb_core_t *gnb_core){
 static int read_tun_freebsd(gnb_core_t *gnb_core, void *buf, size_t buf_size){
 
     ssize_t rlen;
-    rlen = read(gnb_core->tun_fd, buf, GNB_MAX_PAYLOAD_SIZE);
+    rlen = read(gnb_core->tun_fd, buf, buf_size);
     return rlen;
 
 }

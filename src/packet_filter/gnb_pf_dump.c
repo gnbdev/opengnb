@@ -115,7 +115,7 @@ static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_
 
 
 static int pf_tun_fwd_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx){
-    return pf_ctx->pf_status;;
+    return pf_ctx->pf_status;
 }
 
 
@@ -148,7 +148,6 @@ static int pf_inet_fwd_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_c
         GNB_LOG3(gnb_core->log,GNB_LOG_ID_PF,"inet dump[%"PRIu64"] [%llu] < [%llu] in:%u\n",seq, pf_ctx->dst_uuid64, pf_ctx->src_uuid64, gnb_payload16_size(pf_ctx->fwd_payload));
         return pf_ctx->pf_status;
     }
-
 
     if ( 0x4 != ip_frame_head->version && 0x6 != ip_frame_head->version ) {
         GNB_LOG3(gnb_core->log,GNB_LOG_ID_PF,"dump pf_inet_fwd_cb 0x4!=ip_frame_head->version 0x6!=ip_frame_head->version version[%x]\n", ip_frame_head->version);
@@ -187,19 +186,20 @@ static int pf_inet_fwd_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_c
 
 static void pf_release_cb(gnb_core_t *gnb_core, gnb_pf_t *pf){
 
-
 }
 
+
 gnb_pf_t gnb_pf_dump = {
-    "gnb_pf_dump",
-    NULL,
-    pf_init_cb,
-    pf_conf_cb,
-    pf_tun_frame_cb,
-    pf_tun_route_cb,
-    pf_tun_fwd_cb,
-    pf_inet_frame_cb,
-    pf_inet_route_cb,
-    pf_inet_fwd_cb,
-    pf_release_cb
+    .name          = "gnb_pf_dump",
+    .type          = GNB_PF_TYEP_UNSET,
+    .private_ctx   = NULL,
+    .pf_init       = pf_init_cb,
+    .pf_conf       = pf_conf_cb,
+    .pf_tun_frame  = pf_tun_frame_cb,
+    .pf_tun_route  = pf_tun_route_cb,
+    .pf_tun_fwd    = pf_tun_fwd_cb,
+    .pf_inet_frame = pf_inet_frame_cb,
+    .pf_inet_route = pf_inet_route_cb,
+    .pf_inet_fwd   = pf_inet_fwd_cb,
+    .pf_release    = pf_release_cb
 };

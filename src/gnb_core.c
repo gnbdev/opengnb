@@ -454,14 +454,48 @@ static void setup_log_ctx(gnb_conf_t *conf, gnb_log_ctx_t *log){
 
 }
 
+void update_node_crypto_key(gnb_core_t *gnb_core, uint64_t now_sec){
+
+    int need_update_time_seed;
+
+    size_t num = gnb_core->ctl_block->node_zone->node_num;
+
+    if ( 0 == num ) {
+        return;
+    }
+
+    need_update_time_seed = gnb_verify_seed_time(gnb_core, now_sec);
+
+    if ( 0 == need_update_time_seed ) {
+        return;
+    }
+
+    gnb_update_time_seed(gnb_core, now_sec);
+
+    int i;
+
+    gnb_node_t *node;
+
+    for ( i=0; i<num; i++ ) {
+
+        node = &gnb_core->ctl_block->node_zone->node[i];
+
+        if ( gnb_core->local_node->uuid64 == node->uuid64 ) {
+            continue;
+        }
+
+        gnb_build_crypto_key(gnb_core, node);
+
+    }
+
+}
+
 
 gnb_core_t* gnb_core_create(gnb_conf_t *conf){
 
     gnb_core_t *gnb_core;
 
-    gnb_heap_t *heap = gnb_heap_create(8192);
-
-    int i;
+    gnb_heap_t *heap = gnb_heap_create(conf->max_heap_fragment);
 
     gnb_core = gnb_heap_alloc(heap, sizeof(gnb_core_t));
     memset(gnb_core, 0, sizeof(gnb_core_t));
@@ -631,7 +665,7 @@ gnb_core_t* gnb_core_create(gnb_conf_t *conf){
 
     if ( gnb_core->conf->activate_index_worker ) {
 
-        if ( 1 == gnb_core->conf->safe_index ) {
+        if ( 1 == gnb_core->conf->safe_index && 0 == gnb_core->conf->lite_mode ) {
             gnb_core->index_worker  = gnb_worker_init("gnb_secure_index_worker", gnb_core);
         } else {
             gnb_core->index_worker  = gnb_worker_init("gnb_index_worker", gnb_core);
@@ -800,6 +834,8 @@ void gnb_core_start(gnb_core_t *gnb_core){
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "Start.....\n");
 
     gnb_setup_env(gnb_core);
+
+    update_node_crypto_key(gnb_core, 1);
 
     if ( gnb_core->conf->activate_tun ) {
 

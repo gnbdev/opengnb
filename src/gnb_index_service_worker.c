@@ -40,7 +40,6 @@
 #include "gnb_time.h"
 #include "gnb_binary.h"
 #include "gnb_worker_queue_data.h"
-#include "ed25519/ed25519.h"
 #include "gnb_index_frame_type.h"
 
 
@@ -358,12 +357,12 @@ static void handle_request_addr_frame(gnb_core_t *gnb_core, gnb_worker_in_data_t
         return;
     }
 
-#if 0
     //一个节点确实可能需要请求很多节点的信息，没设计好之前暂时不做限制
+    #if 0
     if ( (l_key_address->last_send_request_addr_usec - index_service_worker_ctx->now_time_usec) < GNB_REQUEST_ADDR_LIMIT_USEC ) {
         return;
     }
-#endif
+    #endif
 
     l_key_address->last_send_request_addr_usec = index_service_worker_ctx->now_time_usec;
 
@@ -517,10 +516,10 @@ static void init(gnb_worker_t *gnb_worker, void *ctx){
     index_service_worker_ctx_t *index_service_worker_ctx = (index_service_worker_ctx_t *)gnb_heap_alloc(gnb_core->heap, sizeof(index_service_worker_ctx_t));
     memset(index_service_worker_ctx, 0, sizeof(index_service_worker_ctx_t));
     index_service_worker_ctx->gnb_core = gnb_core;
-    //可以改小一点
-    index_service_worker_ctx->index_frame_payload = (gnb_payload16_t *)gnb_heap_alloc(gnb_core->heap,GNB_MAX_PAYLOAD_SIZE);
+
+    index_service_worker_ctx->index_frame_payload = (gnb_payload16_t *)gnb_heap_alloc(gnb_core->heap, gnb_core->conf->payload_block_size);
     index_service_worker_ctx->index_frame_payload->type = GNB_PAYLOAD_TYPE_INDEX;
-    index_service_worker_ctx->lru  = gnb_lru32_create(gnb_core->heap, 4096, sizeof(gnb_key_address_t));
+    index_service_worker_ctx->lru  = gnb_lru32_create(gnb_core->heap, gnb_core->conf->index_service_lru_size, sizeof(gnb_key_address_t));
 
     memory_size = gnb_ring_buffer_fixed_sum_size(GNB_INDEX_SERVICE_WORKER_QUEUE_BLOCK_SIZE, gnb_core->conf->index_service_woker_queue_length);
     memory = gnb_heap_alloc(gnb_core->heap, memory_size);
@@ -528,6 +527,7 @@ static void init(gnb_worker_t *gnb_worker, void *ctx){
     gnb_worker->ring_buffer_out = NULL;
     gnb_worker->ctx = index_service_worker_ctx;
 
+    GNB_LOG1(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "%s in ring buffer size = %d\n", gnb_worker->name, gnb_core->conf->index_service_woker_queue_length);
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_INDEX_SERVICE_WORKER, "%s init finish\n", gnb_worker->name);
 
 }

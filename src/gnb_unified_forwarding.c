@@ -40,7 +40,7 @@ typedef struct _gnb_unified_forwarding_frame_foot_t {
 #pragma pack(pop)
 
 
-static void gnb_setup_unified_forwarding_nodeid(gnb_core_t *gnb_core, gnb_node_t *dst_node){
+void gnb_setup_unified_forwarding_nodeid(gnb_core_t *gnb_core, gnb_node_t *dst_node){
 
     int i;
 
@@ -100,7 +100,7 @@ int gnb_unified_forwarding_tun(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 
     unified_forwarding_frame_foot = ( (void *)payload ) + in_payload_size;
 
-    payload->sub_type = GNB_PAYLOAD_SUB_TYPE_IPFRAME_UNIFIED;
+    payload->sub_type = payload->sub_type | GNB_PAYLOAD_SUB_TYPE_IPFRAME_UNIFIED;
 
     gnb_payload16_set_size( payload, in_payload_size + sizeof(gnb_unified_forwarding_frame_foot_t) );
 
@@ -116,7 +116,7 @@ int gnb_unified_forwarding_tun(gnb_core_t *gnb_core, gnb_pf_ctx_t *pf_ctx){
 
     unified_forwarding_frame_foot->unified_forwarding_seq = gnb_htonll(dst_node->unified_forwarding_send_seq);
 
-    gnb_forward_payload_to_node(gnb_core, unified_forwarding_node, payload);
+    gnb_p2p_forward_payload_to_node(gnb_core, unified_forwarding_node, payload);
     dst_node->unified_forwarding_node_ts_sec = gnb_core->now_time_sec;
 
     GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "*>> Unified Forwarding from tun %llu=>%llu=>%llu seq=%"PRIu64" *>>\n", gnb_core->local_node->uuid64, dst_node->unified_forwarding_nodeid, dst_node->uuid64,  dst_node->unified_forwarding_send_seq);
@@ -145,7 +145,7 @@ int gnb_unified_forwarding_with_multi_path_tun(gnb_core_t *gnb_core, gnb_pf_ctx_
             ret = gnb_unified_forwarding_tun(gnb_core, pf_ctx);
 
             if ( 1 != ret && NULL != pf_ctx->dst_node ) {
-                gnb_forward_payload_to_node(gnb_core, pf_ctx->dst_node, pf_ctx->fwd_payload);
+                gnb_p2p_forward_payload_to_node(gnb_core, pf_ctx->dst_node, pf_ctx->fwd_payload);
             }
 
             return ret;
@@ -160,7 +160,7 @@ int gnb_unified_forwarding_with_multi_path_tun(gnb_core_t *gnb_core, gnb_pf_ctx_
 
     unified_forwarding_frame_foot = ( (void *)payload ) + in_payload_size;
 
-    payload->sub_type = GNB_PAYLOAD_SUB_TYPE_IPFRAME_UNIFIED_MULTI_PATH;
+    payload->sub_type = payload->sub_type | GNB_PAYLOAD_SUB_TYPE_IPFRAME_UNIFIED_MULTI_PATH;
 
     gnb_payload16_set_size( payload, in_payload_size + sizeof(gnb_unified_forwarding_frame_foot_t) );
 
@@ -177,7 +177,7 @@ int gnb_unified_forwarding_with_multi_path_tun(gnb_core_t *gnb_core, gnb_pf_ctx_
 
     if ( NULL != pf_ctx->dst_node ) {
         // 先发送到目的地，然后是 unified forwarding  节点
-        gnb_forward_payload_to_node(gnb_core, pf_ctx->dst_node, payload);
+        gnb_p2p_forward_payload_to_node(gnb_core, pf_ctx->dst_node, payload);
         GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "*>> Unified Forwarding with Multi-Path to tun local %llu=>%llu seq=%"PRIu64" *>>\n", gnb_core->local_node->uuid64, dst_node->uuid64, dst_node->unified_forwarding_send_seq);
 
     }
@@ -196,7 +196,7 @@ int gnb_unified_forwarding_with_multi_path_tun(gnb_core_t *gnb_core, gnb_pf_ctx_
         }
 
         unified_forwarding_frame_foot->unified_forwarding_nodeid = gnb_htonll(dst_node->unified_forwarding_nodeid);
-        gnb_forward_payload_to_node(gnb_core, unified_forwarding_node, payload);
+        gnb_p2p_forward_payload_to_node(gnb_core, unified_forwarding_node, payload);
 
         GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, "*>> Unified Forwarding with Multi-Path to tun %llu=>%llu=>%llu seq=%"PRIu64" *>>\n", gnb_core->local_node->uuid64, dst_node->uuid64, dst_node->unified_forwarding_nodeid, dst_node->unified_forwarding_send_seq);
 
@@ -268,7 +268,7 @@ int gnb_unified_forwarding_inet(gnb_core_t *gnb_core, gnb_payload16_t *payload){
             return UNIFIED_FORWARDING_DROP;
         }
 
-        gnb_forward_payload_to_node(gnb_core, dst_node, payload);
+        gnb_p2p_forward_payload_to_node(gnb_core, dst_node, payload);
 
         GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, ">*> Unified Forwarding to inet %llu=>%llu=>%llu seq=%"PRIu64" >*>\n", src_nodeid, unified_forwarding_nodeid, dst_nodeid, unified_forwarding_seq);
 
@@ -342,7 +342,7 @@ int gnb_unified_forwarding_multi_path_inet(gnb_core_t *gnb_core, gnb_payload16_t
             return UNIFIED_FORWARDING_DROP;
         }
 
-        gnb_forward_payload_to_node(gnb_core, dst_node, payload);
+        gnb_p2p_forward_payload_to_node(gnb_core, dst_node, payload);
 
         GNB_LOG3(gnb_core->log, GNB_LOG_ID_PF, ">*> Unified Forwarding Multi Path %llu=>%llu=>%llu seq=%"PRIu64" frame to inet >*>\n", src_nodeid, unified_forwarding_nodeid, dst_nodeid, unified_forwarding_seq);
 
