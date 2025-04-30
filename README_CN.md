@@ -322,4 +322,4 @@ apt install opengnb
 ---
 [免责声明](docs/disclaimer_cn.md)  
 
-个人和商业可以免费自由使用gnb的源码，但是必须遵循gplv3许可，把使用的gnb源码的项目开源，如果想闭源，需要取得我们的商业授权
+个人和商业可以在遵循gplv3许可下免费自由使用gnb的源码，如果想闭源使用opengnb的源码，需取得开发团队的商业授权.
