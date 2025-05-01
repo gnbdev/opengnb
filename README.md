@@ -1,5 +1,5 @@
 # OpenGNB
-The communication protocol of opengnb version 1.5.0 has been upgraded and is not compatible  
+The communication protocol of opengnb version 1.6.0 has been upgraded and is not compatible  
 [Chinese](/README_CN.md) [English](/README.md)
 
 *Note: Most of the content of this article is translated by Google translate from the Chinese version of the "OpenGNB User Manual", the content of this article is subject to the Chinese version.*

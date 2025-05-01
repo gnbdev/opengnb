@@ -60,9 +60,8 @@ install:${GNB_CLI} ${GNB_CRYPTO} ${GNB_ES} ${GNB_CTL}
 	cp ${GNB_ES}     ./bin/
 
 
-clean:	
+clean:
 	find . -name "*.o" -exec rm -f {} \;
 	rm -f ${GNB_CLI} ${GNB_CRYPTO} ${GNB_ES} ${GNB_CTL}
 	rm -f core core.*
 	rm -f *.exe
-

@@ -1,6 +1,5 @@
 # OpenGNB
-opengnb 1.5.0 版本的通信协议已升级，不向后兼容  
-version 1.3.0.0  protocol version 1.2.0
+opengnb 1.6.0 版本的通信协议已升级，不向后兼容  
 
 [Chinese](/README_CN.md)  [English](/README.md)
 

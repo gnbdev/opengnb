@@ -43,6 +43,7 @@ CRYPTO_OBJS =                                    \
        ./libs/ed25519/verify.o                   \
        ./src/gnb_binary.o                        \
        ./src/crypto/arc4/arc4.o                  \
+       ./src/crypto/xor/xor.o                    \
        ./src/crypto/random/gnb_random.o
 
 
