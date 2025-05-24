@@ -181,7 +181,7 @@ Assuming that host A and host B need to temporarily penetrate the intranet inter
 Execute with **root** on host A
 
 ```
-gnb -n 1001 -I "120.76.206.113/9001" --multi-socket=on -p 12345678
+gnb -n 1001 -I "101.32.178.3/9001" --multi-socket=on -p 12345678
 ```
 
 After the startup is successful, execute ip addr on host A to see the GNB node IP
@@ -202,7 +202,7 @@ After the startup is successful, execute ip addr on host A to see the GNB node I
 Execute with **root** on host B
 
 ```
-gnb -n 1002 -I "120.76.206.113/9001" --multi-socket=on -p 12345678
+gnb -n 1002 -I "101.32.178.3/9001" --multi-socket=on -p 12345678
 ```
 After the startup is successful, execute ip addr on host B to see the GNB node IP
 
