@@ -34,7 +34,7 @@ subgraph LAN A
 nodea[VPN clientA]
 end
 
-subgraph WAN
+subgraph Internet
 nodef[VPN server]
 end
 
@@ -58,7 +58,7 @@ subgraph LAN A
 nodeA[gnb nodeA]
 end
 
-subgraph WAN
+subgraph Internet
 index[gnb public index node]
 end
 
@@ -80,7 +80,7 @@ subgraph LAN A
 nodeA[gnb nodeA]
 end
 
-subgraph WAN
+subgraph Internet
 
 nodeC[nodeC]
 nodeD[nodeD]
@@ -148,7 +148,7 @@ upd_over_tcp_A[upd_over_tcp]
 end
 
 
-subgraph WAN
+subgraph Internet
 upd_over_tcp_B[upd_over_tcp]
 nodeB[gnb nodeB]
 end
