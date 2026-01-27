@@ -42,13 +42,13 @@
 
 #define GNB_LOG_LINE_MAX 1024*4
 
-static void open_log_file(gnb_log_ctx_t *log){
+static void open_log_file(gnb_log_ctx_t *log) {
     log->std_fd   = open(log->log_file_name_std,   O_WRONLY|O_CREAT|O_APPEND, S_IRUSR|S_IWUSR);
     log->debug_fd = open(log->log_file_name_debug, O_WRONLY|O_CREAT|O_APPEND, S_IRUSR|S_IWUSR);
     log->error_fd = open(log->log_file_name_error, O_WRONLY|O_CREAT|O_APPEND, S_IRUSR|S_IWUSR);
 }
 
-static void close_log_file_pre_fd(gnb_log_ctx_t *log){
+static void close_log_file_pre_fd(gnb_log_ctx_t *log) {
     if ( log->pre_std_fd > 0 ) {
         close(log->pre_std_fd);
         log->pre_std_fd = -1;
@@ -63,8 +63,7 @@ static void close_log_file_pre_fd(gnb_log_ctx_t *log){
     }
 }
 
-
-static void log_file_output(gnb_log_ctx_t *log, uint8_t log_type, char *log_string, int log_string_len){
+static void log_file_output(gnb_log_ctx_t *log, uint8_t log_type, char *log_string, int log_string_len) {
     int ret;
     switch (log_type) {
         case GNB_LOG_TYPE_STD:
@@ -81,7 +80,7 @@ static void log_file_output(gnb_log_ctx_t *log, uint8_t log_type, char *log_stri
     }
 }
 
-static void log_console_output(int log_type, char *log_string, int log_string_len){
+static void log_console_output(int log_type, char *log_string, int log_string_len) {
     int rc;
     switch (log_type) {
         case GNB_LOG_TYPE_STD:
@@ -96,7 +95,7 @@ static void log_console_output(int log_type, char *log_string, int log_string_le
     }
 }
 
-static void log_udp_output(gnb_log_ctx_t *log, uint8_t log_type, char *log_string, int log_string_len){
+static void log_udp_output(gnb_log_ctx_t *log, uint8_t log_type, char *log_string, int log_string_len) {
     struct sockaddr_in6 saddr6;
     struct sockaddr_in  saddr4;
     if ( log->socket6_fd > 0 ) {
@@ -115,16 +114,14 @@ static void log_udp_output(gnb_log_ctx_t *log, uint8_t log_type, char *log_strin
     }
 }
 
-static void log_udp_binary_output(gnb_log_ctx_t *log, uint8_t log_type, uint8_t log_id, char *log_string_buffer, int log_string_len){
+static void log_udp_binary_output(gnb_log_ctx_t *log, uint8_t log_type, uint8_t log_id, char *log_string_buffer, int log_string_len) {
     struct sockaddr_in6 saddr6;
     struct sockaddr_in saddr4;
     uint16_t data_size = (uint16_t)log_string_len;
     gnb_payload16_t *gnb_payload16 = (gnb_payload16_t *)log_string_buffer;
     gnb_payload16->type     = log->log_payload_type;
     gnb_payload16->sub_type = log_id;
-
     gnb_payload16_set_data_len(gnb_payload16, data_size);
-
     if ( log->socket6_fd > 0 ) {
         memset(&saddr6,0, sizeof(struct sockaddr_in));
         saddr6.sin6_family = AF_INET6;
@@ -132,7 +129,6 @@ static void log_udp_binary_output(gnb_log_ctx_t *log, uint8_t log_type, uint8_t 
         memcpy(&saddr6.sin6_addr, log->addr6, 16);
         sendto(log->socket6_fd, (void *)gnb_payload16, data_size+4, 0, (struct sockaddr *)&saddr6, sizeof(struct sockaddr_in6));
     }
-
     if ( log->socket4_fd > 0 ) {
         memset(&saddr4,0, sizeof(struct sockaddr_in));
         saddr4.sin_family = AF_INET;
@@ -142,7 +138,7 @@ static void log_udp_binary_output(gnb_log_ctx_t *log, uint8_t log_type, uint8_t 
     }
 }
 
-void gnb_logf(gnb_log_ctx_t *log, uint8_t log_type, uint8_t log_id, uint8_t level, const char *format, ...){
+void gnb_logf(gnb_log_ctx_t *log, uint8_t log_type, uint8_t log_id, uint8_t level, const char *format, ...) {
     char now_time_string[GNB_TIME_STRING_MAX];
     char log_string_buffer[GNB_LOG_LINE_MAX+4];
     char *log_string;
@@ -155,17 +151,14 @@ void gnb_logf(gnb_log_ctx_t *log, uint8_t log_type, uint8_t log_id, uint8_t leve
     gnb_now_timef("%y-%m-%d %H:%M:%S", now_time_string, GNB_TIME_STRING_MAX);
     len = snprintf(p, GNB_LOG_LINE_MAX, "%s %s ", now_time_string, log->config_table[log_id].log_name);
     log_string_len = len;
-
     if ( log_string_len > GNB_LOG_LINE_MAX ) {
         return;
     }
     p += log_string_len;
-
     va_list ap;
     va_start(ap, format);
     len = vsnprintf(p, GNB_LOG_LINE_MAX-log_string_len, format, ap);
     va_end(ap);
-
     log_string_len += len;
     if ( log_string_len > GNB_LOG_LINE_MAX ) {
         return;

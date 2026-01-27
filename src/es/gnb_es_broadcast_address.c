@@ -44,8 +44,7 @@
 #include "gnb_index_frame_type.h"
 
 
-static void send_address_to_node(gnb_es_ctx *es_ctx, gnb_node_t *src_node, gnb_node_t *dst_node){
-
+static void send_address_to_node(gnb_es_ctx *es_ctx, gnb_node_t *src_node, gnb_node_t *dst_node) {
     unsigned char payload_buffer[ PUSH_ADDR_FRAME_PAYLOAD_SIZE ];
     gnb_payload16_t *payload;
     gnb_ctl_block_t  *ctl_block;
@@ -86,12 +85,9 @@ static void send_address_to_node(gnb_es_ctx *es_ctx, gnb_node_t *src_node, gnb_n
     sendto(es_ctx->udp_socket4, (void *)payload, GNB_PAYLOAD16_FRAME_SIZE(payload), 0, (struct sockaddr *)&udp_sockaddr4, sizeof(struct sockaddr_in));
 
     GNB_LOG1(log, GNB_LOG_ID_ES_BROADCAST, "send_address_to_node %s\n", GNB_SOCKADDR4STR1(&udp_sockaddr4));
-
 }
 
-
-static void broadcast_address_to_node(gnb_es_ctx *es_ctx, gnb_node_t *src_node){
-
+static void broadcast_address_to_node(gnb_es_ctx *es_ctx, gnb_node_t *src_node) {
     gnb_ctl_block_t  *ctl_block;
     gnb_node_t *dst_node;
     gnb_log_ctx_t *log;
@@ -99,77 +95,52 @@ static void broadcast_address_to_node(gnb_es_ctx *es_ctx, gnb_node_t *src_node){
     int i;
 
     ctl_block = es_ctx->ctl_block;
-
     log = es_ctx->log;
-
     node_num = ctl_block->node_zone->node_num;
 
     for ( i=0; i<node_num; i++ ) {
-
         dst_node = &ctl_block->node_zone->node[i];
-
         if ( dst_node->uuid64 == src_node->uuid64 ) {
             continue;
         }
-
         if ( src_node->uuid64 == ctl_block->core_zone->local_uuid ) {
             continue;
         }
-
         if ( dst_node->uuid64 == ctl_block->core_zone->local_uuid ) {
             continue;
         }
-
         if ( !( (GNB_NODE_STATUS_IPV6_PONG|GNB_NODE_STATUS_IPV4_PONG) & dst_node->udp_addr_status ) ) {
             continue;
         }
-
         if ( 0 == dst_node->tun_sin_port4 ) {
             continue;
         }
-
         if ( (dst_node->type & GNB_NODE_TYPE_IDX) || (dst_node->type & GNB_NODE_TYPE_FWD) ) {
             continue;
         }
-
         GNB_LOG1(log, GNB_LOG_ID_ES_BROADCAST, "broadcast_address_to_node [%llu] ==> [%llu]\n", src_node->uuid64, dst_node->uuid64);
-
         send_address_to_node(es_ctx, src_node, dst_node);
-
     }
-
 }
 
-
-void gnb_broadcast_address(gnb_es_ctx *es_ctx){
-
+void gnb_broadcast_address(gnb_es_ctx *es_ctx) {
     gnb_ctl_block_t  *ctl_block;
     gnb_node_t *node;
     int node_num;
     int i;
-
     ctl_block = es_ctx->ctl_block;
-
     node_num = ctl_block->node_zone->node_num;
-
     if ( 0 == node_num ) {
         return;
     }
-
     for ( i=0; i<node_num; i++ ) {
-
         node = &ctl_block->node_zone->node[i];
-
         if ( !( (GNB_NODE_STATUS_IPV6_PONG|GNB_NODE_STATUS_IPV4_PONG) & node->udp_addr_status ) ) {
             continue;
         }
-
         if ( (node->type & GNB_NODE_TYPE_IDX) || (node->type & GNB_NODE_TYPE_FWD) ) {
             continue;
         }
-
         broadcast_address_to_node(es_ctx, node);
-
     }
-
 }

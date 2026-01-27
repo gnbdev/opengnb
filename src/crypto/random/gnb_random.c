@@ -17,53 +17,36 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
-
 #ifdef _WIN32
 #include <windows.h>
 //unistd.h 定义了 _POSIX_THREAD_SAFE_FUNCTIONS 使得 localtime_r 有效
 #include <unistd.h>
 #endif
-
 #include <sys/time.h>
 
 #include "gnb_random.h"
 #include "gnb_binary.h"
 
-static uint64_t comput_random_seed(){
-
+static uint64_t comput_random_seed() {
     int ret;
-
     struct timeval cur_time;
-
     ret = gettimeofday(&cur_time,NULL);
-
     if (0!=ret) {
         return 0;
     }
-
     return cur_time.tv_usec;
-
 }
 
-
-unsigned char *gnb_random_data(unsigned char *buffer, size_t buffer_size){
-
+unsigned char *gnb_random_data(unsigned char *buffer, size_t buffer_size) {
     uint64_t seed_u64;
-
     seed_u64 = comput_random_seed();
-
     int seed = (int)seed_u64;
-
     srand(seed);
-
     int r;
     int i;
     for (i = 0; i < buffer_size; i++) {
         r = rand();
         buffer[i] = r % 256;
     }
-
     return buffer;
-
 }

@@ -27,21 +27,17 @@
 #include <unistd.h>
 
 uint64_t gnb_timestamp_sec();
-
 /*微秒*/
 uint64_t gnb_timestamp_usec();
 
-
 //format:"%Y_%m_%d_%H.%M.%S"
 void gnb_now_timef(const char *format, char *buffer, size_t buffer_size);
-
 void gnb_timef(const char *format, time_t t, char *buffer, size_t buffer_size);
 
 /*
  获得当前月的当天数字
  */
 int gnb_now_mday();
-
 int gnb_now_yday();
 
 #define GNB_TIME_STRING_MAX 64

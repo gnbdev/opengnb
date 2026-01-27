@@ -29,7 +29,6 @@
 #include "gnb_ctl_block.h"
 #include "ed25519/sha512.h"
 
-
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>

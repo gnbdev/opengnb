@@ -23,30 +23,22 @@
 #include "gnb_type.h"
 
 typedef struct _gnb_unified_forwarding_node_t {
-
 	gnb_uuid_t uuid64;
 	uint64_t   last_ts_sec;
+} gnb_unified_forwarding_node_t;
 
-}gnb_unified_forwarding_node_t;
-
-
-typedef struct _gnb_node_t{
-
+typedef struct _gnb_node_t {
 	gnb_uuid_t uuid64;
-
 	uint64_t in_bytes;
 	uint64_t out_bytes;
-
 	#define GNB_NODE_TYPE_STD               (0x0)
 	#define GNB_NODE_TYPE_IDX               (0x1)
 	#define GNB_NODE_TYPE_FWD               (0x1 << 1)
     #define GNB_NODE_TYPE_RELAY             (0x1 << 2)
 	#define GNB_NODE_TYPE_SLIENCE           (0x1 << 3)
 	#define GNB_NODE_TYPE_STATIC_ADDR       (0x1 << 4)
-
 	//未使用
 	#define GNB_NODE_TYPE_DYNAMIC_ADDR      (0x1 << 5)
-
 	unsigned char type;
 
 	struct in_addr  tun_addr4;
@@ -55,13 +47,10 @@ typedef struct _gnb_node_t{
 	uint16_t tun_sin_port4;
 
 	struct in6_addr tun_ipv6_addr;
-
 	struct sockaddr_in  udp_sockaddr4;
 	struct sockaddr_in6 udp_sockaddr6;
-
 	uint8_t            socket6_idx;
 	uint8_t            socket4_idx;
-
 	#define GNB_MAX_NODE_ROUTE    8
 	#define GNB_MAX_NODE_RELAY    5
 	gnb_uuid_t route_node[GNB_MAX_NODE_ROUTE][GNB_MAX_NODE_RELAY];
@@ -100,7 +89,6 @@ typedef struct _gnb_node_t{
 	uint8_t         detect_address4_idx;
 	struct in_addr  detect_addr4;
 	uint16_t        detect_port4;
-
 
 	#define GNB_NODE_MAX_DETECT_TIMES 32
 	uint32_t detect_count;
@@ -141,7 +129,6 @@ typedef struct _gnb_node_t{
 	//由于 crypto_key 可以随时间变更,通信密钥在更换瞬间有一定概率会出现用新密钥解密对端发来的数据
 	//保留上一个的旧通信密钥,用于解密旧密钥加密的数据,当前支持 ur1 freame
 	unsigned char pre_crypto_key[64]; //上一个通信密钥
-
 	unsigned char key512[64];
 
 	gnb_uuid_t last_relay_nodeid;
@@ -163,25 +150,19 @@ typedef struct _gnb_node_t{
 	uint64_t unified_forwarding_recv_seq_array[UNIFIED_FORWARDING_RECV_SEQ_ARRAY_SIZE];
 
 	uint64_t last_notify_uf_nodes_ts_sec;
-
 	//上次向 index 节点查询的时间戳
 	uint64_t last_request_addr_sec;
 	uint64_t last_push_addr_sec;
 	uint64_t last_detect_sec;
     uint64_t last_send_detect_usec;
 	uint64_t last_full_detect_sec;
-
-}gnb_node_t;
-
+} gnb_node_t;
 
 #define GNB_MAX_NODE_RING 128
-typedef struct _gnb_node_ring_t{
-
+typedef struct _gnb_node_ring_t {
 	int num;
 	int cur_index;
 	gnb_node_t *nodes[GNB_MAX_NODE_RING];
-
-}gnb_node_ring_t;
-
+} gnb_node_ring_t;
 
 #endif

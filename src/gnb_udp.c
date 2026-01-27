@@ -28,15 +28,11 @@
 #endif
 
 #ifdef _WIN32
-
 #define _POSIX
-
 #undef _WIN32_WINNT
 #define _WIN32_WINNT 0x0600
-
 #include <winsock2.h>
 #include <ws2tcpip.h>
-
 #endif
 
 #include "gnb_udp.h"
@@ -61,7 +57,6 @@ int gnb_bind_udp_socket_ipv4(int socketfd,const char *host, int port) {
     }
     return 0;
 }
-
 
 int gnb_bind_udp_socket_ipv6(int socketfd,const char *host, int port) {
     struct sockaddr_in6 svr_addr;

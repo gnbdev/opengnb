@@ -30,22 +30,15 @@
 
 #include "gnb_conf_type.h"
 #include "gnb_ctl_block.h"
-
-
-#ifndef GNB_SKIP_BUILD_TIME
-#define GNB_BUILD_STRING  "Build Time ["__DATE__","__TIME__"]"
-#else
-#define GNB_BUILD_STRING  "Build Time [Hidden]"
-#endif
+#include "gnb_version.h"
 
 
 void gnb_ctl_dump_status(gnb_ctl_block_t *ctl_block, gnb_uuid_t in_nodeid, uint8_t online_opt);
 void gnb_ctl_dump_address_list(gnb_ctl_block_t *ctl_block, gnb_uuid_t in_nodeid, uint8_t online_opt);
 
-static void show_useage(int argc,char *argv[]){
-
-    printf("GNB Ctl version 1.6.0.a protocol version 1.6.0\n");
-
+static void show_useage(int argc,char *argv[]) {
+    printf("GNB Ctl\n");
+	printf("%s\n", GNB_VERSION_STRING);
     printf("%s\n", GNB_BUILD_STRING);
 
     printf("Copyright (C) 2019 gnbdev\n");
@@ -62,14 +55,10 @@ static void show_useage(int argc,char *argv[]){
 
     printf("example:\n");
     printf("%s -b gnb.map -c -s\n",argv[0]);
-
 }
 
-
-int main (int argc,char *argv[]){
-
+int main (int argc,char *argv[]) {
     char *ctl_block_file = NULL;
-
     gnb_ctl_block_t *ctl_block;    
 
     uint8_t  address_opt      = 0;
@@ -79,7 +68,6 @@ int main (int argc,char *argv[]){
     gnb_uuid_t nodeid = 0;
 
     static struct option long_options[] = {
-
       { "ctl-block",            required_argument, 0, 'b' },
       { "node",                 required_argument, 0, 'n' },
       { "core",                 no_argument,       0, 'c' },
@@ -88,59 +76,42 @@ int main (int argc,char *argv[]){
       { "online",               no_argument,       0, 'o' },
       { "help",                 no_argument,       0, 'h' },
       { 0, 0, 0, 0 }
-
     };
 
     setvbuf(stdout,NULL,_IOLBF,0);
-
     int opt;
-
     while (1) {
-
         int option_index = 0;
-
         opt = getopt_long (argc, argv, "b:n:csaoh",long_options, &option_index);
-
         if ( opt == -1 ) {
             break;
         }
-
         switch (opt) {
-
         case 'b':
             ctl_block_file = optarg;
             break;
-
         case 'n':
             nodeid = (gnb_uuid_t)strtoull(optarg, NULL, 10);
             break;
-
         case 'c':
             core_opt = 1;
             break;
-
         case 's':
             node_status_opt = 1;
             break;
-
         case 'a':
             address_opt = 1;
             break;
-
         case 'o':
             online_opt = 1;
             break;
-
         case 'h':
             show_useage(argc,argv);
             exit(0);
-
         default:
             break;
         }
-
     }
-
 
     if ( NULL == ctl_block_file ) {
         show_useage(argc,argv);
@@ -154,28 +125,22 @@ int main (int argc,char *argv[]){
         exit(0);
     }
 
-
 #ifdef _WIN32
     WSADATA wsaData;
     int err;
     err = WSAStartup(MAKEWORD(2, 2), &wsaData );
 #endif
 
-
     if ( node_status_opt ) {
         gnb_ctl_dump_status(ctl_block, nodeid, online_opt);
     }
-
     if ( address_opt ) {
         gnb_ctl_dump_address_list(ctl_block, nodeid, online_opt);
     }
-
 
 #ifdef _WIN32
     WSACleanup();
 #endif
 
     return 0;
-
 }
-

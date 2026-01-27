@@ -22,11 +22,9 @@
 #include <limits.h>
 
 #ifdef _WIN32
-
 #ifndef NAME_MAX
 #define NAME_MAX 255
 #endif
-
 #endif
 
 #include "gnb_node_type.h"
@@ -36,7 +34,6 @@
 #define GNB_PF_BITS_CRYPTO_ARC4     (0x1 << 1)
 #define GNB_PF_BITS_ZIP             (0x1 << 4)
 #define GNB_PF_BITS_7               (0x1 << 7)
-
 
 #define GNB_CRYPTO_KEY_UPDATE_INTERVAL_NONE    0x0
 #define GNB_CRYPTO_KEY_UPDATE_INTERVAL_MINUTE  0x1
@@ -56,17 +53,12 @@
 #define GNB_ADDRESS_DETECT_INTERVAL_USEC         5000
 #define GNB_FULL_DETECT_INTERVAL_SEC              367
 
-
 typedef struct _gnb_conf_t {
-
 	char conf_dir[PATH_MAX];
-
 	uint8_t public_index_service;
     uint8_t safe_index;
 	uint8_t lite_mode;
-
 	gnb_uuid_t local_uuid;
-
 	char binary_dir[PATH_MAX];
 	char map_file[PATH_MAX+NAME_MAX];
 	char pid_file[PATH_MAX+NAME_MAX];
@@ -86,7 +78,6 @@ typedef struct _gnb_conf_t {
 	uint8_t detect_log_level;
 
 	uint8_t log_udp_type;
-
 	char log_udp_sockaddress4_string[16 + 1 + sizeof("65535") + 1];
 
 	char ifname[256];
@@ -95,12 +86,9 @@ typedef struct _gnb_conf_t {
 	char socket_ifname[16];
 
 	int mtu;
-
 	unsigned char pf_bits;
-
 	unsigned char crypto_key_update_interval;
 	unsigned char crypto_passcode[4];
-
 	
     #define GNB_ZIP_AUTO   0
     #define GNB_ZIP_FORCE  1
@@ -122,13 +110,9 @@ typedef struct _gnb_conf_t {
 	unsigned char multi_forward_type;
 
 	unsigned char if_dump;
-
 	unsigned char udp_socket_type;
-
 	uint8_t multi_socket;
-
 	char pf_route[NAME_MAX];
-
 	uint8_t pf_route_mode;
 
     #define GNB_UNIFIED_FORWARDING_OFF          0
@@ -185,29 +169,21 @@ typedef struct _gnb_conf_t {
 
 	uint32_t address_detect_interval_usec;
     uint32_t full_detect_interval_sec;
-
 	uint8_t addr_secure;
-
 	uint8_t daemon;
 	uint8_t systemd_daemon;
-
 	uint8_t quiet;
-
-}gnb_conf_t;
+} gnb_conf_t;
 
 
 typedef struct _gnb_conf_ext_lite_t {
-
 	char *index_address_string;
 	char *node_address_string;
 	char *node_route_string;
-
-}gnb_conf_ext_lite_t;
-
+} gnb_conf_ext_lite_t;
 
 #define GNB_CONF_FIELD_SEPARATOR_TYPE_ERROR   -1
 #define GNB_CONF_FIELD_SEPARATOR_TYPE_SLASH    0
 #define GNB_CONF_FIELD_SEPARATOR_TYPE_VERTICAL 1
-
 
 #endif

@@ -21,12 +21,8 @@
 #include "gnb_worker_type.h"
 
 gnb_worker_t *gnb_worker_init(const char *name, void *ctx);
-
 void gnb_worker_wait_primary_worker_started(gnb_core_t *gnb_core);
-
 void gnb_worker_sync_time(uint64_t *now_time_sec_ptr, uint64_t *now_time_usec_ptr);
-
 void gnb_worker_release(gnb_worker_t *gnb_worker);
 
 #endif
-

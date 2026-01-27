@@ -33,40 +33,30 @@
 #include <windows.h>
 #endif
 
-
 #ifndef GNB_SKIP_BUILD_TIME
 #define GNB_BUILD_STRING  "Build Time ["__DATE__","__TIME__"]"
 #else
 #define GNB_BUILD_STRING  "Build Time [Hidden]"
 #endif
 
-
 gnb_core_t *gnb_core;
 
 int gnb_daemon();
-
 void save_pid(const char *pid_file);
-
 gnb_conf_t* gnb_argv(int argc,char *argv[]);
-
 void primary_process_loop(gnb_core_t *gnb_core);
-
 extern gnb_pf_t *gnb_pf_mods[];
 extern gnb_arg_list_t *gnb_es_arg_list;
-
 extern int is_self_test;
 
-void signal_alrm_handler(int signum){
+void signal_alrm_handler(int signum) {
     return;
 }
 
-void signal_handler(int signum){
-
-
+void signal_handler(int signum) {
     if ( SIGTERM == signum ) {
         goto finish;
     }
-
     if ( SIGINT == signum ) {
         goto finish;
     }
@@ -75,24 +65,18 @@ finish:
     gnb_core_stop(gnb_core);
     unlink(gnb_core->conf->pid_file);
     exit(0);
-
 }
 
-static void self_test(){
-
+static void self_test() {
     int i;
     int j;
     int node_num;
-
     gnb_ctl_block_t *ctl_block;
     gnb_address_list_t *static_address_list;
     gnb_address_t *gnb_address;
     gnb_node_t *node;
-
     int ret;
-
     char es_arg_string[GNB_ARG_STRING_MAX_SIZE];
-
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST daemon='%d'\n", gnb_core->conf->daemon );
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST systemd_daemon='%d'\n", gnb_core->conf->systemd_daemon );
 
@@ -129,11 +113,9 @@ static void self_test(){
     case GNB_MEMORY_SCALE_SMALL:
         GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST memory scale samll\n");
         break;
-
     case GNB_MEMORY_SCALE_LARGE:
         GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST memory scale lage\n");
         break;
-
     case GNB_MEMORY_SCALE_HUGE:
         GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST memory scale huge\n");
         break;    
@@ -159,17 +141,14 @@ static void self_test(){
     if ( GNB_PF_BITS_NONE == gnb_core->conf->pf_bits ) {
         GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST crypto none\n");
     }
-
     if ( gnb_core->conf->pf_bits & GNB_PF_BITS_CRYPTO_XOR ) {
         GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST crypto xor\n");
     }
-
     if ( gnb_core->conf->pf_bits & GNB_PF_BITS_CRYPTO_ARC4 ) {
         GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST crypto arc4\n");
     }
 
     switch (gnb_core->conf->unified_forwarding) {
-    
     case GNB_UNIFIED_FORWARDING_OFF:
         GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST unified_forwarding=off\n");
         break;
@@ -190,20 +169,15 @@ static void self_test(){
     default:
         GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST unified_forwarding config error\n");
         break;
-
     }
 
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST activate tun=%d\n", gnb_core->conf->activate_tun);
-
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST universal relay0 ur0=%d\n", gnb_core->conf->universal_relay0);
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST universal relay1 ur1=%d\n", gnb_core->conf->universal_relay1);
-
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST console_log_level=%d\n", gnb_core->conf->console_log_level);
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST file_log_level=%d\n",    gnb_core->conf->file_log_level);
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST udp_log_level=%d\n",     gnb_core->conf->udp_log_level);
-
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST log_udp_type=%d\n",      gnb_core->conf->log_udp_type);
-
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST GNB_LOG_ID_CORE console_level=%d, file_level=%d, udp_level=%d\n",
             gnb_core->log->config_table[GNB_LOG_ID_CORE].console_level, gnb_core->log->config_table[GNB_LOG_ID_CORE].file_level, gnb_core->log->config_table[GNB_LOG_ID_CORE].udp_level);
 
@@ -226,75 +200,50 @@ static void self_test(){
             gnb_core->log->config_table[GNB_LOG_ID_DETECT_WORKER].console_level, gnb_core->log->config_table[GNB_LOG_ID_DETECT_WORKER].file_level, gnb_core->log->config_table[GNB_LOG_ID_DETECT_WORKER].udp_level);
 
     if ( 1 == gnb_core->conf->activate_tun && 0 == gnb_core->conf->public_index_service ) {
-
         ctl_block = gnb_core->ctl_block;
-
         node_num = ctl_block->node_zone->node_num;
-
         for ( i=0; i<node_num; i++ ) {
-
             node = &ctl_block->node_zone->node[i];
-
             if ( node->uuid64 != ctl_block->core_zone->local_uuid ) {
                 GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST ----- remote node %llu -----\n", node->uuid64);
             } else {
                 GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST local  node %llu\n", node->uuid64);
             }
-
             GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST tun_ipv6 %s\n", GNB_ADDR6STR_PLAINTEXT1(&node->tun_ipv6_addr));
             GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST tun_ipv4 %s\n", GNB_ADDR4STR_PLAINTEXT1(&node->tun_addr4));
-
             static_address_list  = (gnb_address_list_t *)&node->static_address_block;
-
             for ( j=0; j<static_address_list->num; j++ ) {
-
                 gnb_address = &static_address_list->array[j];
-
                 if ( 0 == gnb_address->port ) {
                     continue;
                 }
-
                 GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"SELF-TEST address %s\n", GNB_IP_PORT_STR1(gnb_address));
-
             }
-
         }
 
         GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST num of index=%d\n", gnb_core->index_address_ring.address_list->num);
-
         for ( i=0; i< gnb_core->index_address_ring.address_list->num; i++ ) {
             GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST index node '%s'\n", GNB_IP_PORT_STR1(&gnb_core->index_address_ring.address_list->array[i]));
         }
-
         GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"SELF-TEST num of fwd node:%d\n", gnb_core->fwd_node_ring.num);
-
         for ( i=0; i<gnb_core->fwd_node_ring.num; i++ ) {
             GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST fwd node=%llu\n", gnb_core->fwd_node_ring.nodes[i]->uuid64);
         }
-
         for ( i=0; i<gnb_es_arg_list->argc; i++ ) {
             GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST gnb_es argv[%d]='%s'\n", i, gnb_es_arg_list->argv[i]);
         }
-
         ret = gnb_arg_list_to_string(gnb_es_arg_list, es_arg_string, GNB_ARG_STRING_MAX_SIZE);
-
         if ( 0 == ret ) {
             GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST exec gnb_es argv '%s'\n", es_arg_string);
         } else {
             GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST will not exec 'gnb_es'\n");
         }
-
     }
-
 }
 
-
 #ifdef _WIN32
-
 BOOL CALLBACK CosonleHandler(DWORD ev) {
-
     switch (ev) {
-
     case CTRL_CLOSE_EVENT:
     case    CTRL_C_EVENT:
         gnb_core_stop(gnb_core);
@@ -303,56 +252,36 @@ BOOL CALLBACK CosonleHandler(DWORD ev) {
         exit(0);
         break;
     }
-
     return TRUE;
 }
-
 #endif
 
-
-void log_out_description(gnb_log_ctx_t *log){
-
+void log_out_description(gnb_log_ctx_t *log) {
     GNB_LOG1(log, GNB_LOG_ID_CORE, "%s\n", GNB_VERSION_STRING);
     GNB_LOG1(log, GNB_LOG_ID_CORE, "%s\n", GNB_COPYRIGHT_STRING);
     GNB_LOG1(log, GNB_LOG_ID_CORE, "Site: %s\n", GNB_URL_STRING);
-
     GNB_LOG1(log, GNB_LOG_ID_CORE, "%s\n", GNB_BUILD_STRING);
-
 }
 
-
-void show_description(){
-
+void show_description() {
     printf("%s\n", GNB_VERSION_STRING);
     printf("%s\n", GNB_COPYRIGHT_STRING);
     printf("Site: %s\n", GNB_URL_STRING);
-
     int idx = 0;
-
     printf("registered packet filter:");
-
     while ( NULL != gnb_pf_mods[idx] ) {
         printf(" %s", gnb_pf_mods[idx]->name);
         idx++;
     }
-
     printf("\n");
-
     printf("%s\n", GNB_BUILD_STRING);
-
 }
 
-
-int main (int argc,char *argv[]){
-
+int main (int argc,char *argv[]) {
     gnb_conf_t *conf;
-
     int pid;
-
     int ret;
-
     setvbuf(stdout,NULL,_IOLBF,0);
-
     #ifdef _WIN32
     WSADATA wsaData;
     int err;
@@ -363,27 +292,19 @@ int main (int argc,char *argv[]){
     conf = gnb_argv(argc, argv);
 
     if ( 0 == conf->public_index_service ) {
-
         if ( 0 == conf->lite_mode ) {
             //加载 node.conf
             local_node_file_config(conf);
         }
-
         gnb_core = gnb_core_create(conf);
-
     } else {
-
         gnb_core = gnb_core_index_service_create(conf);
-
     }
-
     free(conf);
-
     if ( NULL == gnb_core ) {
         printf("gnb core create error!\n");
         return 1;
     }
-
     GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "gnb core created!\n");
 
     #ifdef __UNIX_LIKE_OS__
@@ -408,12 +329,11 @@ int main (int argc,char *argv[]){
         self_test();
     }
 
-    if ( 0 == gnb_core->conf->public_index_service ) {
+	if ( 0 == gnb_core->conf->public_index_service ) {
         gnb_core_start(gnb_core);
     } else {
         gnb_core_index_service_start(gnb_core);
     }
-
     primary_process_loop(gnb_core);
 
     #ifdef _WIN32
@@ -421,5 +341,4 @@ int main (int argc,char *argv[]){
     #endif
 
     return 0;
-
 }

@@ -19,17 +19,14 @@
 改名为 pf_register
 */
 
-
 #include "gnb.h"
 #include "gnb_pf.h"
-
 
 extern gnb_pf_t gnb_pf_dump;
 extern gnb_pf_t gnb_pf_route;
 extern gnb_pf_t gnb_pf_crypto_xor;
 extern gnb_pf_t gnb_pf_crypto_arc4;
 extern gnb_pf_t gnb_pf_zip;
-
 
 gnb_pf_t *gnb_pf_mods[] = {
     &gnb_pf_dump,
@@ -41,23 +38,16 @@ gnb_pf_t *gnb_pf_mods[] = {
 };
 
 gnb_pf_t* gnb_find_pf_mod_by_name(const char *name){
-
     int num =  sizeof(gnb_pf_mods)/sizeof(gnb_pf_t *);
-
     int i;
-
     for ( i=0; i<num; i++ ) {
-
         if (NULL==gnb_pf_mods[i]) {
             break;
         }
-
         if ( 0 == strncmp(gnb_pf_mods[i]->name,name,128) ) {
             return gnb_pf_mods[i];
         }
 
     }
-
     return NULL;
-
 }

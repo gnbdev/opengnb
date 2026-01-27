@@ -18,17 +18,11 @@
 
 #include <stdlib.h>
 #include <string.h>
-
 #include "gnb_ring_buffer_fixed.h"
-
-size_t gnb_ring_buffer_fixed_sum_size(size_t block_size, unsigned short block_num_mask){
-    
+size_t gnb_ring_buffer_fixed_sum_size(size_t block_size, unsigned short block_num_mask) {
     size_t memory_size;
-
     size_t block_num = 0xFF+1;
-    
     switch (block_num_mask) {
-        
         case 0xFFFF : //65535
         case 0x7FFF : //32767
         case 0x3FFF : //16383
@@ -50,75 +44,46 @@ size_t gnb_ring_buffer_fixed_sum_size(size_t block_size, unsigned short block_nu
         default:
             block_num = 0xFF+1;
             break;
-
     }
-
     memory_size = sizeof(gnb_ring_buffer_fixed_t) + block_size * block_num;
-    
     return memory_size;
-
 }
 
-gnb_ring_buffer_fixed_t* gnb_ring_buffer_fixed_init(void *memory, size_t block_size, unsigned short block_num_mask){
-
+gnb_ring_buffer_fixed_t* gnb_ring_buffer_fixed_init(void *memory, size_t block_size, unsigned short block_num_mask) {
     gnb_ring_buffer_fixed_t *gnb_ring_buffer_fixed;
-
     size_t memory_size;
-
     gnb_ring_buffer_fixed = (gnb_ring_buffer_fixed_t*)memory;
-
     memory_size = gnb_ring_buffer_fixed_sum_size(block_size, block_num_mask);
-
     memset(memory, 0, memory_size);
-    
     gnb_ring_buffer_fixed->block_num_mask = block_num_mask;
-    
     gnb_ring_buffer_fixed->block_size = block_size;
-
     gnb_ring_buffer_fixed->memory_size = memory_size;
-
     return gnb_ring_buffer_fixed;
-    
 }
 
-void* gnb_ring_buffer_fixed_push(gnb_ring_buffer_fixed_t *ring_buffer_fixed){
-
+void* gnb_ring_buffer_fixed_push(gnb_ring_buffer_fixed_t *ring_buffer_fixed) {
     int tail_next_idx = (ring_buffer_fixed->tail_idx + 1) & ring_buffer_fixed->block_num_mask;
-
     if ( tail_next_idx == ring_buffer_fixed->head_idx ) {
         return  NULL;
     }
-
     void *buffer_header = ring_buffer_fixed->blocks + ring_buffer_fixed->block_size * ring_buffer_fixed->tail_idx;
-
     return buffer_header;
-
 }
 
-void gnb_ring_buffer_fixed_push_submit(gnb_ring_buffer_fixed_t *ring_buffer_fixed){
-
+void gnb_ring_buffer_fixed_push_submit(gnb_ring_buffer_fixed_t *ring_buffer_fixed) {
     int tail_next_idx = (ring_buffer_fixed->tail_idx + 1) & ring_buffer_fixed->block_num_mask;
-
     ring_buffer_fixed->tail_idx = tail_next_idx;
-
 }
 
-void* gnb_ring_buffer_fixed_pop(gnb_ring_buffer_fixed_t *ring_buffer_fixed){
-
+void* gnb_ring_buffer_fixed_pop(gnb_ring_buffer_fixed_t *ring_buffer_fixed) {
     if ( ring_buffer_fixed->head_idx == ring_buffer_fixed->tail_idx ) {
         return NULL;
     }
-
     void *buffer_header = ring_buffer_fixed->blocks + ring_buffer_fixed->block_size * ring_buffer_fixed->head_idx;
-
     return buffer_header;
-
 }
 
-void gnb_ring_buffer_fixed_pop_submit(gnb_ring_buffer_fixed_t *ring_buffer_fixed){
-
+void gnb_ring_buffer_fixed_pop_submit(gnb_ring_buffer_fixed_t *ring_buffer_fixed) {
     int head_next_idx = (ring_buffer_fixed->head_idx + 1) & ring_buffer_fixed->block_num_mask;
-
     ring_buffer_fixed->head_idx = head_next_idx;
-
 }

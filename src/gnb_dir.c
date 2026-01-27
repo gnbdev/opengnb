@@ -54,7 +54,6 @@ char *gnb_get_file_dir(char *in_file_name, char *file_dir) {
 
     size_t string_len = strlen( (const char *)file_dir );
     int i;
-
     for ( i=(int)string_len-1; i>0; i-- ) {
         if ( GNB_FILE_SP==file_dir[i] ) {
             file_dir[i]='\0';
@@ -109,7 +108,6 @@ char *gnb_realpath(char *in_path, char *resolved_path) {
     ret = stat(in_path,&st);
 
     if ( 0 == ret && S_ISDIR(st.st_mode) ) {
-
         #if __UNIX_LIKE_OS__
         if ( NULL == realpath(in_path,resolved_path) ) {
             return NULL;
@@ -125,7 +123,6 @@ char *gnb_realpath(char *in_path, char *resolved_path) {
             return resolved_path;
         }
         #endif
-
     }
 
     len = strlen(in_path);
@@ -135,20 +132,16 @@ char *gnb_realpath(char *in_path, char *resolved_path) {
             break;
         }
     }
-
     if ( NULL == file_basename ) {
         return NULL;
     }
-
     len = strlen(file_basename);
     if ( len > NAME_MAX ) {
         return NULL;
     }
-
     strncpy(file_dir, in_path, PATH_MAX+NAME_MAX);
     len = strlen(file_dir);
     path = gnb_file_path_cut(file_dir, len);
-
     #if __UNIX_LIKE_OS__
     if ( NULL == realpath(path,resolved_path) ) {
         return NULL;
@@ -160,13 +153,10 @@ char *gnb_realpath(char *in_path, char *resolved_path) {
         return NULL;
     }
     #endif
-
     len = strlen(resolved_path);
     resolved_path[len]   = GNB_FILE_SP;
     resolved_path[len+1] = '\0';
-
     len++;
-
     for ( i=0; i<NAME_MAX; i++ ) {
         resolved_path[len+i] = file_basename[i];
 
@@ -174,7 +164,6 @@ char *gnb_realpath(char *in_path, char *resolved_path) {
             break;
         }
     }
-
     return resolved_path;
 }
 
@@ -216,12 +205,10 @@ int gnb_get_dir_file_names(char *path, gnb_file_info_t **sub_file_info_lst, uint
     struct dirent *sub_dirent;
     uint8_t file_type;
     int ret;
-
     size_t path_len = strlen(path);
     if ( 0 == path_len ) {
         return -1;
     }
-
     dir = opendir(path);
     if ( NULL==dir ) {
         *lst_len_ptr = 0;
@@ -310,15 +297,11 @@ int gnb_scan_dir(char *path, gnb_file_info_t **file_info_lst, uint32_t *lst_len_
 	uint32_t sub_lst_len = max_lst_len;
     int lst_len = 0;
 	int i;
-
     gnb_get_dir_file_names(path, sub_file_info_lst, &sub_lst_len);
-
     lst_len += sub_lst_len;
     sub_file_info_lst += sub_lst_len;
     sub_lst_len        = max_lst_len - lst_len;
-
     for ( i=0; i<lst_len; i++ ) {
-
         if ( GNB_FILE_TYPE_DIR != file_info_lst[i]->type ) {
             continue;
         }
@@ -339,9 +322,7 @@ char *gnb_file_path_cut(char *filename, size_t len) {
     if ( 0==len ) {
         return NULL;
     }
-
     for ( i=(int)len-1; i>=0; i-- ) {
-
         if ( GNB_FILE_SP == filename[i] ) {
             filename[i]='\0';
             return filename;
@@ -375,10 +356,8 @@ int gnb_mkdirs(char *path,mode_t mode) {
 	int dir_idx = 0;
 	uint16_t buffer_off_set = 0;
 	uint16_t buffer_len = PATH_MAX;
-
 	struct stat s;	
 	int r;
-
 	memset(dir_token_array, 0, GNB_MAX_DIR_TOKEN_ARRAY_SIZE);
 	strncpy(path_buffer, path, PATH_MAX);
 	p = path_buffer;
@@ -398,7 +377,6 @@ int gnb_mkdirs(char *path,mode_t mode) {
 		}
 		p++;
 	}
-
 	if ( 0 != i  ) {
 		token[i] = '\0';
 		dir_token_array[dir_idx] = strdup(token);
@@ -410,7 +388,6 @@ int gnb_mkdirs(char *path,mode_t mode) {
 			return -1;
 		}
 	}
-
 	for (i=0;i<dir_idx;i++) {
 		buffer_off_set += snprintf(path_buffer+buffer_off_set, buffer_len, "/%s", dir_token_array[i]);
 		r = stat(path_buffer,&s);
@@ -445,23 +422,20 @@ int gnb_remove_dirs(char *path) {
 	gnb_file_info_t **sub_dir_file_info_lst;
 	uint32_t r;
 	uint32_t i;
-
 	sub_dir_file_info_lst = malloc(sizeof(gnb_file_info_t *) * sub_dir_lst_len);
 	r = gnb_scan_dir(path, sub_dir_file_info_lst, &sub_dir_lst_len);
-
 	if (0 != r ) {
 		return -1;
-	}	
-
+	}
 	i=sub_dir_lst_len-1;
-	do{
+	do {
 		if ( GNB_FILE_TYPE_DIR != sub_dir_file_info_lst[i]->type ) {
 			r = remove(sub_dir_file_info_lst[i]->abs_name);
 			if (r) {
 				return -1;
 			}
 		}
-	}while(i--);
+	} while(i--);
 
 	r = gnb_scan_dir(path, sub_dir_file_info_lst, &sub_dir_lst_len);
 
@@ -470,17 +444,15 @@ int gnb_remove_dirs(char *path) {
 	}
 
 	i=sub_dir_lst_len-1;
-	do{
+	do {
 		if ( GNB_FILE_TYPE_DIR == sub_dir_file_info_lst[i]->type ) {
 			r = remove(sub_dir_file_info_lst[i]->abs_name);
 			if (r) {
 				return -1;
 			}
 		}
-	}while(i--);
-
+	} while(i--);
 	r = remove(path);
-
 	if (r) {
 		return -1;
 	}
@@ -497,7 +469,6 @@ int gnb_inspect_in_directory(char *dst, char *src) {
 	char dst_realpath[PATH_MAX];
 	struct stat s;
 	int r;
-	
 	if ( NULL == gnb_realpath(dst, dst_realpath) ) {
 		return -1;
 	}
@@ -506,11 +477,9 @@ int gnb_inspect_in_directory(char *dst, char *src) {
 	if ( 0 != r ) {
 		return -1;
 	}
-
 	if ( !S_ISDIR(s.st_mode) ) {
 		return -1;
 	}
-
 	memset(dir_token_array, 0, GNB_MAX_DIR_TOKEN_ARRAY_SIZE);
 	strncpy(path_buffer, src, PATH_MAX);
 	p = path_buffer;
@@ -542,7 +511,6 @@ int gnb_inspect_in_directory(char *dst, char *src) {
 			return -1;
 		}
 	}
-
 	size_t src_len = strlen(dst_realpath);
 	r = memcmp(dst_realpath, src, src_len);
 	return r;

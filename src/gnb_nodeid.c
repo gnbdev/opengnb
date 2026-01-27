@@ -23,68 +23,52 @@
 
 #include "gnb_nodeid.h"
 
-gnb_uuid_t gnb_str2nodeid(char *nodeidstr){
-
+gnb_uuid_t gnb_str2nodeid(char *nodeidstr) {
     gnb_uuid_t nodeid;
     char *endptr;
     char *p;
     int is_hex = 0;
     int i;
-
     p = nodeidstr;
-
     if ( '$' == *nodeidstr ) {
         is_hex = 1;
         p = nodeidstr+1;
         goto convert_begin;
     }
-
     if ( '0' == *nodeidstr && ( 'x' == *(nodeidstr+1) || 'X' == *(nodeidstr+1) ) ) {
         is_hex = 1;
         p = nodeidstr+2;
         goto convert_begin;
     }
-
     for ( i=0; i<16; i++ ) {
-
         if ( *p == '\0' ) {
             break;
         }
-
         if ( (*p >='A' && *p <='F') || (*p >='a' && *p <='f') ) {
             is_hex = 1;
             p = nodeidstr;
             goto convert_begin;
         }
-
         p++;
-
     }
 
 convert_begin:
-
     if ( is_hex ) {
         nodeid = strtoull(p, &endptr, 16);
     } else {
         nodeid = strtoull(nodeidstr, &endptr, 10);
     }
-
     if ( ERANGE == errno ) {
         nodeid = 0xFFFFFFFFFFFFFFFF;
         goto convert_end;
     }
-
     if ( endptr == p ) {
         nodeid = 0xFFFFFFFFFFFFFFFF;
         goto convert_end;
     }
-
 convert_end:
-
     return nodeid;
-
 }
-
 
 char *gnb_nodeid2str(gnb_uuid_t nodeid, char *nodeidstr, int fmt){
 #if 0

@@ -36,8 +36,6 @@ void gnb_kill(pid_t pid);
 
 #endif
 
-
-
 #ifdef _WIN32
 
 #ifndef NAME_MAX
@@ -50,6 +48,5 @@ int gnb_exec(char *app_filename, char *current_path, gnb_arg_list_t *gnb_arg_lis
 int gnb_kill(DWORD pid);
 
 #endif
-
 
 #endif

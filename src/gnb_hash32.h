@@ -30,7 +30,6 @@ typedef unsigned char	u_char;
 #include "gnb_block.h"
 
 typedef struct _gnb_kv32_t gnb_kv32_t;
-
 typedef struct _gnb_kv32_t{
     gnb_block32_t *key;
     gnb_block32_t *value;
@@ -38,7 +37,6 @@ typedef struct _gnb_kv32_t{
 }gnb_kv32_t;
 
 typedef struct _gnb_hash32_bucket_t gnb_hash32_bucket_t;
-
 typedef struct _gnb_hash32_map_t{
     gnb_heap_t *heap;
     uint32_t bucket_num;

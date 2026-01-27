@@ -24,18 +24,18 @@
 typedef struct _gnb_doubly_linked_list_node_t gnb_doubly_linked_list_node_t;
 typedef struct _gnb_doubly_linked_list_t gnb_doubly_linked_list_t;
 
-typedef struct _gnb_doubly_linked_list_node_t{
+typedef struct _gnb_doubly_linked_list_node_t {
     gnb_doubly_linked_list_node_t *pre;
     gnb_doubly_linked_list_node_t *nex;
     void *data;
-}gnb_doubly_linked_list_node_t;
+} gnb_doubly_linked_list_node_t;
 
-typedef struct _gnb_doubly_linked_list_t{    
+typedef struct _gnb_doubly_linked_list_t {
     gnb_heap_t *heap;
     gnb_doubly_linked_list_node_t *head;
     gnb_doubly_linked_list_node_t *tail;
     uint32_t num;
-}gnb_doubly_linked_list_t;
+} gnb_doubly_linked_list_t;
 
 void gnb_doubly_linked_list_node_set(gnb_doubly_linked_list_node_t *dl_node,void *data);
 

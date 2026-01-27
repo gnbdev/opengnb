@@ -128,7 +128,7 @@ void* gnb_lru32_put(gnb_lru32_t *lru, unsigned char *key, uint32_t key_len, void
     return pop_udata;
 }
 
-void gnb_lru32_store(gnb_lru32_t *lru, unsigned char *key, uint32_t key_len, void *data, uint32_t size){
+void gnb_lru32_store(gnb_lru32_t *lru, unsigned char *key, uint32_t key_len, void *data, uint32_t size) {
     gnb_lru32_node_t *lru_node;
     lru_node = gnb_lru32_get(lru, key, key_len);
     if ( NULL != lru_node ) {
@@ -160,7 +160,7 @@ void gnb_lru32_store(gnb_lru32_t *lru, unsigned char *key, uint32_t key_len, voi
     return;
 }
 
-void gnb_lru32_fixed_store(gnb_lru32_t *lru, unsigned char *key, uint32_t key_len, void *data){
+void gnb_lru32_fixed_store(gnb_lru32_t *lru, unsigned char *key, uint32_t key_len, void *data) {
     gnb_lru32_node_t *lru_node;
     if ( 0 == lru->block_size ) {
         return;
@@ -187,7 +187,7 @@ void gnb_lru32_fixed_store(gnb_lru32_t *lru, unsigned char *key, uint32_t key_le
     return;
 }
 
-gnb_lru32_node_t* gnb_lru32_hash_get(gnb_lru32_t *lru, unsigned char *key, uint32_t key_len){
+gnb_lru32_node_t* gnb_lru32_hash_get(gnb_lru32_t *lru, unsigned char *key, uint32_t key_len) {
     gnb_kv32_t *kv32 = gnb_hash32_get(lru->lru_node_map, key, (uint32_t)key_len);
     if (NULL==kv32) {
         return NULL;
@@ -239,8 +239,7 @@ void* gnb_lru32_pop_by_key(gnb_lru32_t *lru, unsigned char *key, uint32_t key_le
     return pop_udata;
 }
 
-
-void* gnb_lru32_pop_head(gnb_lru32_t *lru){
+void* gnb_lru32_pop_head(gnb_lru32_t *lru) {
     void *pop_udata = NULL;
     gnb_lru32_node_t *pop_lru_node;
     gnb_doubly_linked_list_node_t *head_dl_node;

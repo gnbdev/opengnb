@@ -31,7 +31,6 @@ gnb_uuid_t gnb_str2nodeid(char *nodeidstr);
 
 char *gnb_nodeid2str(gnb_uuid_t nodeid, char *nodeidstr, int fmt);
 
-
 static char gnb_static_nodeid_string_buffer1[GNB_MAX_NODEID_STRING_SIZE];
 static char gnb_static_nodeid_string_buffer2[GNB_MAX_NODEID_STRING_SIZE];
 static char gnb_static_nodeid_string_buffer3[GNB_MAX_NODEID_STRING_SIZE];
@@ -41,7 +40,6 @@ static char gnb_static_nodeid_string_buffer4[GNB_MAX_NODEID_STRING_SIZE];
 #define GNB_NODEID_DEC_STR2(nodeid)  gnb_nodeid2str(nodeid, gnb_static_nodeid_string_buffer2, GNB_NODEIS2STR_FMT_DEC)
 #define GNB_NODEID_DEC_STR3(nodeid)  gnb_nodeid2str(nodeid, gnb_static_nodeid_string_buffer3, GNB_NODEIS2STR_FMT_DEC)
 #define GNB_NODEID_DEC_STR4(nodeid)  gnb_nodeid2str(nodeid, gnb_static_nodeid_string_buffer4, GNB_NODEIS2STR_FMT_DEC)
-
 
 #define GNB_NODEID_HEX_STR1(nodeid)  gnb_nodeid2str(nodeid, gnb_static_nodeid_string_buffer1, GNB_NODEIS2STR_FMT_HEX)
 #define GNB_NODEID_HEX_STR2(nodeid)  gnb_nodeid2str(nodeid, gnb_static_nodeid_string_buffer2, GNB_NODEIS2STR_FMT_HEX)

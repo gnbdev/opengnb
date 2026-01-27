@@ -29,13 +29,13 @@
 typedef struct _gnb_lru32_t gnb_lru32_t;
 typedef struct _gnb_lru32_node_t gnb_lru32_node_t;
 
-typedef struct _gnb_lru32_node_t{
+typedef struct _gnb_lru32_node_t {
     gnb_doubly_linked_list_node_t *dl_node;           // dll_node->data -> gnb_lru32_node_t*
     gnb_kv32_t *kv;                                   // 保存在 hashmap 中的kv，使得在双向链表这端可以通过key去存取 hashmap
     void *udata;                                      // -> lru payload
-}gnb_lru32_node_t;
+} gnb_lru32_node_t;
 
-typedef struct _gnb_lru32_t{
+typedef struct _gnb_lru32_t {
     gnb_heap_t *heap;
     gnb_doubly_linked_list_t *doubly_linked_list;
     gnb_hash32_map_t *lru_node_map;     //save type: gnb_lru32_node_t
@@ -48,7 +48,7 @@ typedef struct _gnb_lru32_t{
     gnb_fixed_pool_t *lru_node_fixed_pool;
     gnb_fixed_pool_t *dl_node_fixed_pool;
     gnb_fixed_pool_t *udata_fixed_pool;
-}gnb_lru32_t;
+} gnb_lru32_t;
 
 /*
  如果用 gnb_lru32_set 和 gnb_lru32_store 保存 数据 到 lru， block_size 设为0
@@ -60,7 +60,6 @@ gnb_lru32_t *gnb_lru32_create(gnb_heap_t *heap, uint32_t max_size,uint32_t block
 //释放到操作是 迭代执行 gnb_lru32_pop_head 或 gnb_lru32_pop_tail，直到返回为NULL
 //由于lru_node->udata存放的是调用者的私有数据，因此释放时需要由调用者自行处理
 void gnb_lru32_release(gnb_lru32_t *lru);
-
 
 //这个函数传入的 data 需要调用者申请内存和释放内存
 //如果set入data前发现链表已经满了，就立即返回当前传入的data由调用者释放

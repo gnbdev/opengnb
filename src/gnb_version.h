@@ -15,16 +15,17 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef GNB_BLOCK_H
-#define GNB_BLOCK_H
+#ifndef GNB_VERSION_H
+#define GNB_VERSION_H
 
-#include <stdint.h>
+#define GNB_VERSION_STRING     "GNB version Dev 1.6.0.d  protocol version 1.6.0"
+#define GNB_COPYRIGHT_STRING  "Copyright (C) 2019 gnbdev<gnbdev@qq.com>"
+#define GNB_URL_STRING        "https://github.com/gnbdev/opengnb"
 
-typedef struct _gnb_block32_t {
-    uint32_t size;
-    unsigned char data[0];
-} gnb_block32_t;
-
-#define GNB_BLOCK_VOID(block)  *(void **)&block->data
+#ifndef GNB_SKIP_BUILD_TIME
+#define GNB_BUILD_STRING  "Build Time ["__DATE__","__TIME__"]"
+#else
+#define GNB_BUILD_STRING  "Build Time [Hidden]"
+#endif
 
 #endif

@@ -22,36 +22,24 @@
 #include "gnb_core_frame_type_defs.h"
 
 #pragma pack(push, 1)
-
 typedef struct _discover_lan_in_frame_t {
-
     struct __attribute__((__packed__)) discover_lan_in_data {
-
     	unsigned char arg0;
     	unsigned char arg1;
     	unsigned char arg2;
     	unsigned char arg3;
-
     	unsigned char src_key512[64];
     	gnb_uuid_t      src_uuid64;
-
     	uint8_t  src_addr6_a[16];
     	uint16_t src_port6_a;
-
     	uint8_t  src_addr4[4];
     	uint16_t src_port4;
-
     	uint64_t src_ts_usec;
-
     	char text[256];
     	char attachment[128];
-
-    }data;
-
+    } data;
     unsigned char src_sign[ED25519_SIGN_SIZE];
-
 }__attribute__ ((__packed__)) discover_lan_in_frame_t;
-
 #pragma pack(pop)
 
 #define PAYLOAD_DISCOVER_LAN_IN_FRAME_PAYLOAD_SIZE (sizeof(gnb_payload16_t) + sizeof(discover_lan_in_frame_t))

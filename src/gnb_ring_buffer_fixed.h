@@ -19,22 +19,14 @@
 #define gnb_ring_buffer_fixed_h
 
 #include <stdint.h>
-
-typedef struct _gnb_ring_buffer_fixed_t{
-
+typedef struct _gnb_ring_buffer_fixed_t {
     unsigned short block_num_mask;
-    
     size_t block_size;
-
     size_t memory_size;
-    
     unsigned int head_idx;
     unsigned int tail_idx;
-
     unsigned char blocks[0];
-    
 } __attribute__ ((aligned (4))) gnb_ring_buffer_fixed_t;
-
 
 /*
  block_num_mask must be:
@@ -56,15 +48,10 @@ typedef struct _gnb_ring_buffer_fixed_t{
  0x3         3
 */
 size_t gnb_ring_buffer_fixed_sum_size(size_t block_size, unsigned short block_num_mask);
-
 gnb_ring_buffer_fixed_t* gnb_ring_buffer_fixed_init(void *memory, size_t block_size, unsigned short block_num_mask);
-
 void* gnb_ring_buffer_fixed_push(gnb_ring_buffer_fixed_t *ring_buffer_fixed);
-
 void gnb_ring_buffer_fixed_push_submit(gnb_ring_buffer_fixed_t *ring_buffer_fixed);
-
 void* gnb_ring_buffer_fixed_pop(gnb_ring_buffer_fixed_t *ring_buffer_fixed);
-
 void gnb_ring_buffer_fixed_pop_submit(gnb_ring_buffer_fixed_t *ring_buffer_fixed);
 
 #endif

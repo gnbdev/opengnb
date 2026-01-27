@@ -34,10 +34,8 @@ extern gnb_worker_t gnb_node_worker_mod;
 extern gnb_worker_t gnb_index_worker_mod;
 extern gnb_worker_t gnb_secure_index_worker_mod;
 extern gnb_worker_t gnb_detect_worker_mod;
-
 extern gnb_worker_t gnb_index_service_worker_mod;
 extern gnb_worker_t gnb_secure_index_service_worker_mod;
-
 extern gnb_worker_t gnb_pf_worker_mod;
 
 static gnb_worker_t *gnb_worker_array[] = {
@@ -53,80 +51,51 @@ static gnb_worker_t *gnb_worker_array[] = {
 };
 
 static gnb_worker_t* find_worker_mod_by_name(const char *name){
-
     int num =  sizeof(gnb_worker_array)/sizeof(gnb_worker_t *);
-
     int i;
-
     for ( i=0; i<num; i++ ) {
-
         if ( NULL==gnb_worker_array[i] ) {
             break;
         }
-
         if ( 0 == strncmp(gnb_worker_array[i]->name,name,128) ) {
             return gnb_worker_array[i];
         }
-
     }
-
     return NULL;
-
 }
 
 gnb_worker_t *gnb_worker_init(const char *name, void *ctx){
-
     gnb_worker_t *gnb_worker_mod = find_worker_mod_by_name(name);
-
     if ( NULL==gnb_worker_mod ) {
         printf("find_worker_by_name name[%s] is NULL\n",name);
         return NULL;
     }
-
     gnb_worker_t *gnb_worker = (gnb_worker_t *) malloc(sizeof(gnb_worker_t));
-
     *gnb_worker = *gnb_worker_mod;
-
     gnb_worker->thread_worker_flag = 0;
     gnb_worker->thread_worker_run_flag = 0;
-
     gnb_worker->init(gnb_worker, ctx);
-
     return gnb_worker;
-
 }
 
-
 void gnb_worker_wait_primary_worker_started(gnb_core_t *gnb_core){
-
     do{
-
         if ( 1==gnb_core->primary_worker->thread_worker_run_flag ) {
             break;
         }
-
     }while(1);
-
 }
 
-
 void gnb_worker_sync_time(uint64_t *now_time_sec_ptr, uint64_t *now_time_usec_ptr){
-
     struct timeval now_timeval;
-
     gettimeofday(&now_timeval, NULL);
-
     *now_time_sec_ptr  = (uint64_t)now_timeval.tv_sec;
     *now_time_usec_ptr = (uint64_t)now_timeval.tv_sec *1000000 + now_timeval.tv_usec;
-
 }
 
 void gnb_worker_release(gnb_worker_t *gnb_worker){
-
     gnb_worker->release(gnb_worker);
-
     free(gnb_worker);
-
     return;
 
 }

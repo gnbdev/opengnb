@@ -21,15 +21,10 @@
 #include "gnb.h"
 
 int gnb_load_keypair(gnb_core_t *gnb_core);
-
 int gnb_load_public_key(gnb_core_t *gnb_core, gnb_uuid_t uuid64, unsigned char *public_key);
-
 void gnb_update_time_seed(gnb_core_t *gnb_core, uint64_t now_sec);
-
 int gnb_verify_seed_time(gnb_core_t *gnb_core,  uint64_t now_sec);
-
 void gnb_build_crypto_key(gnb_core_t *gnb_core, gnb_node_t *node);
-
 void gnb_build_passcode(void *passcode_bin, char *string_in);
 
 #endif

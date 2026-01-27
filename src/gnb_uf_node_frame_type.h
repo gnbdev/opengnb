@@ -21,7 +21,6 @@
 #pragma pack(push, 1)
 
 typedef struct _uf_node_notify_frame_t {
-
     struct __attribute__((__packed__)) uf_node_notify_frame_data {
       gnb_uuid_t src_uuid64;   //发送方的uuid64
       gnb_uuid_t dst_uuid64;   //接收方的uuid64
@@ -31,9 +30,7 @@ typedef struct _uf_node_notify_frame_t {
       unsigned char attachment[128];
       unsigned char text[64];
     }data;
-
     unsigned char src_sign[ED25519_SIGN_SIZE];
-
 }__attribute__ ((__packed__)) uf_node_notify_frame_t;
 
 #define UF_NODE_NOTIFY_FRAME_PAYLOAD_SIZE (sizeof(gnb_payload16_t) + sizeof(uf_node_notify_frame_t))

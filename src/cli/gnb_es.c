@@ -36,14 +36,7 @@
 #include "gnb_ctl_block.h"
 #include "gnb_core_frame_type_defs.h"
 #include "es/gnb_es_type.h"
-
-
-#ifndef GNB_SKIP_BUILD_TIME
-#define GNB_BUILD_STRING  "Build Time ["__DATE__","__TIME__"]"
-#else
-#define GNB_BUILD_STRING  "Build Time [Hidden]"
-#endif
-
+#include "gnb_version.h"
 
 gnb_es_ctx* gnb_es_ctx_create(int is_service, char *ctl_block_file,gnb_log_ctx_t *log);
 void gnb_es_ctx_init(gnb_es_ctx *es_ctx);
@@ -51,7 +44,6 @@ void gnb_es_ctx_init(gnb_es_ctx *es_ctx);
 int gnb_daemon();
 
 void save_pid(const char *pid_file);
-
 
 #define GNB_ES_OPT_INIT          0x91
 #define OPT_UPNP                 (GNB_ES_OPT_INIT + 1)
@@ -69,26 +61,19 @@ void save_pid(const char *pid_file);
 #define LOG_UDP4                 (GNB_ES_OPT_INIT + 13)
 #define LOG_UDP_TYPE             (GNB_ES_OPT_INIT + 14)
 
-
 void gnb_start_environment_service(gnb_es_ctx *es_ctx);
 
-
-static void show_useage(int argc,char *argv[]){
-
-    printf("GNB Environment Service version 1.6.0.a protocol version 1.6.0\n");
-
-    printf("%s\n", GNB_BUILD_STRING);
-
+static void show_useage(int argc,char *argv[]) {
+    printf("GNB Environment Service\n");
+	printf("%s\n", GNB_VERSION_STRING);
+	printf("%s\n", GNB_BUILD_STRING);
     printf("Copyright (C) 2019 gnbdev<gnbdev@qq.com>\n");
-
     printf("Usage: %s -b CTL_BLOCK [OPTION]\n", argv[0]);
     printf("Command Summary:\n");
-
     printf("  -b, --ctl-block           ctl block mapper file\n");
     printf("  -s, --service             service mode\n");
     printf("  -d, --daemon              daemon\n");
     printf("  -L, --discover-in-lan     discover in lan\n");
-
     printf("      --upnp                upnp\n");
     printf("      --upnp-multicase-if   upnp multicase interface\n");
     printf("      --upnp-gateway4       upnp gateway ipv4 address\n");
@@ -111,14 +96,10 @@ static void show_useage(int argc,char *argv[]){
     printf("example:\n");
     printf("%s --ctl-block=./gnb.map -s --upnp\n",argv[0]);
     printf("%s --ctl-block=./gnb.map -s --resolv\n",argv[0]);
-
 }
 
-
-static void setup_log_ctx(gnb_log_ctx_t *log_ctx, char *log_udp_sockaddress4_string, uint8_t log_udp_type){
-
+static void setup_log_ctx(gnb_log_ctx_t *log_ctx, char *log_udp_sockaddress4_string, uint8_t log_udp_type) {
     int rc;
-
     log_ctx->output_type = GNB_LOG_OUTPUT_STDOUT;
 
     snprintf(log_ctx->config_table[GNB_LOG_ID_ES_CORE].log_name, 20,              "ES_CORE");
@@ -160,9 +141,7 @@ static void setup_log_ctx(gnb_log_ctx_t *log_ctx, char *log_udp_sockaddress4_str
 
 }
 
-
-int main (int argc,char *argv[]){
-
+int main (int argc,char *argv[]) {
     char *ctl_block_file = NULL;
     char *pid_file = NULL;
     char *wan_address6_file = NULL;
@@ -229,127 +208,94 @@ int main (int argc,char *argv[]){
     int opt;
 
     while (1) {
-
         int option_index = 0;
-
         opt = getopt_long (argc, argv, "b:46dsLh",long_options, &option_index);
-
         if ( opt == -1 ) {
             break;
         }
 
         switch (opt) {
-
         case 'b':
             ctl_block_file = optarg;
             break;
-
         case OPT_UPNP:
             upnp_opt = 1;
             break;
-
         case OPT_UPNP_MULTICAST_IF:
             upnp_multicase_if = optarg;
             upnp_opt = 1;
             break;
-
         case OPT_UPNP_GATEWAY4:
             upnp_gateway4 = optarg;
             upnp_opt = 1;
             break;
-
         case OPT_RESOLV:
             resolv_opt = 1;
             break;
-
         case 'L':
             discover_in_lan_opt = 1;
             break;
-
         case OPT_NOTIFY_ADDRESS:
             broadcast_address_opt = 1;
             break;
-
         case OPT_DUMP_ADDRESS:
             dump_address_opt = 1;
             break;
-
         case PID_FILE:
             pid_file = optarg;
             break;
-
         case WAN_ADDRESS6_FILE:
             wan_address6_file = optarg;
             break;
-
         case OPT_IF_UP:
             if_up_opt = 1;
             break;
-
         case OPT_IF_DOWN:
             if_down_opt = 1;
             break;
-
         case OPT_IF_LOOP:
             if_loop_opt = 1;
             break;
-
         case LOG_UDP_TYPE:
-
             if ( !strncmp(optarg, "binary", 16) ) {
                 log_udp_type = GNB_LOG_UDP_TYPE_BINARY;
             } else {
                 log_udp_type = GNB_LOG_UDP_TYPE_TEXT;
             }
-
             break;
-
         case 'd':
             daemon = 1;
             break;
-
         case 's':
             service_opt = 1;
             break;
-
         case 'h':
             show_useage(argc,argv);
             exit(0);
-
         default:
             break;
         }
 
         if ( 0 == opt ) {
-
             switch (flag) {
-
             case LOG_UDP4:
-
                 if ( NULL != optarg ) {
                     snprintf(log_udp_sockaddress4_string, 16 + 1 + sizeof("65535"), "%s", optarg);
                 } else {
                     snprintf(log_udp_sockaddress4_string, 16 + 1 + sizeof("65535"), "%s", "127.0.0.1:8666");
                 }
-
                 break;
-
             default:
                 break;
             }
-
             continue;
-
         }
-
     }
-
 
     if ( NULL == ctl_block_file ) {
         show_useage(argc,argv);
         exit(0);
     }
-
 
 #ifdef __UNIX_LIKE_OS__
     if ( daemon ) {
@@ -362,11 +308,8 @@ int main (int argc,char *argv[]){
     }
 
     gnb_log_ctx_t *log;
-
     log = gnb_log_ctx_create();
-
     setup_log_ctx(log, log_udp_sockaddress4_string, log_udp_type);
-
     gnb_es_ctx *es_ctx = gnb_es_ctx_create(service_opt, ctl_block_file, log);
 
     if ( NULL == es_ctx ) {
@@ -375,7 +318,6 @@ int main (int argc,char *argv[]){
     }
 
     es_ctx->log = log;
-
     gnb_conf_t *conf = &es_ctx->ctl_block->conf_zone->conf_st;
 
     if ( 1 == conf->public_index_service ) {
@@ -384,49 +326,38 @@ int main (int argc,char *argv[]){
     }
 
     if ( '\0' == conf->conf_dir[0] ) {
-
         if(  0 == conf->lite_mode ) {
             printf("gnb config dir is not set map_file=%s\n", ctl_block_file);
             return 1;
         }
-
     }
 
     es_ctx->pid_file = malloc(PATH_MAX+NAME_MAX);
-
     char  resolved_path[PATH_MAX+NAME_MAX];
 
     #ifdef __UNIX_LIKE_OS__
 
     if ( NULL != pid_file ) {
-
         if ( 0 == conf->lite_mode ) {
             snprintf(es_ctx->pid_file, PATH_MAX+NAME_MAX,"%s", pid_file);
         } else {
             snprintf(conf->pid_file,   PATH_MAX+NAME_MAX, "%s/gnb_es.%d.pid", conf->binary_dir, conf->udp4_ports[0]);
         }
-
         if ( NULL != gnb_realpath(es_ctx->pid_file,resolved_path) ) {
             strncpy(es_ctx->pid_file, resolved_path, PATH_MAX);
         }
-
     } else {
-
         snprintf(es_ctx->pid_file, PATH_MAX+NAME_MAX, "%s/gnb_es.pid", conf->conf_dir);
-
     }
 
     #endif
 
     if ( NULL != wan_address6_file ) {
-
         es_ctx->wan_address6_file = malloc(PATH_MAX+NAME_MAX);
         snprintf(es_ctx->wan_address6_file, PATH_MAX+NAME_MAX,"%s", wan_address6_file);
-
         if ( NULL != gnb_realpath(es_ctx->wan_address6_file,resolved_path) ) {
             strncpy(es_ctx->wan_address6_file, resolved_path, PATH_MAX);
         }
-
     }
 
     es_ctx->upnp_opt = upnp_opt;
@@ -450,7 +381,6 @@ int main (int argc,char *argv[]){
     err = WSAStartup(MAKEWORD(2, 2), &wsaData );
 #endif
 
-
 #ifdef __UNIX_LIKE_OS__
     if ( 1==es_ctx->service_opt || 1==es_ctx->daemon ) {
         save_pid(es_ctx->pid_file);
@@ -458,7 +388,6 @@ int main (int argc,char *argv[]){
 #endif
 
     gnb_es_ctx_init(es_ctx);
-
     gnb_start_environment_service(es_ctx);
 
 #ifdef _WIN32
@@ -466,5 +395,4 @@ int main (int argc,char *argv[]){
 #endif
 
     return 0;
-
 }

@@ -19,47 +19,30 @@
 #define GNB_TUN_DRV_H
 
 typedef struct _gnb_core_t gnb_core_t;
-
 typedef int (*init_tun_func_t)(gnb_core_t *gnb_core);
-
 typedef int (*open_tun_func_t)(gnb_core_t *gnb_core);
-
 typedef int (*read_tun_func_t)(gnb_core_t *gnb_core, void *buf, size_t buf_size);
-
 typedef int (*write_tun_func_t)(gnb_core_t *gnb_core, void *buf, size_t buf_size);
-
 typedef int (*close_tun_func_t)(gnb_core_t *gnb_core);
-
 typedef int (*loop_tun_func_t)(gnb_core_t *gnb_core);
-
 typedef int (*release_tun_func_t)(gnb_core_t *gnb_core);
 
 typedef struct _gnb_tun_drv_t {
-
 	init_tun_func_t  init_tun;
-
 	open_tun_func_t  open_tun;
-
 	read_tun_func_t  read_tun;
-
 	write_tun_func_t write_tun;
-
 	close_tun_func_t close_tun;
-
 	release_tun_func_t release_tun;
-
-}gnb_tun_drv_t;
-
+} gnb_tun_drv_t;
 
 #if defined(__FreeBSD__)
 extern gnb_tun_drv_t gnb_tun_drv_freebsd;
 #endif
 
-
 #if defined(__OpenBSD__)
 extern gnb_tun_drv_t gnb_tun_drv_openbsd;
 #endif
-
 
 #if defined(__APPLE__)
 extern gnb_tun_drv_t gnb_tun_drv_darwin;
@@ -68,7 +51,6 @@ extern gnb_tun_drv_t gnb_tun_drv_darwin;
 #if defined(__linux__)
 extern gnb_tun_drv_t gnb_tun_drv_linux;
 #endif
-
 
 #if defined(_WIN32)
 extern gnb_tun_drv_t gnb_tun_drv_win32;

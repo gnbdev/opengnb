@@ -34,7 +34,7 @@ char *gnb_make_realpath_dup(char *base_path, char *sub_path);
 #define GNB_FILE_TYPE_DIR  2
 #define GNB_FILE_TYPE_LNK  3
 
-typedef struct _gnb_file_info_t{
+typedef struct _gnb_file_info_t {
 	char *name;
 	//绝对路径
 	char *abs_name;

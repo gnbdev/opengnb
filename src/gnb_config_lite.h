@@ -19,7 +19,5 @@
 #define GNB_CONF_LITE_H
 
 #include "gnb.h"
-
 void gnb_config_lite(gnb_core_t *gnb_core);
-
 #endif

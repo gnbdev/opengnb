@@ -21,13 +21,9 @@
 #include "gnb.h"
 
 gnb_core_t* gnb_core_create(gnb_conf_t *conf);
-
 void gnb_core_start(gnb_core_t *gnb_core);
-
 void gnb_core_stop(gnb_core_t *gnb_core);
-
 gnb_core_t * gnb_core_index_service_create(gnb_conf_t *conf);
-
 void gnb_core_index_service_start(gnb_core_t *gnb_core);
 
 #endif

@@ -21,26 +21,19 @@
 #include "gnb_platform.h"
 
 #ifdef __UNIX_LIKE_OS__
-
 #include <stdint.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/time.h>
-
 #endif
 
-
 #ifdef _WIN32
-
 #undef _WIN32_WINNT
 #define _WIN32_WINNT 0x0600
-
 #define _POSIX
-
 #include <winsock2.h>
 #include <ws2tcpip.h>
-
 #endif
 
 #include "gnb_alloc.h"
@@ -56,25 +49,19 @@
 #include "gnb_node_type.h"
 #include "gnb_ctl_block.h"
 #include "gnb_log.h"
+#include "gnb_version.h"
 
-
-typedef struct _gnb_core_t{
-
+typedef struct _gnb_core_t {
 	gnb_heap_t *heap;
-
 	char *ifname;
 
 	char *if_device_string;
-
 	gnb_node_t *local_node;
-
 	gnb_node_t *select_fwd_node;
 
     gnb_node_ring_t index_node_ring;
 	gnb_node_ring_t fwd_node_ring;
-
 	gnb_address_ring_t index_address_ring;
-
 	gnb_address_ring_t fwdu0_address_ring;
 
 	int time_seed_update_factor;
@@ -84,25 +71,21 @@ typedef struct _gnb_core_t{
 	unsigned char *ed25519_public_key;
 
 	gnb_conf_t *conf;
-
 	uint64_t node_nums;
 
 	gnb_hash32_map_t *uuid_node_map;   //以节点的uuid64作为key的 node 表
 	gnb_hash32_map_t *ipv4_node_map;
 
-	gnb_hash32_map_t *subneta_node_map;
-	gnb_hash32_map_t *subnetb_node_map;
-	gnb_hash32_map_t *subnetc_node_map;
+	gnb_hash32_map_t *subneta_node_ring_map;
+	gnb_hash32_map_t *subnetb_node_ring_map;
+	gnb_hash32_map_t *subnetc_node_ring_map;
 
-
-	//不同主模块可以按照模块内部的方式使用这些表
-	//由使用的相关联的模块来初始化这两组表
+	//不同主模块可以按照模块内部的方式使用这些表,由使用的相关联的模块来初始化这两组表
 
 	//这组张表是整型为key
 	gnb_hash32_map_t *int32_map0;
 	gnb_hash32_map_t *int32_map1;
 	gnb_hash32_map_t *int32_map2;
-
 
 	//这组表是整型为 string
 	gnb_hash32_map_t *string_map0;
@@ -110,35 +93,25 @@ typedef struct _gnb_core_t{
 	gnb_hash32_map_t *string_map2;
 
 	int tun_fd;
-
 	int udp_ipv6_sockets[GNB_MAX_UDP6_SOCKET_NUM];
 	int udp_ipv4_sockets[GNB_MAX_UDP4_SOCKET_NUM];
 
-
 	int loop_flag;
-
 	gnb_tun_drv_t *drv;
 
 	gnb_payload16_t     *inet_payload0;
 	gnb_payload16_t     *tun_payload0;
-
 	gnb_payload16_t     *inet_payload;
 	gnb_payload16_t     *tun_payload;
 
 	void *platform_ctx;
 
 	gnb_worker_t   *primary_worker;
-
 	gnb_worker_t   *node_worker;
-
 	gnb_worker_t   *index_worker;
-
 	gnb_worker_t   *index_service_worker;
-
 	gnb_worker_t   *detect_worker;
-
 	gnb_worker_t   *upnp_worker;
-
 	gnb_worker_ring_t *pf_worker_ring;
 
 	struct timeval now_timeval;
@@ -151,13 +124,9 @@ typedef struct _gnb_core_t{
 
 	//route ip frame 类型的 paylaod 的 head size
 	size_t route_frame_head_size;
-
 	gnb_ctl_block_t  *ctl_block;
-
 	gnb_log_ctx_t    *log;
-
-}gnb_core_t;
-
+} gnb_core_t;
 
 #define GNB_ADDR_TYPE_NONE              (0x0)
 #define GNB_ADDR_TYPE_IPV4              (0x1)
@@ -170,9 +139,5 @@ typedef struct _gnb_core_t{
 #define GNB_LOG_ID_INDEX_WORKER          4
 #define GNB_LOG_ID_INDEX_SERVICE_WORKER  5
 #define GNB_LOG_ID_DETECT_WORKER         6
-
-#define GNB_VERSION_STRING    "GNB version Dev 1.6.0.a  protocol version 1.6.0"
-#define GNB_COPYRIGHT_STRING  "Copyright (C) 2019 gnbdev<gnbdev@qq.com>"
-#define GNB_URL_STRING        "https://github.com/gnbdev/opengnb"
 
 #endif

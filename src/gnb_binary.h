@@ -25,43 +25,35 @@
 
 char *gnb_bin2hex_case_string(void *bin, size_t bin_size, char *hex_string,  int letter_case);
 char *gnb_bin2hex_string(void *bin, size_t bin_size, char *hex_string);
-
-
 char *gnb_bin2hex_case(void *bin, size_t bin_size, char *hex_string,  int letter_case);
 char *gnb_bin2hex(void *bin, size_t bin_size, char *hex_string);
-
 void *gnb_hex2bin(char *hex_string, void *bin, size_t bin_size);
 
-
-typedef struct _gnb_hex_string8_t{
+typedef struct _gnb_hex_string8_t {
 	char value[8+1];
-}gnb_hex_string8_t;
+} gnb_hex_string8_t;
 
-
-typedef struct _gnb_hex_string16_t{
+typedef struct _gnb_hex_string16_t {
 	char value[16+1];
-}gnb_hex_string16_t;
+} gnb_hex_string16_t;
 
 
-typedef struct _gnb_hex_string32_t{
+typedef struct _gnb_hex_string32_t {
 	char value[32+1];
-}gnb_hex_string32_t;
+} gnb_hex_string32_t;
 
-
-typedef struct _gnb_hex_string64_t{
+typedef struct _gnb_hex_string64_t {
 	char value[64+1];
-}gnb_hex_string64_t;
+} gnb_hex_string64_t;
 
 
-typedef struct _gnb_hex_string128_t{
+typedef struct _gnb_hex_string128_t {
 	char value[128+1];
-}gnb_hex_string128_t;
+} gnb_hex_string128_t;
 
-
-typedef struct _gnb_hex_string256_t{
+typedef struct _gnb_hex_string256_t {
 	char value[256+1];
-}gnb_hex_string256_t;
-
+} gnb_hex_string256_t;
 
 char * gnb_get_hex_string8(void *byte4, char *dest);
 char * gnb_get_hex_string16(void *byte8, char *dest);
@@ -69,7 +61,6 @@ char * gnb_get_hex_string32(void *byte16, char *dest);
 char * gnb_get_hex_string64(void *byte32, char *dest);
 char * gnb_get_hex_string128(void *byte64, char *dest);
 char * gnb_get_hex_string256(void *byte128, char *dest);
-
 
 static char gnb_hex1_string256[256+1];
 static char gnb_hex2_string256[256+1];

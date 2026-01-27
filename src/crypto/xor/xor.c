@@ -16,45 +16,28 @@
 */
 
 void xor_crypto(unsigned char *crypto_key, unsigned char *data, unsigned int len) {
-
     int i;
     int j = 0;
-
     for ( i=0; i<len; i++ ) {
-
         *data = *data ^ crypto_key[j];
-
         data++;
-
         j++;
-
         if ( j >= 64 ) {
             j = 0;
         }
-
     }
-
 }
 
-
 void xor_crypto_copy(unsigned char *crypto_key, unsigned char *dest, unsigned char *src, unsigned int len) {
-
     int i;
     int j = 0;
-
     for ( i=0; i<len; i++ ) {
-
         *dest = *src ^ crypto_key[j];
-
         src++;
         dest++;
-
         j++;
-
         if ( j >= 64 ) {
             j = 0;
         }
-
     }
-
 }
