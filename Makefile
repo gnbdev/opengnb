@@ -13,9 +13,10 @@ include $(INCLUDE_DIR)/package.mk
 define Package/opengnb
   SECTION:=net
   CATEGORY:=Network
+  SUBMENU:=VPN
   TITLE:=OpenGNB - Global Network Bridge
   URL:=https://github.com/gnbdev/opengnb
-  DEPENDS:=+libpthread
+  DEPENDS:=+libpthread +kmod-tun
 endef
 
 define Package/opengnb/description
