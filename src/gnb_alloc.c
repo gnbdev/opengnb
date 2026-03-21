@@ -56,6 +56,12 @@ void* gnb_heap_alloc(gnb_heap_t *gnb_heap, uint32_t size) {
         printf("gnb_heap_alloc fail heap is full\n");
         return NULL;
     }
+	/*
+    if ( size > (uint32_t)(1024l * 1024l * 1024l * 4) - 1 ) {
+		printf("gnb_heap_alloc fail  alloc memory > %u \n", (uint32_t)(1024l * 1024l * 1024l * 4) - 1);
+        return NULL;
+    }
+	*/
     gnb_heap_fragment_t *fragment = malloc( sizeof(gnb_heap_fragment_t) + sizeof(unsigned char) * size );
     if ( NULL == fragment ) {
 		printf("gnb_heap_alloc error  malloc false\n");

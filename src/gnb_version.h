@@ -18,9 +18,9 @@
 #ifndef GNB_VERSION_H
 #define GNB_VERSION_H
 
-#define GNB_VERSION_STRING     "GNB version Dev 1.6.1 protocol version 1.6.0"
+#define GNB_VERSION_STRING     "GNB version Dev 1.6.2  protocol version 1.6.0"
 #define GNB_COPYRIGHT_STRING  "Copyright (C) 2019 gnbdev<gnbdev@qq.com>"
-#define GNB_URL_STRING        "https://github.com/gnbdev/opengnb"
+#define GNB_URL_STRING        "https://github.com/opengnb/opengnb"
 
 #ifndef GNB_SKIP_BUILD_TIME
 #define GNB_BUILD_STRING  "Build Time ["__DATE__","__TIME__"]"
