@@ -121,7 +121,7 @@ int init_tun_wintun(gnb_core_t *gnb_core){
 
     tun_wintun_ctx->skip_if_script = 0;
 
-    GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "Notes: gnb_drv_wintun.c is a Third party module; technical support:  https://www.github.com/wuqiong\n");
+    GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "Note:gnb_drv_wintun.c is a Third party module; technical support: https://www.github.com/wuqiong\n");
 
     HMODULE module = InitializeWintun(gnb_core);
 
@@ -162,6 +162,15 @@ int init_tun_wintun(gnb_core_t *gnb_core){
     return 0;
 
 }
+
+
+//Add
+static ULONG get_if_id(gnb_core_t *gnb_core) {
+
+	return 0l;
+}
+
+
 
 static void if_up(gnb_core_t *gnb_core){
 

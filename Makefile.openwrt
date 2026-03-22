@@ -1,3 +1,5 @@
+#Note:charleschan<hollidgelongsun157@gmail.com> made great efforts for OpenGNB porting to OpenWRT platform and provides technical supoort.
+
 CFLAGS=-ffunction-sections -fdata-sections -Wno-unused-result -I./src -I./libs -I./libs/miniupnpc -I./libs/libnatpmp -I./libs/zlib -D NO_GZIP=1 -D GNB_OPENWRT_BUILD=1
 CLI_LDFLAGS=-Wl,--gc-sections -L/usr/lib -pthread
 GNB_ES_LDFLAGS=-Wl,--gc-sections -L/usr/lib -pthread

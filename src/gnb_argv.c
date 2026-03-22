@@ -350,6 +350,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]) {
       { "index-service-log-level",   required_argument,  0,   SET_INDEX_SERVICE_LOG_LEVEL },
       { "node-detect-log-level",     required_argument,  0,   SET_DETECT_LOG_LEVEL },      
 
+	  { "version",  no_argument, 0, 'v' },
       { "help",     no_argument, 0, 'h' },
 
       { 0, 0, 0, 0 }
@@ -361,7 +362,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]) {
     int option_index = 0;
 
     while (1) {
-        opt = getopt_long(argc, argv, "c:n:a:r:PI:b:l:i:46Edp:e:tqVTh",long_options, &option_index);
+        opt = getopt_long(argc, argv, "c:n:a:r:PI:b:l:i:46Edp:e:tqvVTh",long_options, &option_index);
         if ( -1 == opt ) {
             break;
         }
@@ -712,6 +713,9 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]) {
         case 'e':
             gnb_setup_es_argv(optarg);
             break;
+		case 'v':
+			show_description();
+			exit(0);
         case 'h':
             show_useage(argc, argv);
             exit(0);
@@ -900,6 +904,7 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]) {
     gnb_arg_append(gnb_es_arg_list, "-b");
     gnb_arg_append(gnb_es_arg_list, conf->map_file);
     #endif
+
     #ifdef _WIN32
     char gnb_map_path_q[PATH_MAX+NAME_MAX];
     snprintf(gnb_map_path_q,    PATH_MAX+NAME_MAX, "\"%s\"",              conf->map_file);

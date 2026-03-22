@@ -161,10 +161,8 @@ int main (int argc,char *argv[]) {
 
     int daemon = 0;
     int service_opt = 0;
-
     gnb_ctl_block_t *ctl_block;
     uint8_t log_udp_type = GNB_LOG_UDP_TYPE_TEXT;
-
     char log_udp_sockaddress4_string[16 + 1 + sizeof("65535")];
 
     memset(log_udp_sockaddress4_string, 0, 16 + 1 + sizeof("65535"));
@@ -313,20 +311,17 @@ int main (int argc,char *argv[]) {
     gnb_es_ctx *es_ctx = gnb_es_ctx_create(service_opt, ctl_block_file, log);
 
     if ( NULL == es_ctx ) {
-        printf("es ctx init error [%s]......\n",ctl_block_file);
+        printf("es ctx init error [%s]\n",ctl_block_file);
         return 1;
     }
-
     es_ctx->log = log;
     gnb_conf_t *conf = &es_ctx->ctl_block->conf_zone->conf_st;
-
     if ( 1 == conf->public_index_service ) {
         printf("gnb run as public index service map_file=%s\n", ctl_block_file);
         return 1;
     }
-
     if ( '\0' == conf->conf_dir[0] ) {
-        if(  0 == conf->lite_mode ) {
+        if( 0 == conf->lite_mode ) {
             printf("gnb config dir is not set map_file=%s\n", ctl_block_file);
             return 1;
         }
@@ -336,7 +331,6 @@ int main (int argc,char *argv[]) {
     char  resolved_path[PATH_MAX+NAME_MAX];
 
     #ifdef __UNIX_LIKE_OS__
-
     if ( NULL != pid_file ) {
         if ( 0 == conf->lite_mode ) {
             snprintf(es_ctx->pid_file, PATH_MAX+NAME_MAX,"%s", pid_file);
@@ -349,7 +343,6 @@ int main (int argc,char *argv[]) {
     } else {
         snprintf(es_ctx->pid_file, PATH_MAX+NAME_MAX, "%s/gnb_es.pid", conf->conf_dir);
     }
-
     #endif
 
     if ( NULL != wan_address6_file ) {

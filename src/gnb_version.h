@@ -18,7 +18,7 @@
 #ifndef GNB_VERSION_H
 #define GNB_VERSION_H
 
-#define GNB_VERSION_STRING     "GNB version Dev 1.6.2  protocol version 1.6.0"
+#define GNB_VERSION_STRING     "GNB version Dev 1.6.3  protocol version 1.6.0"
 #define GNB_COPYRIGHT_STRING  "Copyright (C) 2019 gnbdev<gnbdev@qq.com>"
 #define GNB_URL_STRING        "https://github.com/opengnb/opengnb"
 

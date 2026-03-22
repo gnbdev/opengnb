@@ -715,7 +715,7 @@ static void exec_es(gnb_core_t *gnb_core) {
         return;
     }
     GNB_LOG3(gnb_core->log, GNB_LOG_ID_CORE, "exec gnb_es argv '%s'\n", es_arg_string);
-    pid_gnb_es = gnb_exec(gnb_es_bin_path, gnb_core->conf->binary_dir, gnb_es_arg_list, GNB_EXEC_BACKGROUND|GNB_EXEC_WAIT );
+    pid_gnb_es = gnb_exec(gnb_es_bin_path, gnb_core->conf->binary_dir, gnb_es_arg_list, GNB_EXEC_BACKGROUND|GNB_EXEC_WAIT);
 }
 #endif
 
