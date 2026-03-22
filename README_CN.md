@@ -289,8 +289,7 @@ i|0|172.104.91.191|9001
 
 
 ## GNB在OpenWRT上
-
-GNB 支持 OpenWRT 平台,需要用户自行编译。
+Note:注：charleschan<hollidgelongsun157@gmail.com>(https://github.com/orgs/opengnb/people/charleschan2006-alias) 为 OpenGNB 移植到 OpenWRT 平台做出了巨大努力，并提供了技术支持。
 
 
 ## GNB 在 Linux 发行版上
