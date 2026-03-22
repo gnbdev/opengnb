@@ -289,7 +289,7 @@ i|0|172.104.91.191|9001
 
 
 ## GNB on OpenWRT
-
+Note:charleschan<hollidgelongsun157@gmail.com>(https://github.com/orgs/opengnb/people/charleschan2006-alias) made great efforts for OpenGNB porting to OpenWRT platform and provides technical supoort.
 GNB supports the OpenWRT platform and needs to be compiled by the user.
 
 
