@@ -679,7 +679,7 @@ make -f Makefile.linux
 ## OpenWRT
 
 ```
-make -f Makefile.openwrt
+make -f Makefile.linux
 ```
 
 编译构建运行在 OpenWRT 上的 GNB 需要到 [https://downloads.openwrt.org/releases/](https://downloads.openwrt.org/releases/ "downloads") 下载 对应的 OpenWRT 版本号和硬件平台的 `OpenWRT SDK`。

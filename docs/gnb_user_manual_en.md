@@ -671,7 +671,7 @@ make -f Makefile.linux
 ## OpenWRT
 
 ```
-make -f Makefile.openwrt
+make -f Makefile.linux
 ```
 
 To compile and build GNB running on OpenWRT, you need to go to [https://downloads.openwrt.org/releases/](https://downloads.openwrt.org/releases/ "downloads") to download the corresponding OpenWRT version number and hardware platform `OpenWRT SDK`.

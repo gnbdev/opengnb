@@ -1,9 +1,5 @@
+#Makefile.openwrt is only used for compiling and building on the OpenWRT platform.
 #Note:charleschan<hollidgelongsun157@gmail.com> made great efforts for OpenGNB porting to OpenWRT platform and provides technical supoort.
-
-CFLAGS=-ffunction-sections -fdata-sections -Wno-unused-result -I./src -I./libs -I./libs/miniupnpc -I./libs/libnatpmp -I./libs/zlib -D NO_GZIP=1 -D GNB_OPENWRT_BUILD=1
-CLI_LDFLAGS=-Wl,--gc-sections -L/usr/lib -pthread
-GNB_ES_LDFLAGS=-Wl,--gc-sections -L/usr/lib -pthread
-
 
 ifeq ($(DEBUG),1)
 CFLAGS += -g
@@ -12,15 +8,12 @@ CLI_LDFLAGS    += -s
 GNB_ES_LDFLAGS += -s
 endif
 
-
 GNB_CRYPTO=gnb_crypto
 GNB_CTL=gnb_ctl
 GNB_ES=gnb_es
 GNB_CLI=gnb
 
-
-include Makefile.inc
-
+include Makefile.openwrt.inc
 
 GNB_CLI_OBJS =                             \
        ./src/cli/gnb.o                     \
@@ -37,16 +30,16 @@ $(GNB_CTL): $(GNB_CTL_OBJS)
 	${CC} -o ${GNB_CTL} ${GNB_CTL_OBJS} ${CLI_LDFLAGS}
 
 
-$(GNB_ES): $(GNB_ES_OBJS) ${CRYPTO_OBJS} ${MINIUPNP_OBJS} ${LIBNATPMP_OBJS}
-	${CC} -o ${GNB_ES} ${GNB_ES_OBJS} ${CRYPTO_OBJS} ${MINIUPNP_OBJS} ${LIBNATPMP_OBJS} ${GNB_ES_LDFLAGS}
+$(GNB_ES): $(GNB_ES_OBJS) ${CRYPTO_OBJS}
+	${CC} -o ${GNB_ES} ${GNB_ES_OBJS} ${CRYPTO_OBJS} -lnatpmp -lminiupnpc ${GNB_ES_LDFLAGS}
 
 
 $(GNB_CRYPTO): $(CRYPTO_OBJS) ./src/cli/gnb_crypto.o
 	${CC} -o ${GNB_CRYPTO} ./src/cli/gnb_crypto.o ${CRYPTO_OBJS} ${CLI_LDFLAGS}
 
 
-$(GNB_CLI): $(GNB_OBJS) $(GNB_CLI_OBJS) $(GNB_PF_OBJS) ${CRYPTO_OBJS} ${ZLIB_OBJS}
-	${CC} -o ${GNB_CLI} ${GNB_OBJS} ${GNB_CLI_OBJS} ${GNB_PF_OBJS} ${CRYPTO_OBJS} ${ZLIB_OBJS} ${CLI_LDFLAGS}
+$(GNB_CLI): $(GNB_OBJS) $(GNB_CLI_OBJS) $(GNB_PF_OBJS) ${CRYPTO_OBJS}
+	${CC} -o ${GNB_CLI} ${GNB_OBJS} ${GNB_CLI_OBJS} ${GNB_PF_OBJS} ${CRYPTO_OBJS} -lz ${CLI_LDFLAGS}
 
 
 %.o:%.c

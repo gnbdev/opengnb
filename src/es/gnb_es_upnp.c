@@ -43,7 +43,7 @@
 #include "gnb_node_type.h"
 #include "gnb_ctl_block.h"
 #include "gnb_time.h"
-#include "es/gnb_es_type.h"
+#include "gnb_es_type.h"
 
 #include "miniupnpc.h"
 #include "natpmp.h"
@@ -64,6 +64,9 @@ static void gnb_es_upnp_em(gnb_es_ctx *es_ctx, gnb_conf_t *conf, gnb_log_ctx_t *
     struct IGDdatas data;
     char lan_addr[64] = "unset";
     char lan_addr_port[6];
+	char wan_addr[64] = "unset";
+	char wan_addr_port[6];
+
     //查询时用
     char intClient[16];
     char intPort[6];
@@ -83,7 +86,7 @@ static void gnb_es_upnp_em(gnb_es_ctx *es_ctx, gnb_conf_t *conf, gnb_log_ctx_t *
         GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "UPNPC upnpDiscover get devlist faile! error=%d .....\n", error);
         return;
     }
-    r = UPNP_GetValidIGD(devlist, &urls, &data, lan_addr, sizeof(lan_addr));
+    r = UPNP_GetValidIGD(devlist, &urls, &data, lan_addr, sizeof(lan_addr), wan_addr, sizeof(wan_addr));
     switch (r) {
     case 0:
         GNB_LOG1(log, GNB_LOG_ID_ES_UPNP, "UPNPC UPNP_GetValidIGD NO IGD found\n");

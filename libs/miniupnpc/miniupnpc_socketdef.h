@@ -1,4 +1,4 @@
-/* $Id: miniupnpc_socketdef.h,v 1.3 2019/02/10 13:24:52 nanard Exp $ */
+/* $Id: miniupnpc_socketdef.h,v 1.4 2021/03/02 23:35:29 nanard Exp $ */
 /* Miniupnp project : http://miniupnp.free.fr/ or https://miniupnp.tuxfamily.org/
  * Author : Thomas Bernard
  * Copyright (c) 2018 Thomas Bernard
@@ -7,7 +7,7 @@
 #ifndef MINIUPNPC_SOCKETDEF_H_INCLUDED
 #define MINIUPNPC_SOCKETDEF_H_INCLUDED
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 
 #define ISINVALID(s) (INVALID_SOCKET==(s))
 

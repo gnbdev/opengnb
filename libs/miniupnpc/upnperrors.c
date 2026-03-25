@@ -1,8 +1,8 @@
-/* $Id: upnperrors.c,v 1.10 2019/08/24 08:49:53 nanard Exp $ */
+/* $Id: upnperrors.c,v 1.12 2023/06/26 23:19:28 nanard Exp $ */
 /* vim: tabstop=4 shiftwidth=4 noexpandtab
  * Project : miniupnp
  * Author : Thomas BERNARD
- * copyright (c) 2007-2019 Thomas Bernard
+ * copyright (c) 2007-2023 Thomas Bernard
  * All Right reserved.
  * http://miniupnp.free.fr/ or https://miniupnp.tuxfamily.org/
  * This software is subjet to the conditions detailed in the
@@ -47,6 +47,24 @@ const char * strupnperror(int err)
 	case 501:
 		s = "Action Failed";
 		break;
+	case 600:
+		s = "Argument Value Invalid";
+		break;
+	case 601:
+		s = "Argument Value Out of Range";
+		break;
+	case 602:
+		s = "Optional Action Not Implemented";
+		break;
+	case 603:
+		s = "Out of Memory";
+		break;
+	case 604:
+		s = "Human Intervention Required";
+		break;
+	case 605:
+		s = "String Argument Too Long";
+		break;
 	case 606:
 		s = "Action not authorized";
 		break;
@@ -75,7 +93,7 @@ const char * strupnperror(int err)
 		s = "InvalidLayer2Address";
 		break;
 	case 709:
-		s = "NoPacketSent";
+		s = "NoTrafficReceived";
 		break;
 	case 713:
 		s = "SpecifiedArrayIndexInvalid";
@@ -103,6 +121,24 @@ const char * strupnperror(int err)
 		break;
 	case 727:
 		s = "ExternalPortOnlySupportsWildcard";
+		break;
+	case 728:
+		s = "NoPortMapsAvailable";
+		break;
+	case 729:
+		s = "ConflictWithOtherMechanisms";
+		break;
+	case 730:
+		s = "PortMappingNotFound";
+		break;
+	case 731:
+		s = "ReadOnly";
+		break;
+	case 732:
+		s = "WildCardNotPermittedInIntPort";
+		break;
+	case 733:
+		s = "InconsistentParameters";
 		break;
 	default:
 		s = "UnknownError";
