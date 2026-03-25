@@ -11,6 +11,7 @@ MINIUPNP_OBJS =                                  \
        ./libs/miniupnpc/portlistingparse.o       \
        ./libs/miniupnpc/receivedata.o            \
        ./libs/miniupnpc/upnpdev.o                \
+       ./libs/miniupnpc/addr_is_reserved.o       \
        ./libs/miniupnpc/minissdpc.o
 
 
