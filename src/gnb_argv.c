@@ -973,7 +973,7 @@ static void show_useage(int argc,char *argv[]) {
     printf("      --multi-forward-type          \"simple-fault-tolerant\",\"simple-load-balance\" default:\"simple-fault-tolerant\"\n");
 
     #ifdef _WIN32
-    printf("      --if-drv                      interface driver \"tap-windows\",\"wintun\" default:\"tap-windows\"\n");
+    printf("      --if-drv                      interface driver \"tap-windows\",\"wintun\" default:\"wintun\"\n");
     #endif
 
     #ifdef __UNIX_LIKE_OS__
