@@ -480,7 +480,7 @@ gnb_core_t* gnb_core_create(gnb_conf_t *conf) {
     } else if ( GNB_IF_DRV_TYPE_TAP_WINTUN == conf->if_drv ) {
         gnb_core->drv = &gnb_tun_drv_wintun;
     } else {
-        gnb_core->drv = &gnb_tun_drv_win32;
+        gnb_core->drv = &gnb_tun_drv_wintun;
     }
 #endif
     gnb_pf_status_strings_init();
