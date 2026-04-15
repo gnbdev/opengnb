@@ -79,7 +79,7 @@ typedef struct _gnb_core_t {
 	gnb_hash32_map_t *subneta_node_ring_map;
 	gnb_hash32_map_t *subnetb_node_ring_map;
 	gnb_hash32_map_t *subnetc_node_ring_map;
-
+	gnb_node_t *default_route_node;
 	//不同主模块可以按照模块内部的方式使用这些表,由使用的相关联的模块来初始化这两组表
 
 	//这组张表是整型为key

@@ -195,6 +195,12 @@ gnb_node_t* gnb_select_route4_node(gnb_core_t *gnb_core, uint32_t dst_ip_int) {
 		goto got_node_ring;
 	}
 
+    // 默认路由兜底
+    if ( gnb_core->default_route_node ) {
+        node = gnb_core->default_route_node;
+        goto finish;
+    }
+
 	return NULL;
 	
 got_node_ring:

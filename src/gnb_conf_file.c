@@ -935,7 +935,10 @@ static void load_route_config(gnb_core_t *gnb_core) {
         tun_subnet_addr4 = tun_addr4 & tun_netmask_addr4;
         char *p = (char *)&tun_addr4;
         //根据ip地址最后一位判断是主机还是网络，如果是主机就作为 tun 的ip
-        if ( 0 != p[3] && 0 == node->tun_addr4.s_addr ) {
+        if ( 0 == tun_addr4 && 0 == tun_netmask_addr4 ) {
+            // 0.0.0.0/0.0.0.0 默认路由，作为最低优先级兜底
+            gnb_core->default_route_node = node;
+        } else if ( 0 != p[3] && 0 == node->tun_addr4.s_addr ) {
 			//tun_addr4 当前版本只能被设一次，今后可能会支持多个虚拟ip
             node->tun_addr4.s_addr = tun_addr4;
             node->tun_netmask_addr4.s_addr = tun_netmask_addr4;
