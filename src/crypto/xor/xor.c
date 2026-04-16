@@ -17,6 +17,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <string.h>
 
 void xor_crypto(unsigned char *crypto_key, unsigned char *data, unsigned int len) {
     int i;
