@@ -81,20 +81,20 @@ gnb_node_t * gnb_node_init(gnb_core_t *gnb_core, gnb_uuid_t uuid64){
         //lite mode
         if ( gnb_core->conf->local_uuid == uuid64 ) {
             memset(gnb_core->ed25519_private_key, 0, 64);
-            memset(gnb_core->ed25519_public_key,  0,32);
+            memset(gnb_core->ed25519_public_key,  0, 32);
         }
         memset(node->public_key, 0, 32);
         node_id_network_order       = gnb_htonll(uuid64);
         local_node_id_network_order = gnb_htonll(gnb_core->conf->local_uuid);
-        memcpy(node->public_key, &node_id_network_order, 4);
+        memcpy(node->public_key, &node_id_network_order, 8);
         memset(node->shared_secret, 0, 32);
         memcpy(node->shared_secret, gnb_core->conf->crypto_passcode, 4);
         if ( node_id_network_order > local_node_id_network_order ) {
-            memcpy(node->shared_secret+4, &node_id_network_order, 4);
-            memcpy(node->shared_secret+8, &local_node_id_network_order, 4);
+            memcpy(node->shared_secret+4,  &node_id_network_order, 8);
+            memcpy(node->shared_secret+12, &local_node_id_network_order, 8);
         } else {
-            memcpy(node->shared_secret+4, &local_node_id_network_order, 4);
-            memcpy(node->shared_secret+8, &node_id_network_order, 4);
+            memcpy(node->shared_secret+4,  &local_node_id_network_order, 8);
+            memcpy(node->shared_secret+12, &node_id_network_order, 8);
         }
     }
     return node;
