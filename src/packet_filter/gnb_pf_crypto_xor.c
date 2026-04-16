@@ -48,6 +48,7 @@ static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_
         return GNB_PF_ERROR;
     }
     gnb_xor_crypto_fast(pf_ctx->dst_node->crypto_key_expanded,
+                        GNB_XOR_EXPANDED_KEY_SIZE,
                         (unsigned char *)pf_ctx->ip_frame,
                         pf_ctx->ip_frame_size);
     return pf_ctx->pf_status;
@@ -65,6 +66,7 @@ static int pf_inet_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf
             return GNB_PF_ERROR;
         }
         gnb_xor_crypto_fast(pf_ctx->src_node->crypto_key_expanded,
+                            GNB_XOR_EXPANDED_KEY_SIZE,
                             (unsigned char *)pf_ctx->ip_frame,
                             pf_ctx->ip_frame_size);
     }
@@ -87,6 +89,7 @@ static int pf_chain_relay_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *p
             goto finish;
         }
         gnb_xor_crypto_fast(pf_ctx->fwd_node->crypto_key_expanded,
+                            GNB_XOR_EXPANDED_KEY_SIZE,
                             (unsigned char *)pf_ctx->fwd_payload->data,
                             gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(gnb_uuid_t));
         pf_ctx->pf_status = GNB_PF_NEXT;
@@ -116,6 +119,7 @@ static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf
         goto finish;
     }
     gnb_xor_crypto_fast(pf_ctx->src_fwd_node->crypto_key_expanded,
+                        GNB_XOR_EXPANDED_KEY_SIZE,
                         (unsigned char *)pf_ctx->fwd_payload->data,
                         gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(gnb_uuid_t));
 finish:

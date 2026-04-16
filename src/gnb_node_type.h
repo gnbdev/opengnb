@@ -22,6 +22,8 @@
 #include "gnb_address_type.h"
 #include "gnb_type.h"
 
+#define GNB_XOR_EXPANDED_KEY_SIZE 1024
+
 typedef struct _gnb_unified_forwarding_node_t {
 	gnb_uuid_t uuid64;
 	uint64_t   last_ts_sec;
@@ -131,7 +133,6 @@ typedef struct _gnb_node_t {
 	unsigned char pre_crypto_key[64]; //上一个通信密钥
 	unsigned char key512[64];
 
-#define GNB_XOR_EXPANDED_KEY_SIZE 1024
 	unsigned char crypto_key_expanded[GNB_XOR_EXPANDED_KEY_SIZE];
 	unsigned char pre_crypto_key_expanded[GNB_XOR_EXPANDED_KEY_SIZE];
 

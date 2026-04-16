@@ -52,29 +52,41 @@ void gnb_xor_expand_key(const unsigned char *key64, unsigned char *expanded, siz
     }
 }
 
-void gnb_xor_crypto_fast(const unsigned char *key_expanded, unsigned char *data, size_t len) {
-    size_t i = 0;
+void gnb_xor_crypto_fast(const unsigned char *key_expanded, size_t key_expanded_size,
+                         unsigned char *data, size_t len) {
+    size_t offset = 0;
 
-    while (i < len && (((uintptr_t)(data + i)) & 7u)) {
-        data[i] ^= key_expanded[i];
-        i++;
-    }
+    while (offset < len) {
+        size_t remaining = len - offset;
+        size_t chunk = remaining < key_expanded_size ? remaining : key_expanded_size;
+        size_t i = 0;
+
+        while (i < chunk && (((uintptr_t)(data + offset + i)) & 7u)) {
+            data[offset + i] ^= key_expanded[i];
+            i++;
+        }
 
 #if defined(__SIZEOF_POINTER__) && (__SIZEOF_POINTER__ >= 8)
-    for (; i + 8 <= len; i += 8) {
-        uint64_t d = *(const uint64_t *)(data + i);
-        uint64_t k = *(const uint64_t *)(key_expanded + i);
-        *(uint64_t *)(data + i) = d ^ k;
-    }
+        for (; i + 8 <= chunk; i += 8) {
+            uint64_t d, k;
+            memcpy(&d, data + offset + i, 8);
+            memcpy(&k, key_expanded + i, 8);
+            d ^= k;
+            memcpy(data + offset + i, &d, 8);
+        }
 #else
-    for (; i + 4 <= len; i += 4) {
-        uint32_t d = *(const uint32_t *)(data + i);
-        uint32_t k = *(const uint32_t *)(key_expanded + i);
-        *(uint32_t *)(data + i) = d ^ k;
-    }
+        for (; i + 4 <= chunk; i += 4) {
+            uint32_t d, k;
+            memcpy(&d, data + offset + i, 4);
+            memcpy(&k, key_expanded + i, 4);
+            d ^= k;
+            memcpy(data + offset + i, &d, 4);
+        }
 #endif
+        for (; i < chunk; i++) {
+            data[offset + i] ^= key_expanded[i];
+        }
 
-    for (; i < len; i++) {
-        data[i] ^= key_expanded[i];
+        offset += chunk;
     }
 }
