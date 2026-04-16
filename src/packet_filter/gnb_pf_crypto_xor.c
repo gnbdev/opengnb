@@ -19,6 +19,7 @@
 #include "gnb_payload16.h"
 #include "protocol/network_protocol.h"
 #include "gnb_binary.h"
+#include "crypto/xor/xor.h"
 
 typedef struct _gnb_pf_private_ctx_t {
     int save_time_seed_update_factor;
@@ -46,18 +47,10 @@ static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_
     if ( NULL==pf_ctx->dst_node ) {
         return GNB_PF_ERROR;
     }
-    int i;
-    int j = 0;
-    unsigned char *p = (unsigned char *)pf_ctx->ip_frame;
-    for ( i=0; i<pf_ctx->ip_frame_size; i++ ) {
-        *p = *p ^ pf_ctx->dst_node->crypto_key[j];
-        p++;
-        j++;
-        if ( j >= 64 ) {
-            j = 0;
-        }
-    }
-    return pf_ctx->pf_status;;
+    gnb_xor_crypto_fast(pf_ctx->dst_node->crypto_key_expanded,
+                        (unsigned char *)pf_ctx->ip_frame,
+                        pf_ctx->ip_frame_size);
+    return pf_ctx->pf_status;
 }
 
 /*
@@ -67,23 +60,13 @@ static int pf_tun_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_
 static int pf_inet_route_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx) {
     gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t *)pf->private_ctx;
     ctx->save_time_seed_update_factor = gnb_core->time_seed_update_factor;
-    gnb_node_t *src_node;
-    int i;
-    int j = 0;
-    unsigned char *p = (unsigned char *)pf_ctx->ip_frame;
     if ( GNB_PF_FWD_TUN==pf_ctx->pf_fwd ) {
-        src_node = pf_ctx->src_node;
-        if ( NULL == src_node ) {
+        if ( NULL == pf_ctx->src_node ) {
             return GNB_PF_ERROR;
         }
-        for ( i=0; i<pf_ctx->ip_frame_size; i++ ) {
-            *p = *p ^ src_node->crypto_key[j];
-            p++;
-            j++;
-            if ( j >= 64 ) {
-                j = 0;
-            }
-        }
+        gnb_xor_crypto_fast(pf_ctx->src_node->crypto_key_expanded,
+                            (unsigned char *)pf_ctx->ip_frame,
+                            pf_ctx->ip_frame_size);
     }
     return pf_ctx->pf_status;
 }
@@ -95,9 +78,6 @@ payload 发往用下一跳前，用下一跳节点的的密钥加密 payload
 static int pf_chain_relay_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf_ctx) {
     gnb_pf_private_ctx_t *ctx = (gnb_pf_private_ctx_t *)pf->private_ctx;
     ctx->save_time_seed_update_factor = gnb_core->time_seed_update_factor;
-    int i;
-    int j = 0;
-    unsigned char *p;
     if ( !(pf_ctx->fwd_payload->sub_type & GNB_PAYLOAD_SUB_TYPE_IPFRAME_RELAY) ) {
         return pf_ctx->pf_status;
     }
@@ -106,15 +86,9 @@ static int pf_chain_relay_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *p
             pf_ctx->pf_status = GNB_PF_NOROUTE;
             goto finish;
         }
-        p = (unsigned char *)pf_ctx->fwd_payload->data;
-        for ( i=0; i < (gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(gnb_uuid_t)); i++ ) {
-            *p = *p ^ pf_ctx->fwd_node->crypto_key[j];
-            p++;
-            j++;
-            if ( j >= 64 ) {
-                j = 0;
-            }
-        }
+        gnb_xor_crypto_fast(pf_ctx->fwd_node->crypto_key_expanded,
+                            (unsigned char *)pf_ctx->fwd_payload->data,
+                            gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(gnb_uuid_t));
         pf_ctx->pf_status = GNB_PF_NEXT;
     }
 finish:
@@ -141,19 +115,9 @@ static int pf_inet_frame_cb(gnb_core_t *gnb_core, gnb_pf_t *pf, gnb_pf_ctx_t *pf
         pf_ctx->pf_status = GNB_PF_NOROUTE;
         goto finish;
     }
-    int i;
-    int j = 0;
-    unsigned char *p;
-    p = (unsigned char *)pf_ctx->fwd_payload->data;
-    for ( i=0; i < (gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(gnb_uuid_t)); i++ ) {
-        *p = *p ^ pf_ctx->src_fwd_node->crypto_key[j];
-        p++;
-        j++;
-        if ( j >= 64 ) {
-            j = 0;
-        }
-    }
-    goto finish;
+    gnb_xor_crypto_fast(pf_ctx->src_fwd_node->crypto_key_expanded,
+                        (unsigned char *)pf_ctx->fwd_payload->data,
+                        gnb_payload16_data_len(pf_ctx->fwd_payload)-sizeof(gnb_uuid_t));
 finish:
     return pf_ctx->pf_status;
 }

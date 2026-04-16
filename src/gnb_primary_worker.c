@@ -245,7 +245,7 @@ static void handle_ur1_frame(gnb_core_t *gnb_core, gnb_payload16_t *payload, gnb
         }
         if ( ur1_frame_head->src_uuid64 != ur1_frame_head->dst_uuid64) {
             //解密
-            xor_crypto(src_node->crypto_key, (unsigned char *)ur1_data, ur1_data_size);
+            gnb_xor_crypto_fast(src_node->crypto_key_expanded, (unsigned char *)ur1_data, ur1_data_size);
             verifycode[0] = ur1_data[0];
             verifycode[1] = ur1_data[1];
             verifycode[2] = ur1_data[ur1_data_size-2];
@@ -253,7 +253,7 @@ static void handle_ur1_frame(gnb_core_t *gnb_core, gnb_payload16_t *payload, gnb
             if ( 0 != memcmp(ur1_frame_head->verifycode, verifycode, 4) ) {
                 GNB_LOG3(gnb_core->log,GNB_LOG_ID_MAIN_WORKER, "UR1 frame frome %s payload verifycode error by crypto_key!\n", GNB_SOCKETADDRSTR1(node_addr));
                 //尝试用旧通信密钥解密
-                xor_crypto(src_node->pre_crypto_key, (unsigned char *)ur1_data, ur1_data_size);
+                gnb_xor_crypto_fast(src_node->pre_crypto_key_expanded, (unsigned char *)ur1_data, ur1_data_size);
                 verifycode[0] = ur1_data[0];
                 verifycode[1] = ur1_data[1];
                 verifycode[2] = ur1_data[ur1_data_size-2];
@@ -283,7 +283,7 @@ static void handle_ur1_frame(gnb_core_t *gnb_core, gnb_payload16_t *payload, gnb
         ur1_frame_head->verifycode[1] = ur1_data[1];
         ur1_frame_head->verifycode[2] = ur1_data[ur1_data_size-2];
         ur1_frame_head->verifycode[3] = ur1_data[ur1_data_size-1];
-        xor_crypto(dst_node->crypto_key, ur1_data, ur1_data_size);
+        gnb_xor_crypto_fast(dst_node->crypto_key_expanded, ur1_data, ur1_data_size);
         gnb_std_uf_forward_payload_to_node(gnb_core, dst_node, payload);
         GNB_LOG3(gnb_core->log,GNB_LOG_ID_MAIN_WORKER, "UR1 frame frome %s to dst node=%llu payload\n", GNB_SOCKETADDRSTR1(node_addr), dst_uuid64);
         return;

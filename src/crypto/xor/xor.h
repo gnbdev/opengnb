@@ -18,7 +18,12 @@
 #ifndef XOR_H
 #define XOR_H
 
+#include <stddef.h>
+
 void xor_crypto(unsigned char *crypto_key, unsigned char *data, unsigned int len);
 void xor_crypto_copy(unsigned char *crypto_key, unsigned char *dest, unsigned char *src, unsigned int len);
+
+void gnb_xor_expand_key(const unsigned char *key64, unsigned char *expanded, size_t expanded_size);
+void gnb_xor_crypto_fast(const unsigned char *key_expanded, unsigned char *data, size_t len);
 
 #endif

@@ -35,6 +35,7 @@
 #include "ed25519/ed25519.h"
 #include "ed25519/sha512.h"
 #include "gnb_keys.h"
+#include "crypto/xor/xor.h"
 
 
 /*
@@ -124,7 +125,9 @@ void gnb_build_crypto_key(gnb_core_t *gnb_core, gnb_node_t *node) {
     memcpy(buffer+32,node->shared_secret,32);
     memcpy(buffer+64, gnb_core->conf->crypto_passcode, 4);
     memcpy(node->pre_crypto_key,node->crypto_key, 64);
+    memcpy(node->pre_crypto_key_expanded,node->crypto_key_expanded, GNB_XOR_EXPANDED_KEY_SIZE);
     sha512(buffer, 64+4, node->crypto_key);
+    gnb_xor_expand_key(node->crypto_key, node->crypto_key_expanded, GNB_XOR_EXPANDED_KEY_SIZE);
 }
 
 /*

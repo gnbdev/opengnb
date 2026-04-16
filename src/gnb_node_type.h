@@ -131,6 +131,10 @@ typedef struct _gnb_node_t {
 	unsigned char pre_crypto_key[64]; //上一个通信密钥
 	unsigned char key512[64];
 
+#define GNB_XOR_EXPANDED_KEY_SIZE 1024
+	unsigned char crypto_key_expanded[GNB_XOR_EXPANDED_KEY_SIZE];
+	unsigned char pre_crypto_key_expanded[GNB_XOR_EXPANDED_KEY_SIZE];
+
 	gnb_uuid_t last_relay_nodeid;
     #define GNB_LAST_RELAY_NODE_EXPIRED_SEC         145
 	uint64_t last_relay_node_ts_sec;
