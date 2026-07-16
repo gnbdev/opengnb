@@ -706,11 +706,40 @@ make -f Makefile.Darwin
 
 ## Windows
 
+Windows 本机构建以 MSYS2 MINGW64 终端为支持环境。首次构建前安装 GCC、Binutils、Winpthreads 和 Make：
+
+```
+pacman -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-binutils mingw-w64-x86_64-winpthreads make
+```
+
+默认发布构建会生成 `gnb.exe`、`gnb_crypto.exe`、`gnb_ctl.exe` 和 `gnb_es.exe`：
+
 ```
 make -f Makefile.mingw_x86_64
 ```
 
-`Makefile.mingw_x86_64` 是专门为在 Linux 下用  mingw 编译工具链编译的 Makefile，在 Windows 上也可以使用。
+调试构建保留调试符号，并关闭发布构建使用的优化和符号剥离。切换发布与调试模式前需要先清理共享对象文件：
+
+```
+make -f Makefile.mingw_x86_64 clean
+make -f Makefile.mingw_x86_64 DEBUG=1
+```
+
+安装目标把四个程序复制到 `bin/`，清理目标删除共享对象和仓库根目录中的构建结果，但保留 `bin/` 中的安装副本：
+
+```
+make -f Makefile.mingw_x86_64 install
+make -f Makefile.mingw_x86_64 clean
+```
+
+Makefile 默认使用 `gcc` 和 `windres`。Linux 交叉编译或自定义工具链可以覆盖 `CC`、`WINDRES`，并通过 `CPPFLAGS`、`LDFLAGS` 追加非标准头文件和库搜索目录。切换这些工具或标志前必须先清理，避免 GNU Make 复用由旧配置生成的对象和程序；以下两个覆盖示例相互独立：
+
+```
+make -f Makefile.mingw_x86_64 clean
+make -f Makefile.mingw_x86_64 CC=x86_64-w64-mingw32-gcc WINDRES=x86_64-w64-mingw32-windres
+make -f Makefile.mingw_x86_64 clean
+make -f Makefile.mingw_x86_64 CPPFLAGS="-I/custom/include" LDFLAGS="-L/custom/lib"
+```
 
 在 Windows 上，运行 GNB 需要安装虚拟网卡，可以在这里下载： [tap-windows](https://github.com/gnbdev/gnb_build/tree/main/if_drv/tap-windows ""downloads"")。
 
