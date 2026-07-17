@@ -53,3 +53,6 @@ dkms.conf
 
 #vscode
 .vscode
+
+# 测试构建产物
+/build/tests/
