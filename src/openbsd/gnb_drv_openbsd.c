@@ -216,7 +216,6 @@ int init_tun_openbsd(gnb_core_t *gnb_core) {
 static int open_tun_openbsd(gnb_core_t *gnb_core) {
     char address_string1[GNB_IP6_PORT_STRING_SIZE];
     char address_string2[GNB_IP6_PORT_STRING_SIZE];
-
     if ( -1 != gnb_core->tun_fd ) {
         return -1;
     }
@@ -233,12 +232,12 @@ static int open_tun_openbsd(gnb_core_t *gnb_core) {
     flags |= FD_CLOEXEC;
     fcntl(gnb_core->tun_fd, F_SETFD, flags);
     set_addr6(gnb_core->ifname,
-              gnb_in6_addr_str(&gnb_core->local_node->tun_ipv6_addr,address_string1,gnb_core->conf->addr_secure),
+              gnb_in6_addr_str(&gnb_core->local_node->tun_ipv6_addr,address_string1,0),
               "FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:0000:0000"
     );
     set_addr4(gnb_core->ifname,
-              gnb_in4_addr_str(&gnb_core->local_node->tun_addr4,address_string1,gnb_core->conf->addr_secure),
-              gnb_in4_addr_str(&gnb_core->local_node->tun_netmask_addr4,address_string2,gnb_core->conf->addr_secure)
+              gnb_in4_addr_str(&gnb_core->local_node->tun_addr4,address_string1,0),
+              gnb_in4_addr_str(&gnb_core->local_node->tun_netmask_addr4,address_string2,0)
     );
     
     set_route4(gnb_core);
