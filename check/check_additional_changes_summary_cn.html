@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>check 目录追加修改说明</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17212b;
+      --muted: #475569;
+      --line: #cbd5e1;
+      --surface: #ffffff;
+      --page: #f4f7f9;
+      --navy: #102a43;
+      --teal: #006d5b;
+      --teal-soft: #e6f5f1;
+      --amber: #7a4b00;
+      --amber-soft: #fff4d6;
+      --red: #a3261d;
+      --red-soft: #fdecea;
+      --code: #0b1825;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { background: var(--page); }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--page);
+      font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      letter-spacing: 0;
+    }
+
+    header {
+      color: #ffffff;
+      background: var(--navy);
+      border-bottom: 5px solid #18a287;
+    }
+
+    .header-inner,
+    main {
+      width: min(1080px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .header-inner { padding: 34px 0 30px; }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      line-height: 1.25;
+      font-weight: 750;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      max-width: 760px;
+      margin: 0;
+      color: #dce8f2;
+      font-size: 16px;
+    }
+
+    main { padding: 30px 0 48px; }
+
+    section {
+      margin: 0 0 34px;
+      scroll-margin-top: 16px;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--line);
+      font-size: 21px;
+      line-height: 1.35;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      font-size: 17px;
+      line-height: 1.4;
+      letter-spacing: 0;
+    }
+
+    p { margin: 0 0 12px; }
+
+    code {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.94em;
+    }
+
+    .scope {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      border: 1px solid var(--line);
+      background: var(--surface);
+    }
+
+    .scope-item {
+      min-width: 0;
+      padding: 18px 20px;
+      border-right: 1px solid var(--line);
+    }
+
+    .scope-item:last-child { border-right: 0; }
+
+    .scope-label {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .scope-value {
+      display: block;
+      font-size: 17px;
+      font-weight: 750;
+      overflow-wrap: anywhere;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 2px 8px;
+      border: 1px solid currentColor;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    .changed { color: var(--teal); background: var(--teal-soft); }
+    .unchanged { color: #334155; background: #f1f5f9; }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      background: var(--surface);
+    }
+
+    table {
+      width: 100%;
+      min-width: 690px;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: #ffffff;
+      background: #27465f;
+      font-size: 14px;
+    }
+
+    tbody tr:last-child td { border-bottom: 0; }
+
+    .change-flow {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 44px minmax(0, 1fr);
+      align-items: stretch;
+      gap: 12px;
+    }
+
+    .flow-panel {
+      min-width: 0;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-top: 5px solid var(--red);
+      border-radius: 6px;
+      background: var(--surface);
+    }
+
+    .flow-panel.after { border-top-color: var(--teal); }
+
+    .flow-label {
+      display: inline-block;
+      margin-bottom: 10px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      color: var(--red);
+      background: var(--red-soft);
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .after .flow-label { color: var(--teal); background: var(--teal-soft); }
+
+    .arrow {
+      display: grid;
+      place-items: center;
+      color: var(--teal);
+      font-size: 30px;
+      font-weight: 800;
+    }
+
+    pre {
+      margin: 0;
+      padding: 15px;
+      overflow-x: auto;
+      border-radius: 5px;
+      color: #f8fafc;
+      background: var(--code);
+      font: 14px/1.65 Consolas, "Courier New", monospace;
+      tab-size: 4;
+    }
+
+    .sequence {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+      counter-reset: step;
+    }
+
+    .sequence div {
+      position: relative;
+      min-width: 0;
+      padding: 42px 14px 14px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface);
+      overflow-wrap: anywhere;
+    }
+
+    .sequence div::before {
+      counter-increment: step;
+      content: counter(step);
+      position: absolute;
+      top: 11px;
+      left: 14px;
+      width: 23px;
+      height: 23px;
+      border-radius: 50%;
+      color: #ffffff;
+      background: var(--teal);
+      font: 700 13px/23px system-ui, sans-serif;
+      text-align: center;
+    }
+
+    .impact {
+      padding: 16px 18px;
+      border-left: 5px solid var(--amber);
+      background: var(--amber-soft);
+      color: #3b2a0b;
+    }
+
+    .impact strong { color: #4f3000; }
+
+    .compact-list {
+      margin: 0;
+      padding-left: 22px;
+    }
+
+    .compact-list li { margin-bottom: 7px; }
+
+    .compact-list li:last-child { margin-bottom: 0; }
+
+    footer {
+      padding: 18px 0 28px;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+      font-size: 13px;
+    }
+
+    @media (max-width: 760px) {
+      .header-inner,
+      main { width: min(100% - 24px, 1080px); }
+
+      .header-inner { padding: 26px 0 23px; }
+      h1 { font-size: 25px; }
+
+      .scope { grid-template-columns: 1fr; }
+      .scope-item { border-right: 0; border-bottom: 1px solid var(--line); }
+      .scope-item:last-child { border-bottom: 0; }
+
+      .change-flow { grid-template-columns: 1fr; }
+      .arrow { min-height: 34px; transform: rotate(90deg); }
+      .sequence { grid-template-columns: 1fr; }
+
+      .table-wrap {
+        overflow: visible;
+        border: 0;
+        background: transparent;
+      }
+
+      table,
+      tbody,
+      tr,
+      td { display: block; }
+
+      table { min-width: 0; }
+
+      thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      tbody tr {
+        margin-bottom: 12px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--surface);
+      }
+
+      td {
+        display: block;
+        padding: 11px 13px;
+        overflow-wrap: anywhere;
+      }
+
+      td::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 4px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 750;
+      }
+
+      tbody tr:last-child td { border-bottom: 1px solid var(--line); }
+      tbody tr td:last-child { border-bottom: 0; }
+    }
+
+    @media (max-width: 430px) {
+      body { font-size: 15px; }
+      h1 { font-size: 23px; }
+      h2 { font-size: 19px; }
+      pre { font-size: 12px; }
+    }
+
+    @media print {
+      body { background: #ffffff; }
+      header { background: #ffffff; color: #000000; border-bottom-color: #000000; }
+      .subtitle { color: #222222; }
+      main { width: 100%; }
+      .table-wrap { overflow: visible; }
+      pre { white-space: pre-wrap; color: #000000; background: #f1f5f9; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <h1>check 目录追加修改说明</h1>
+      <p class="subtitle">只记录在用户第二次手工修改版本之上继续调整的内容。</p>
+    </div>
+  </header>
+
+  <main>
+    <section aria-labelledby="scope-title">
+      <h2 id="scope-title">范围结论</h2>
+      <div class="scope">
+        <div class="scope-item">
+          <span class="scope-label">追加修改文件</span>
+          <span class="scope-value">1 个：<code>gnb_hash32.c</code></span>
+        </div>
+        <div class="scope-item">
+          <span class="scope-label">行为性修正</span>
+          <span class="scope-value">1 处：变长值节点替换</span>
+        </div>
+        <div class="scope-item">
+          <span class="scope-label">其余源文件</span>
+          <span class="scope-value">3 个：未再修改</span>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="files-title">
+      <h2 id="files-title">逐文件说明</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>check 文件</th>
+              <th>状态</th>
+              <th>在手工版本之上的追加动作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td data-label="check 文件"><code>check/gnb_hash32.c</code></td>
+              <td data-label="状态"><span class="status changed">已修改</span></td>
+              <td data-label="追加动作">修正同 key、不同 value 长度时的链表节点替换顺序；同时统一 <code>if ( NULL == kv )</code> 的书写格式。</td>
+            </tr>
+            <tr>
+              <td data-label="check 文件"><code>check/gnb_alloc.c</code></td>
+              <td data-label="状态"><span class="status unchanged">未修改</span></td>
+              <td data-label="追加动作">手工版本中的最后 fragment 计数归零逻辑直接保留，没有追加代码调整。</td>
+            </tr>
+            <tr>
+              <td data-label="check 文件"><code>check/gnb_hash32.h</code></td>
+              <td data-label="状态"><span class="status unchanged">未修改</span></td>
+              <td data-label="追加动作">没有接口或声明层面的追加修改。</td>
+            </tr>
+            <tr>
+              <td data-label="check 文件"><code>check/gnb_alloc.h</code></td>
+              <td data-label="状态"><span class="status unchanged">未修改</span></td>
+              <td data-label="追加动作">没有接口或声明层面的追加修改。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section aria-labelledby="core-title">
+      <h2 id="core-title">唯一的行为性修正</h2>
+      <p>修正位置是 <code>gnb_hash32_store()</code> 中“找到相同 key，但新旧 value 长度不同”的分支。</p>
+
+      <div class="change-flow">
+        <article class="flow-panel">
+          <span class="flow-label">手工版本的问题顺序</span>
+          <h3>先改链表入口，再计算新节点后继</h3>
+          <pre><code>重连前驱或 bucket 头节点
+kv-&gt;nex = bucket-&gt;kv_chain-&gt;nex;
+释放旧节点</code></pre>
+        </article>
+
+        <div class="arrow" aria-hidden="true">→</div>
+
+        <article class="flow-panel after">
+          <span class="flow-label">追加修正后的顺序</span>
+          <h3>先保存旧节点后继，再替换链表入口</h3>
+          <pre><code>kv-&gt;nex = kv_chain-&gt;nex;
+重连前驱或 bucket 头节点
+释放旧节点</code></pre>
+        </article>
+      </div>
+
+      <div class="sequence" aria-label="安全替换顺序">
+        <div>创建并检查新节点 <code>kv</code></div>
+        <div>保存旧节点的 <code>kv_chain-&gt;nex</code></div>
+        <div>把前驱或 bucket 头节点改接到 <code>kv</code></div>
+        <div>最后释放旧节点 <code>kv_chain</code></div>
+      </div>
+    </section>
+
+    <section aria-labelledby="reason-title">
+      <h2 id="reason-title">为什么需要这一步</h2>
+      <div class="impact">
+        <strong>核心问题：</strong>如果先把 <code>bucket-&gt;kv_chain</code> 或前驱节点改成新节点，再从已经变化的链表入口读取后继，新节点可能指向自身，或者丢失旧节点后面的碰撞链。先读取 <code>kv_chain-&gt;nex</code>，可以让头部、中部和尾部替换都保留原有后继关系。
+      </div>
+    </section>
+
+    <section aria-labelledby="non-code-title">
+      <h2 id="non-code-title">非代码动作</h2>
+      <ul class="compact-list">
+        <li>为保存修正，解除了 <code>check/gnb_hash32.c</code> 的只读属性。</li>
+        <li>该属性调整不改变编译结果和运行逻辑。</li>
+        <li>除此之外，没有在其他 <code>check/</code> 源文件上追加内容。</li>
+      </ul>
+    </section>
+
+    <footer>
+      本页只描述 check 手工版本之后的追加修改，不包含其他变更内容。
+    </footer>
+  </main>
+</body>
+</html>
