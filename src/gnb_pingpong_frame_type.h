@@ -64,9 +64,9 @@ typedef struct _node_pong_frame_t {
 #define GNB_NODE_ATTACHMENT_TYPE_TUN_SOCKADDRESS   0x1
 
 typedef struct _node_attachment_tun_sockaddress_t {
-    struct in_addr  tun_addr4;
+	uint8_t         tun_addr4[4];;
     uint16_t        tun_sin_port4;
-    struct in6_addr tun_ipv6_addr;
+	uint8_t         tun_addr6[16];
     uint16_t        tun_sin_port6;
     uint16_t        es_sin_port4;
     uint16_t        es_sin_port6;

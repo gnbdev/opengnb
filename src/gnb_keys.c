@@ -15,6 +15,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdlib.h>
 #include <limits.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -26,10 +27,10 @@
 
 #define  _POSIX_C_SOURCE 1
 //使得 localtime_r 等函数有效
-
 #endif
 
 #include <time.h>
+
 #include "gnb_binary.h"
 #include "crypto/random/gnb_random.h"
 #include "ed25519/ed25519.h"

@@ -21,7 +21,7 @@ GNB_OBJS =                                  \
         ./src/cli/gnb.o                     \
         ./src/gnb_argv.o                    \
         ./src/unix/unix_platform.o          \
-        ./src/openbsd/gnb_drv_openbsd.o
+        ./src/netbsd/gnb_drv_netbsd.o
 
 GNB_ES_OBJS += ./src/unix/unix_platform.o
 

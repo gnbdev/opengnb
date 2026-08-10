@@ -14,12 +14,10 @@ MINIUPNP_OBJS =                                  \
        ./libs/miniupnpc/addr_is_reserved.o       \
        ./libs/miniupnpc/minissdpc.o
 
-
 LIBNATPMP_OBJS =                                 \
        ./libs/libnatpmp/natpmp.o                 \
        ./libs/libnatpmp/getgateway.o             \
        ./libs/libnatpmp/wingettimeofday.o        \
-
 
 ZLIB_OBJS =                                      \
        ./libs/zlib/adler32.o                     \
@@ -29,7 +27,6 @@ ZLIB_OBJS =                                      \
        ./libs/zlib/inftrees.o                    \
        ./libs/zlib/trees.o                       \
        ./libs/zlib/zutil.o
-
 
 CRYPTO_OBJS =                                    \
        ./libs/ed25519/add_scalar.o               \
@@ -47,8 +44,7 @@ CRYPTO_OBJS =                                    \
        ./src/crypto/xor/xor.o                    \
        ./src/crypto/random/gnb_random.o
 
-
-GNB_OBJS =                                       \
+GNB_CORE_OBJS =                                  \
        ./src/gnb_core.o                          \
        ./src/gnb_daemon.o                        \
        ./src/gnb_worker.o                        \
@@ -75,14 +71,13 @@ GNB_OBJS =                                       \
        ./src/gnb_doubly_linked_list.o            \
        ./src/gnb_alloc.o                         \
        ./src/gnb_mmap.o                          \
-       ./src/gnb_dir.o                           \
+       ./src/gnb_realpath.o                      \
        ./src/gnb_arg_list.o                      \
        ./src/gnb_log.o                           \
        ./src/gnb_hash32.o                        \
        ./src/gnb_keys.o                          \
        ./src/gnb_nodeid.o                        \
        ./libs/hash/murmurhash.o
-
 
 GNB_PF_OBJS   =                                  \
       ./src/gnb_pf.o                             \
@@ -92,7 +87,6 @@ GNB_PF_OBJS   =                                  \
       ./src/packet_filter/gnb_pf_crypto_arc4.o   \
       ./src/packet_filter/gnb_pf_zip.o           \
       ./src/packet_filter/gnb_pf_dump.o
-
 
 GNB_ES_OBJS =                                    \
       ./src/cli/gnb_es.o                         \
@@ -111,16 +105,16 @@ GNB_ES_OBJS =                                    \
       ./src/gnb_log.o                            \
       ./src/gnb_alloc.o                          \
       ./src/gnb_mmap.o                           \
-      ./src/gnb_dir.o                            \
+      ./src/gnb_realpath.o                       \
       ./src/gnb_hash32.o                         \
       ./src/gnb_conf.o                           \
       ./src/gnb_arg_list.o                       \
       ./src/gnb_nodeid.o                         \
       ./libs/hash/murmurhash.o
 
-
 GNB_CTL_OBJS =                                   \
        ./src/cli/gnb_ctl.o                       \
+       ./src/gnb_alloc.o                         \
        ./src/ctl/gnb_ctl_dump.o                  \
        ./src/gnb_ctl_block.o                     \
        ./src/gnb_ctl_block_set.o                 \
@@ -133,5 +127,5 @@ GNB_CTL_OBJS =                                   \
        ./src/gnb_nodeid.o                        \
        ./libs/ed25519/sha512.o
 
-GNB_OBJS    += ./src/gnb_mod_register.o
-GNB_ES_OBJS += ./src/es/gnb_es_platform.o
+GNB_CORE_OBJS += ./src/gnb_mod_register.o
+GNB_ES_OBJS   += ./src/es/gnb_es_platform.o

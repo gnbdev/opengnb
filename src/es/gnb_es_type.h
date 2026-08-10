@@ -18,14 +18,11 @@
 #ifndef gnb_es_type_h
 #define gnb_es_type_h
 
-#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__)
-#define __UNIX_LIKE_OS__ 1
-#endif
-
 #include <stdint.h>
 #include <time.h>
 #include <sys/time.h>
 
+#include "gnb_platform.h"
 #include "gnb_alloc.h"
 #include "gnb_conf_type.h"
 #include "gnb_ctl_block.h"

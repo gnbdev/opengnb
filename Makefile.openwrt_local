@@ -1,12 +1,13 @@
-GNB_CFLAGS=$(CFLAGS) -I./src -I./libs -I./libs/miniupnpc -I./libs/libnatpmp -I./libs/zlib -D NO_GZIP=1
-GNB_LDFLAGS=-s -L/usr/lib
-GNB_ES_LDFLAGS=-s -L/usr/lib
+#Note:charleschan<hollidgelongsun157@gmail.com> made great efforts for OpenGNB porting to OpenWRT platform and provides technical supoort.
+GNB_CFLAGS=$(CFLAGS) -ffunction-sections -fdata-sections -Wno-unused-result -I./src -I./libs -I./libs/miniupnpc -I./libs/libnatpmp -I./libs/zlib -D NO_GZIP=1 -D GNB_OPENWRT_BUILD=1
+GNB_LDFLAGS=-Wl,--gc-sections -L/usr/lib
+GNB_ES_LDFLAGS=-Wl,--gc-sections -L/usr/lib
 
 ifeq ($(DEBUG),1)
-CFLAGS += -g
+GNB_CFLAGSS += -g
 else
-CFLAGS += -O2
-CLI_LDFLAGS    += -s
+GNB_CFLAGS += -O2
+GNB_LDFLAGS    += -s
 GNB_ES_LDFLAGS += -s
 endif
 
@@ -21,7 +22,7 @@ GNB_OBJS =                                  \
         ./src/cli/gnb.o                     \
         ./src/gnb_argv.o                    \
         ./src/unix/unix_platform.o          \
-        ./src/openbsd/gnb_drv_openbsd.o
+        ./src/linux/gnb_drv_linux.o
 
 GNB_ES_OBJS += ./src/unix/unix_platform.o
 

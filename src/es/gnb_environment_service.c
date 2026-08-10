@@ -58,15 +58,17 @@ static void sync_es_time(gnb_es_ctx *es_ctx) {
     es_ctx->now_time_usec = (uint64_t)es_ctx->now_timeval.tv_sec *1000000 + es_ctx->now_timeval.tv_usec;
 }
 
-gnb_es_ctx* gnb_es_ctx_create(int is_service, char *ctl_block_file, gnb_log_ctx_t *log) {
+gnb_es_ctx* gnb_es_ctx_create(gnb_heap_t *heap, int is_service, char *ctl_block_file, gnb_log_ctx_t *log) {
     ssize_t ctl_file_size = 0;
     gnb_mmap_block_t *mmap_block;
     void *block;
     char *memory;
-    gnb_ctl_block_t  *ctl_block = NULL;
+    int r;
+    gnb_ctl_block_t *ctl_block = gnb_heap_alloc(heap,sizeof(gnb_ctl_block_t));
+    ctl_block->mmap_block = (gnb_mmap_block_t *)gnb_heap_alloc(heap, sizeof(gnb_mmap_block_t));
     if ( 0 == is_service ) {
-        ctl_block = gnb_get_ctl_block(ctl_block_file, 1);
-        if ( NULL != ctl_block ) {
+        r = gnb_get_ctl_block(ctl_block, ctl_block_file, 1);
+        if ( 0 != r ) {
             goto gnb_map_init_success;
         } else {
             return NULL;
@@ -74,8 +76,8 @@ gnb_es_ctx* gnb_es_ctx_create(int is_service, char *ctl_block_file, gnb_log_ctx_
     }
     int try_count = 0;
     do {
-        ctl_block = gnb_get_ctl_block(ctl_block_file, 1);
-        if ( NULL == ctl_block ) {
+        r = gnb_get_ctl_block(ctl_block, ctl_block_file, 1);
+        if ( 0 != r ) {
             goto wait_gnb_init;
         }
         memory = (char *)ctl_block->entry_table256;
@@ -94,7 +96,7 @@ gnb_map_init_success:
     GNB_LOG1(log, GNB_LOG_ID_ES_CORE, "open ctl block success [%s]\n", ctl_block->magic_number->data);
     gnb_node_t *node;
     int node_num;
-    gnb_heap_t *heap = gnb_heap_create(8192);
+
     gnb_es_ctx *es_ctx = (gnb_es_ctx *)gnb_heap_alloc(heap,sizeof(gnb_es_ctx));
     memset(es_ctx, 0, sizeof(gnb_es_ctx));
     es_ctx->heap = heap;
@@ -127,7 +129,7 @@ void gnb_es_ctx_init(gnb_es_ctx *es_ctx) {
     gnb_bind_udp_socket_ipv6(es_ctx->udp_socket6, "::",      0);
     if ( es_ctx->discover_in_lan_opt && es_ctx->service_opt ) {
         gnb_worker_mod = &gnb_discover_in_lan_worker_mod;
-        es_ctx->discover_in_lan_worker = (gnb_worker_t *)malloc(sizeof(gnb_worker_t));
+        es_ctx->discover_in_lan_worker = (gnb_worker_t *)gnb_heap_alloc(es_ctx->heap, sizeof(gnb_worker_t));
         *es_ctx->discover_in_lan_worker = *gnb_worker_mod;
         es_ctx->discover_in_lan_worker->thread_worker_flag = 0;
         es_ctx->discover_in_lan_worker->thread_worker_run_flag = 0;

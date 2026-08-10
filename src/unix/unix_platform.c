@@ -24,7 +24,7 @@
 #include "gnb_exec.h"
 #include "gnb_arg_list.h"
 
-#if defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__)
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__) || defined(__NetBSD__)
 extern char **__environ;
 #endif
 
@@ -32,7 +32,7 @@ extern char **__environ;
 extern char **environ;
 #endif
 
-#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__) || defined(__NetBSD__)
 extern char **environ;
 #endif
 
@@ -97,7 +97,7 @@ do_exec:
 
     #endif
 
-    #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
+    #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
     ret = execve(app_filename, argv, environ);
     #endif
 

@@ -22,7 +22,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__)
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__) || defined(__NetBSD__)
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -252,8 +252,7 @@ int gnb_log_udp_set_addr4_string(gnb_log_ctx_t *log, char *sockaddress4_string){
     return 0;
 }
 
-gnb_log_ctx_t* gnb_log_ctx_create() {
-    gnb_log_ctx_t *log = (gnb_log_ctx_t *)malloc(sizeof(gnb_log_ctx_t));
+void gnb_log_ctx_init(gnb_log_ctx_t *log) {
     memset(log, 0, sizeof(gnb_log_ctx_t));
     log->std_fd   = -1;
     log->debug_fd = -1;
@@ -263,7 +262,6 @@ gnb_log_ctx_t* gnb_log_ctx_create() {
     log->pre_error_fd  = -1;
     log->socket6_fd    = -1;
     log->socket4_fd    = -1;
-    return log;
 }
 
 int gnb_log_file_rotate(gnb_log_ctx_t *log) {

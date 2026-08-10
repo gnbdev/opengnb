@@ -18,7 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__)
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__) || defined(__NetBSD__)
 #include <netinet/in.h>
 #endif
 
@@ -28,27 +28,6 @@
 #endif
 
 #include "gnb_payload16.h"
-
-gnb_payload16_t* gnb_payload16_init(char type,uint16_t data_size) {
-    gnb_payload16_t *gnb_payload16 = (gnb_payload16_t *)malloc(sizeof(gnb_payload16_t) + sizeof(char)*data_size);
-    memset(gnb_payload16, 0, sizeof(gnb_payload16_t) + sizeof(char)*data_size);
-    gnb_payload16->type = type;
-    gnb_payload16->size = htons(sizeof(gnb_payload16_t) + sizeof(char)*data_size);
-    return gnb_payload16;
-}
-
-gnb_payload16_t* gnb_payload16_create(char type, void *data, uint16_t data_size) {
-    gnb_payload16_t *gnb_payload16 = gnb_payload16_init(type,data_size);
-    memcpy(gnb_payload16->data,data,data_size);
-    return gnb_payload16;
-}
-
-gnb_payload16_t *gnb_payload16_dup(gnb_payload16_t *gnb_payload16_in) {
-    uint16_t size = ntohs(gnb_payload16_in->size);
-    gnb_payload16_t *gnb_payload16 = (gnb_payload16_t *)malloc( size );
-    memcpy(gnb_payload16, gnb_payload16_in, size);
-    return gnb_payload16;
-}
 
 uint16_t gnb_payload16_set_size(gnb_payload16_t *gnb_payload16, uint16_t new_size) {
     gnb_payload16->size = htons(new_size);
@@ -70,22 +49,12 @@ uint16_t gnb_payload16_data_len(gnb_payload16_t *gnb_payload16) {
     return size;
 }
 
-void gnb_payload16_free(gnb_payload16_t *gnb_payload16) {
-    free(gnb_payload16);
-}
-
-gnb_payload16_ctx_t* gnb_payload16_ctx_init(uint16_t max_payload_size) {
-    gnb_payload16_ctx_t *gnb_payload16_ctx = (gnb_payload16_ctx_t*)malloc(sizeof(gnb_payload16_ctx_t));
+gnb_payload16_ctx_t* gnb_payload16_ctx_init(gnb_payload16_ctx_t *gnb_payload16_ctx, gnb_payload16_t *gnb_payload16, uint16_t max_payload_size) {
     gnb_payload16_ctx->r_len = 0;
-    gnb_payload16_ctx->gnb_payload16    = gnb_payload16_init(0x0, max_payload_size);
+    gnb_payload16_ctx->gnb_payload16    = gnb_payload16;
     gnb_payload16_ctx->max_payload_size = max_payload_size;
     gnb_payload16_ctx->udata = NULL;
     return gnb_payload16_ctx;
-}
-
-void gnb_payload16_ctx_free(gnb_payload16_ctx_t *gnb_payload16_ctx) {
-    free(gnb_payload16_ctx->gnb_payload16);
-    free(gnb_payload16_ctx);
 }
 
 #define GNB_FRAME_STATUS_HEAD 0

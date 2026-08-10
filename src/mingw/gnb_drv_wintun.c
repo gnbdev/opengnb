@@ -17,7 +17,6 @@
 
 #include <stdarg.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <limits.h>
 #include <errno.h>
 
@@ -39,7 +38,6 @@
 #include "wintun/wintun.h"
 
 #include "gnb.h"
-#include "gnb_exec.h"
 #include "gnb_tun_drv.h"
 #include "gnb_payload16.h"
 
@@ -153,40 +151,9 @@ static ULONG get_if_id(gnb_core_t *gnb_core) {
 }
 
 static void if_up(gnb_core_t *gnb_core) {
-    char bin_path[PATH_MAX+NAME_MAX];
-    char bin_path_q[PATH_MAX+NAME_MAX];
-    char map_path_q[PATH_MAX+NAME_MAX];
-    gnb_core_wintun_ctx_t *tun_wintun_ctx = gnb_core->platform_ctx;
-    strncpy(gnb_core->ctl_block->conf_zone->conf_st.ifname, tun_wintun_ctx->if_name, NAME_MAX);
-    snprintf(bin_path,   PATH_MAX+NAME_MAX, "%s\\gnb_es.exe",     gnb_core->ctl_block->conf_zone->conf_st.binary_dir);
-    snprintf(bin_path_q, PATH_MAX+NAME_MAX, "\"%s\\gnb_es.exe\"", gnb_core->ctl_block->conf_zone->conf_st.binary_dir);
-    snprintf(map_path_q, PATH_MAX+NAME_MAX, "\"%s\"",             gnb_core->ctl_block->conf_zone->conf_st.map_file);
-    gnb_arg_list_t *arg_list;
-    arg_list = gnb_arg_list_init(32);
-    gnb_arg_append(arg_list, bin_path_q);
-    gnb_arg_append(arg_list, "-b");
-    gnb_arg_append(arg_list, map_path_q);
-    gnb_arg_append(arg_list, "--if-up");
-    gnb_exec(bin_path, gnb_core->ctl_block->conf_zone->conf_st.binary_dir, arg_list, GNB_EXEC_BACKGROUND|GNB_EXEC_WAIT);
-    gnb_arg_list_release(arg_list);
 }
 
 static void if_down(gnb_core_t *gnb_core) {
-    gnb_core_wintun_ctx_t *tun_wintun_ctx = gnb_core->platform_ctx;
-    char bin_path[PATH_MAX+NAME_MAX];
-    char bin_path_q[PATH_MAX+NAME_MAX];
-    char map_path_q[PATH_MAX+NAME_MAX];
-    snprintf(bin_path,   PATH_MAX+NAME_MAX, "%s\\gnb_es.exe",     gnb_core->ctl_block->conf_zone->conf_st.binary_dir);
-    snprintf(bin_path_q, PATH_MAX+NAME_MAX, "\"%s\\gnb_es.exe\"", gnb_core->ctl_block->conf_zone->conf_st.binary_dir);
-    snprintf(map_path_q, PATH_MAX+NAME_MAX, "\"%s\"",             gnb_core->ctl_block->conf_zone->conf_st.map_file);
-    gnb_arg_list_t *arg_list;
-    arg_list = gnb_arg_list_init(32);
-    gnb_arg_append(arg_list, bin_path_q);
-    gnb_arg_append(arg_list, "-b");
-    gnb_arg_append(arg_list, map_path_q);
-    gnb_arg_append(arg_list, "--if-down");
-    gnb_exec(bin_path, gnb_core->ctl_block->conf_zone->conf_st.binary_dir, arg_list, GNB_EXEC_BACKGROUND|GNB_EXEC_WAIT);
-    gnb_arg_list_release(arg_list);
 }
 
 static int ntod(uint32_t mask) {

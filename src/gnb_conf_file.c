@@ -15,6 +15,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdlib.h>
 #include <limits.h>
 #include <stddef.h>
 
@@ -42,7 +43,6 @@ char * check_node_route(char *config_line_string);
 gnb_node_t * gnb_node_init(gnb_core_t *gnb_core, gnb_uuid_t uuid64);
 int check_listen_string(char *listen_string);
 void gnb_setup_listen_addr_port(char *listen_address6_string, uint16_t *port_ptr, char *sockaddress_string, int addr_type);
-void gnb_setup_es_argv(char *es_argv_string);
 int gnb_test_field_separator(char *config_string);
 
 static void address_file_config(gnb_core_t *gnb_core)  {
@@ -352,14 +352,6 @@ void local_node_file_config(gnb_conf_t *conf) {
                 printf("config %s error in [%s]\n", "pid-file", node_conf_file);
                 exit(1);
             }
-        }
-        if ( !strncmp(line_buffer, "es-argv", sizeof("es-argv")-1) ) {
-            num = sscanf(line_buffer,"%32[^ ] %s", field, value);
-            if ( 2 != num ) {
-                printf("config %s error in [%s]\n", "es-argv", node_conf_file);
-                exit(1);
-            }
-            gnb_setup_es_argv(value);
         }
         if ( !strncmp(line_buffer, "multi-socket", sizeof("multi-socket")-1) ) {
             num = sscanf(line_buffer, "%32[^ ] %4s", field, value);

@@ -16,6 +16,7 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "gnb_es_type.h"
 
 #ifdef __UNIX_LIKE_OS__
@@ -357,14 +358,13 @@ static void* thread_worker_func( void *data ) {
 }
 
 static void init(gnb_worker_t *gnb_worker, void *ctx) {
-    gnb_es_ctx *es_ctx;
+    gnb_es_ctx *es_ctx = (gnb_es_ctx *)ctx;
     discover_in_lan_worker_ctx_t *discover_in_lan_worker_ctx;
     int on;
     int ret;
     struct sockaddr_in svr_addr;
-    discover_in_lan_worker_ctx =  (discover_in_lan_worker_ctx_t *)malloc(sizeof(discover_in_lan_worker_ctx_t));
+    discover_in_lan_worker_ctx = (discover_in_lan_worker_ctx_t *)gnb_heap_alloc(es_ctx->heap, sizeof(discover_in_lan_worker_ctx_t));
     memset(discover_in_lan_worker_ctx, 0, sizeof(discover_in_lan_worker_ctx_t));
-    es_ctx = (gnb_es_ctx *)ctx;
     discover_in_lan_worker_ctx->es_ctx = es_ctx;
     es_ctx->udp_discover_recv_socket4 = socket(AF_INET, SOCK_DGRAM, 0);
     memset(&svr_addr, 0, sizeof(struct sockaddr_in));

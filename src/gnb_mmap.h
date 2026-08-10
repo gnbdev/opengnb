@@ -18,17 +18,40 @@
 #ifndef GNB_MMAP_H
 #define GNB_MMAP_H
 
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#define __UNIX_LIKE_OS__ 1
+#endif
+
 #include <stddef.h>
-typedef struct _gnb_mmap_block_t gnb_mmap_block_t;
+#include <limits.h>
+#include "gnb_alloc.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+typedef struct _gnb_mmap_block_t {
+#ifdef __UNIX_LIKE_OS__
+	int fd;
+#endif
+#ifdef _WIN32
+	HANDLE file_descriptor;
+	HANDLE map_handle;
+#endif
+	char filename[PATH_MAX];
+	void *block;
+	size_t block_size;
+	int mmap_type;
+} gnb_mmap_block_t;
 
 #define GNB_MMAP_TYPE_READONLY               (0x0)
 #define GNB_MMAP_TYPE_READWRITE              (0x1)
 #define GNB_MMAP_TYPE_CREATE                 (0x1 << 1)
 #define GNB_MMAP_TYPE_CLEANEXIT              (0x1 << 2)
 
-gnb_mmap_block_t* gnb_mmap_create(const char *filename, size_t block_size, int mmap_type);
-void gnb_mmap_release(gnb_mmap_block_t *mmap_block);
+int gnb_mmap(gnb_mmap_block_t *mmap_block,const char *filename, size_t block_size, int mmap_type);
+void gnb_munmap(gnb_mmap_block_t *mmap_block);
+
 void* gnb_mmap_get_block(gnb_mmap_block_t *mmap_block);
-size_t gnb_mmap_get_size(gnb_mmap_block_t *mmap_block);
 
 #endif

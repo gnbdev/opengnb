@@ -27,26 +27,19 @@
 #define GNB_EXEC_WAIT        (0x1 << 2)
 
 #ifdef __UNIX_LIKE_OS__
-
 #include <sys/types.h>
 #include <unistd.h>
-
 pid_t gnb_exec(char *app_filename, char *current_path, gnb_arg_list_t *arg_list, int flag);
 void gnb_kill(pid_t pid);
-
 #endif
 
 #ifdef _WIN32
-
 #ifndef NAME_MAX
 #define NAME_MAX 255
 #endif
-
 #include <windows.h>
-
 int gnb_exec(char *app_filename, char *current_path, gnb_arg_list_t *gnb_arg_list, int flag);
 int gnb_kill(DWORD pid);
-
 #endif
 
 #endif

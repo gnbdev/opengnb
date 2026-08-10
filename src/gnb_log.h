@@ -21,15 +21,12 @@
 #include <inttypes.h>
 #include "gnb_log_type.h"
 
-gnb_log_ctx_t* gnb_log_ctx_create();
-
+void gnb_log_ctx_init(gnb_log_ctx_t *log);
 #define GNB_LOG_TYPE_STD   0
 #define GNB_LOG_TYPE_DEBUG 1
 #define GNB_LOG_TYPE_ERROR 2
-
 //log level越大，日志信息越详细,0不输出日志
 #define GNB_LOG_LEVEL_UNSET    0xFF
-
 #define GNB_LOG_LEVEL0          0
 #define GNB_LOG_LEVEL1          1
 #define GNB_LOG_LEVEL2          2

@@ -19,19 +19,22 @@
 #define GNB_ARG_LIST_H
 
 #include <stddef.h>
+#include "gnb_alloc.h"
 
 #define GNB_ARG_STRING_MAX_SIZE 1024*4
 #define GNB_ARG_MAX_SIZE        1024
 
 typedef struct _gnb_arg_list_t {
-    size_t size;
+	uint32_t size;
     int argc;
+	char data[GNB_ARG_STRING_MAX_SIZE];
+	char *data_prt;
     char *argv[0];
 } gnb_arg_list_t;
 
-gnb_arg_list_t *gnb_arg_list_init(int size);
-void gnb_arg_list_release(gnb_arg_list_t *arg_list);
+gnb_arg_list_t *gnb_arg_list_init(gnb_heap_t *heap, uint32_t size);
 int gnb_arg_append(gnb_arg_list_t *arg_list,const char *arg);
-int gnb_arg_list_to_string(gnb_arg_list_t *arg_list, char *string, size_t string_len);
-gnb_arg_list_t *gnb_arg_string_to_list(char *string, int num);
+int gnb_arg_list_to_string(gnb_arg_list_t *arg_list, char *string, uint32_t string_len);
+gnb_arg_list_t *gnb_arg_string_to_list(gnb_heap_t *heap,char *string, uint32_t size);
+
 #endif

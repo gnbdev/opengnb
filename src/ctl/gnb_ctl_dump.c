@@ -35,9 +35,7 @@
 #include <windows.h>
 #endif
 
-extern uint8_t addr_secure;
-
-void gnb_ctl_dump_status(gnb_ctl_block_t *ctl_block, gnb_uuid_t in_nodeid, uint8_t online_opt) {
+void gnb_ctl_dump_status(gnb_ctl_block_t *ctl_block, gnb_uuid_t in_nodeid, uint8_t online_opt, uint8_t addr_secure) {
     #define LINE_SIZE 1024
     char line_string[LINE_SIZE];
     char *p;
@@ -265,7 +263,7 @@ dump_all_node:
     }
 }
 
-void gnb_ctl_dump_address_list(gnb_ctl_block_t *ctl_block, gnb_uuid_t in_nodeid, uint8_t online_opt, int address_type, uint8_t format) {
+void gnb_ctl_dump_address_list(gnb_ctl_block_t *ctl_block, gnb_uuid_t in_nodeid, uint8_t online_opt, int address_type, uint8_t format, uint8_t addr_secure) {
     gnb_address_t *gnb_address;
     gnb_address_list_t *available_address6_list;
     gnb_address_list_t *available_address4_list;

@@ -25,7 +25,6 @@
 #include "gnb_time.h"
 #include "gnb_block.h"
 
-
 //entry_table256 的类型是 uint32_t,
 //索引从2 开始，留出 0,1 两个 uint32_t 共 8个字节
 //用于 file magic number 和 记录文件的大小
@@ -46,10 +45,9 @@ ssize_t gnb_ctl_file_size(const char *filename) {
     return s.st_size;
 }
 
-gnb_ctl_block_t *gnb_ctl_block_build(void *memory, uint32_t payload_block_size, size_t node_num, uint8_t pf_worker_num) {
+gnb_ctl_block_t *gnb_ctl_block_init(gnb_ctl_block_t *ctl_block, void *memory, uint32_t payload_block_size, size_t node_num, uint8_t pf_worker_num) {
     uint32_t off_set = sizeof(uint32_t)*256;
     gnb_block32_t *block;
-    gnb_ctl_block_t *ctl_block = (gnb_ctl_block_t *)malloc(sizeof(gnb_ctl_block_t));
     ctl_block->entry_table256 = memory;
     //向量表清零
     memset(ctl_block->entry_table256, 0, sizeof(uint32_t)*256);
@@ -114,46 +112,43 @@ void gnb_ctl_block_setup(gnb_ctl_block_t *ctl_block, void *memory) {
 /*
  flag = 0 readonly
 */
-gnb_ctl_block_t *gnb_get_ctl_block(const char *ctl_block_file, int flag) {
+// ctl_block->mmap_block 要在调用前创建好
+int gnb_get_ctl_block(gnb_ctl_block_t *ctl_block, const char *ctl_block_file, int flag) {
     ssize_t ctl_file_size = 0;
     uint64_t now_sec;
-    gnb_mmap_block_t *mmap_block;
+    int r;
     void *memory;
     char *mem_magic_number;
-    gnb_ctl_block_t *ctl_block;
     ctl_file_size = gnb_ctl_file_size(ctl_block_file);
     if ( ctl_file_size < (ssize_t)MIN_CTL_BLOCK_FILE_SIZE ) {
-        return NULL;
+        return -1;
     }
-    mmap_block = gnb_mmap_create(ctl_block_file, ctl_file_size, GNB_MMAP_TYPE_READWRITE);
-    if ( NULL == mmap_block ) {
-        return NULL;
+    r = gnb_mmap(ctl_block->mmap_block, ctl_block_file, ctl_file_size, GNB_MMAP_TYPE_READWRITE);
+    if ( 0 != r ) {
+        return -1;
     }
-    memory = gnb_mmap_get_block(mmap_block);
+    memory = gnb_mmap_get_block(ctl_block->mmap_block);
     mem_magic_number = (char *)memory;
     if ( 'G' != mem_magic_number[0] || 'N' != mem_magic_number[1] || 'B' != mem_magic_number[2] ) {
-        return NULL;
+        return -1;
     }
     now_sec = gnb_timestamp_sec();
-    ctl_block = (gnb_ctl_block_t *)malloc(sizeof(gnb_ctl_block_t));
     gnb_ctl_block_setup(ctl_block, memory);
-    ctl_block->mmap_block = mmap_block;
     if ( 0 == flag ) {
-        return ctl_block;
+        //flag:0 readonly
+        return 0;
     }
     if ( now_sec < ctl_block->status_zone->keep_alive_ts_sec ) {
         goto finish_error;
     }
     if ( now_sec == ctl_block->status_zone->keep_alive_ts_sec ) {
-        return ctl_block;
+        return 0;
     }
     if ( (now_sec - ctl_block->status_zone->keep_alive_ts_sec) < GNB_CTL_KEEP_ALIVE_TS ) {
-        return ctl_block;
+        return 0;
     }
 
 finish_error:
-
-    gnb_mmap_release(mmap_block);
-    free(ctl_block);
-    return NULL;
+    gnb_munmap(ctl_block->mmap_block);
+    return -1;
 }

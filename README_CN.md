@@ -22,8 +22,7 @@ opengnb 1.6.0 版本的通信协议已升级，不向后兼容
 3. 支持通过多核CPU加速对数据分组处理
 
 4. 多平台支持
-    -  GNB 用 C 语言开发，项目相关代码以开源方式发布, 编译时不需要引用第三方库文件，可以方便移植到当前流行的操作系统上,目前支持的操作系统及平台有 Linux_x86_64，Windows10_x86_64， macOS，FreeBSD_AMD64，OpenBSD_AMD64，树莓派，OpenWRT；大至服务器环境，桌面系统，小至仅有 32M 内存的OpenWRT路由器都能很好的运行 GNB 网络。
-
+    -  GNB 用 C 语言开发，项目相关代码以开源方式发布, 编译时不需要引用第三方库文件，可以方便移植到当前流行的操作系统上,目前支持的操作系统及平台有 Linux, Windows, macOS, FreeBSD, OpenBSD NetBSD，树莓派，OpenWRT；大至服务器环境，桌面系统，小至仅有 32M 内存的OpenWRT路由器都能很好的运行 GNB 网络。
 
 ### Standard VPN payload forwarding
 
@@ -158,6 +157,9 @@ nodeA --UDP payload--- upd_over_tcp_A --TCP payload--- upd_over_tcp_B --UDP payl
 ```
 
 ## [便于部署的跨平台的OpenGNB管理平台](https://github.com/cnkedao/opengnb-admin)
+## [便于部署OpenGNB GUI](https://github.com/chenzq1604/opengnb-gui)
+
+
 
 ## GNB 快速上手
 
@@ -317,10 +319,6 @@ apt install opengnb
 ### 相关链接
 
 [wuqiong](https://www.github.com/wuqiong) 为 GNB 在Windows平台上开发了 wintun 虚拟网卡的接口模块
-
-
-[gnb 在各平台的编译发行版下载](https://github.com/gnbdev/gnb_build "gnb_build")
-
 
 [gnb_udp_over_tcp](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp") 是一个为 GNB 开发的通过 tcp 链路中转 UDP 分组转发的服务，也可以为其他基于 UDP 协议的服务中转数据。
 

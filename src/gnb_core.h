@@ -17,12 +17,13 @@
 
 #ifndef GNB_CORE_H
 #define GNB_CORE_H
-
 #include "gnb.h"
 
 gnb_core_t* gnb_core_create(gnb_conf_t *conf);
+void gnb_core_release(gnb_core_t *gnb_core);
 void gnb_core_start(gnb_core_t *gnb_core);
 void gnb_core_stop(gnb_core_t *gnb_core);
+void gnb_hot_restart_prepare(gnb_core_t *gnb_core_new,gnb_core_t *gnb_core);
 gnb_core_t * gnb_core_index_service_create(gnb_conf_t *conf);
 void gnb_core_index_service_start(gnb_core_t *gnb_core);
 

@@ -62,9 +62,9 @@ void* gnb_heap_alloc(gnb_heap_t *gnb_heap, uint32_t size) {
         return NULL;
     }
     */
-    gnb_heap_fragment_t *fragment = malloc( sizeof(gnb_heap_fragment_t) + sizeof(unsigned char) * size );
+    gnb_heap_fragment_t *fragment = malloc(sizeof(gnb_heap_fragment_t) + sizeof(unsigned char) * size);
     if ( NULL == fragment ) {
-        printf("gnb_heap_alloc error  malloc false\n");
+        printf("gnb_heap_alloc error false\n");
         return NULL;
     }
     fragment->size = size;
@@ -77,7 +77,7 @@ void* gnb_heap_alloc(gnb_heap_t *gnb_heap, uint32_t size) {
     return (void *)fragment->block;
 }
 
-void gnb_heap_free(gnb_heap_t *gnb_heap, void *p){
+void gnb_heap_free(gnb_heap_t *gnb_heap, void *p) {
     gnb_heap_fragment_t *fragment;
     if ( 0 == gnb_heap->fragment_nums ) {
         //发生错误了
@@ -100,16 +100,18 @@ void gnb_heap_free(gnb_heap_t *gnb_heap, void *p){
         //发生错误了
         return;
     }
-
-    gnb_heap->alloc_byte -= fragment->size;
-    gnb_heap->ralloc_byte -= (sizeof(gnb_heap_fragment_t)+fragment->size);
-
     if ( last_fragment->idx != fragment->idx ) {
         last_fragment->idx = fragment->idx;
         gnb_heap->fragment_list[last_fragment->idx] = last_fragment;
     }
-
     gnb_heap->fragment_nums--;
+    if ( 0 != gnb_heap->fragment_nums ) {
+        gnb_heap->alloc_byte -= fragment->size;
+        gnb_heap->ralloc_byte -= (sizeof(gnb_heap_fragment_t)+fragment->size);
+    } else {
+        gnb_heap->alloc_byte = 0;
+        gnb_heap->ralloc_byte = 0;
+    }
     free(fragment);
 }
 

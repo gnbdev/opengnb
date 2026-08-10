@@ -35,7 +35,7 @@ typedef struct _gnb_log_config_t {
     uint8_t console_level;
     uint8_t file_level;
     uint8_t udp_level;
-}gnb_log_config_t;
+} gnb_log_config_t;
 
 #define GNB_MAX_LOG_ID 128
 

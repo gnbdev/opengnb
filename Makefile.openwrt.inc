@@ -1,4 +1,3 @@
-
 CRYPTO_OBJS =                                    \
        ./libs/ed25519/add_scalar.o               \
        ./libs/ed25519/fe.o                       \
@@ -15,8 +14,7 @@ CRYPTO_OBJS =                                    \
        ./src/crypto/xor/xor.o                    \
        ./src/crypto/random/gnb_random.o
 
-
-GNB_OBJS =                                       \
+GNB_CORE_OBJS =                                  \
        ./src/gnb_core.o                          \
        ./src/gnb_daemon.o                        \
        ./src/gnb_worker.o                        \
@@ -101,5 +99,5 @@ GNB_CTL_OBJS =                                   \
        ./src/gnb_nodeid.o                        \
        ./libs/ed25519/sha512.o
 
-GNB_OBJS    += ./src/gnb_mod_register.o
-GNB_ES_OBJS += ./src/es/gnb_es_platform.o
+GNB_CORE_OBJS += ./src/gnb_mod_register.o
+GNB_ES_OBJS   += ./src/es/gnb_es_platform.o

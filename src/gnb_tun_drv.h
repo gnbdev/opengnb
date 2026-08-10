@@ -44,6 +44,10 @@ extern gnb_tun_drv_t gnb_tun_drv_freebsd;
 extern gnb_tun_drv_t gnb_tun_drv_openbsd;
 #endif
 
+#if defined(__NetBSD__)
+extern gnb_tun_drv_t gnb_tun_drv_netbsd;
+#endif
+
 #if defined(__APPLE__)
 extern gnb_tun_drv_t gnb_tun_drv_darwin;
 #endif
@@ -58,3 +62,4 @@ extern gnb_tun_drv_t gnb_tun_drv_wintun;
 #endif
 
 #endif
+

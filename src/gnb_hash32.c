@@ -154,28 +154,48 @@ int gnb_hash32_store(gnb_hash32_map_t *hash32_map, u_char *key, uint32_t key_len
     gnb_kv32_t *pre_kv_chain = kv_chain;
     do {
         if ( key_len != kv_chain->key->size ) {
+            //key长度不一致,key不一致,跳过
             pre_kv_chain = kv_chain;
             kv_chain = kv_chain->nex;
             continue;
         }
-        if ( !memcmp(kv_chain->key->data, key, key_len) ) {
+        if ( memcmp(kv_chain->key->data, key, key_len) ) {
+            //这里 输入的 key_len 与 kv_chain->key->size 一致,但key不一致,跳过
+            pre_kv_chain = kv_chain;
+            kv_chain = kv_chain->nex;
+            continue;
+        }
+        //到这里 key 与 kv_chain 里的 key 一致
+        if ( value_len == kv_chain->value->size ) {
+            //如果碰巧存入的 value 与 kv_chain->value 长度一致
+            //那么直接覆盖 kv_chain->value->data 就可以了
+            if ( 0 != value_len ) {
+                memcpy(kv_chain->value->data, value, value_len);
+            } else {
+                GNB_BLOCK_VOID(kv_chain->value) = value;
+            }
+            //存下当前的 kv ,标记为找到 key 对应的value
+            kv = kv_chain;
+            break;
+        } else {
+            //虽然 key 相同,但与原 value 存储的长度不一致
+            //先重新创建一个 kv,然后释放原来的 kv,
             kv = gnb_kv32_create(hash32_map, key, key_len, value, value_len);
-            if ( NULL == kv ) {
+            if ( NULL==kv ) {
                 return -1;
             }
-            kv->nex = kv_chain->nex;
             if ( bucket->kv_chain != kv_chain ) {
-                pre_kv_chain->nex = kv;
+                //当 kv_chain 不是 bucket 的第一个kv
+                pre_kv_chain->nex =kv;
+                kv->nex = kv_chain->nex;
             } else {
                 bucket->kv_chain = kv;
             }
             gnb_kv32_release(hash32_map, kv_chain);
             break;
         }
-        pre_kv_chain = kv_chain;
-        kv_chain = kv_chain->nex;
     } while (kv_chain);
-
+    //到这里,没有在 bucket 的 kv_chain 里找到对应输入的 key,那么创建一个kv,放在 kv_chain 的尾部
     if ( NULL == kv ) {
         pre_kv_chain->nex = gnb_kv32_create(hash32_map, key, key_len, value, value_len);
         bucket->chain_len++;

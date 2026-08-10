@@ -30,18 +30,18 @@
 #endif
 
 #include "gnb_platform.h"
-#include "gnb_dir.h"
+#include "gnb_realpath.h"
 #include "gnb_log.h"
 #include "gnb_conf_type.h"
-#include "gnb_ctl_block.h"
 #include "gnb_core_frame_type_defs.h"
 #include "es/gnb_es_type.h"
 #include "gnb_version.h"
 
 uint8_t addr_secure = 0;
 
-gnb_es_ctx* gnb_es_ctx_create(int is_service, char *ctl_block_file,gnb_log_ctx_t *log);
+gnb_es_ctx* gnb_es_ctx_create(gnb_heap_t *heap, int is_service, char *ctl_block_file,gnb_log_ctx_t *log);
 void gnb_es_ctx_init(gnb_es_ctx *es_ctx);
+void gnb_start_environment_service(gnb_es_ctx *es_ctx);
 
 int gnb_daemon();
 
@@ -63,13 +63,14 @@ void save_pid(const char *pid_file);
 #define LOG_UDP4                 (GNB_ES_OPT_INIT + 13)
 #define LOG_UDP_TYPE             (GNB_ES_OPT_INIT + 14)
 
-void gnb_start_environment_service(gnb_es_ctx *es_ctx);
+
 
 static void show_useage(int argc,char *argv[]) {
     printf("GNB Environment Service\n");
     printf("%s\n", GNB_VERSION_STRING);
     printf("%s\n", GNB_BUILD_STRING);
-    printf("Copyright (C) 2019 gnbdev<gnbdev@qq.com>\n");
+    printf("%s\n", GNB_COPYRIGHT_STRING);
+    printf("Site: %s\n", GNB_URL_STRING);
     printf("Usage: %s -b CTL_BLOCK [OPTION]\n", argv[0]);
     printf("Command Summary:\n");
     printf("  -b, --ctl-block           ctl block mapper file\n");
@@ -154,61 +155,45 @@ int main (int argc,char *argv[]) {
     char *ctl_block_file = NULL;
     char *pid_file = NULL;
     char *wan_address6_file = NULL;
-
     int upnp_opt              = 0;
     char *upnp_multicase_if = NULL;
     char *upnp_gateway4     = NULL;
-
     int resolv_opt            = 0;
     int broadcast_address_opt = 0;
     int discover_in_lan_opt   = 0;
     int dump_address_opt      = 0;
-
     int if_up_opt   = 0;
     int if_down_opt = 0;
     int if_loop_opt = 0;
-
     int daemon = 0;
     int service_opt = 0;
-    gnb_ctl_block_t *ctl_block;
+
+    gnb_heap_t *heap = gnb_heap_create(8192);
     uint8_t log_udp_type = GNB_LOG_UDP_TYPE_TEXT;
     char log_udp_sockaddress4_string[16 + 1 + sizeof("65535")];
-
     memset(log_udp_sockaddress4_string, 0, 16 + 1 + sizeof("65535"));
-
     int flag;
-
     struct option long_options[] = {
-
       { "ctl-block",              required_argument, 0, 'b' },
-
       { "upnp",                   no_argument,  0, OPT_UPNP },
       { "upnp-multicase-if",      required_argument,  0, OPT_UPNP_MULTICAST_IF },
       { "upnp-gateway4",          required_argument,  0, OPT_UPNP_GATEWAY4 },
-
       { "resolv",                 no_argument,  0, OPT_RESOLV },
       { "notify-address",         no_argument,  0, OPT_NOTIFY_ADDRESS },
       { "discover-in-lan",        no_argument,  0, 'L' },
       { "dump-address",           no_argument,  0, OPT_DUMP_ADDRESS },
       { "service",                no_argument, 0, 's' },
       { "daemon",                 no_argument, 0, 'd' },
-
       { "pid-file",               required_argument,  0, PID_FILE },
-
       { "wan-address6-file",      required_argument,  0, WAN_ADDRESS6_FILE },
-
       { "if-up",                  no_argument,  0, OPT_IF_UP },
       { "if-down",                no_argument,  0, OPT_IF_DOWN },
       { "if-loop",                no_argument,  0, OPT_IF_LOOP },
-
       { "log-udp6",               optional_argument,  &flag, LOG_UDP6 },
       { "log-udp4",               optional_argument,  &flag, LOG_UDP4 },
       { "log-udp-type",           required_argument,  0,     LOG_UDP_TYPE },
-
       { "help",                   no_argument, 0, 'h' },
-
       { 0, 0, 0, 0 }
-
     };
 
     int opt;
@@ -219,7 +204,6 @@ int main (int argc,char *argv[]) {
         if ( opt == -1 ) {
             break;
         }
-
         switch (opt) {
         case 'b':
             ctl_block_file = optarg;
@@ -313,16 +297,15 @@ int main (int argc,char *argv[]) {
         service_opt = 1;
     }
 
-    gnb_log_ctx_t *log;
-    log = gnb_log_ctx_create();
-    setup_log_ctx(log, log_udp_sockaddress4_string, log_udp_type);
-    gnb_es_ctx *es_ctx = gnb_es_ctx_create(service_opt, ctl_block_file, log);
+    gnb_log_ctx_t log_st;
+    setup_log_ctx(&log_st, log_udp_sockaddress4_string, log_udp_type);
+    gnb_es_ctx *es_ctx = gnb_es_ctx_create(heap, service_opt, ctl_block_file, &log_st);
 
     if ( NULL == es_ctx ) {
         printf("es ctx init error [%s]\n",ctl_block_file);
         return 1;
     }
-    es_ctx->log = log;
+    es_ctx->log = &log_st;
     gnb_conf_t *conf = &es_ctx->ctl_block->conf_zone->conf_st;
     if ( 1 == conf->public_index_service ) {
         printf("gnb run as public index service map_file=%s\n", ctl_block_file);
@@ -335,7 +318,8 @@ int main (int argc,char *argv[]) {
         }
     }
 
-    es_ctx->pid_file = malloc(PATH_MAX+NAME_MAX);
+    es_ctx->pid_file = gnb_heap_alloc(heap, PATH_MAX+NAME_MAX);
+    
     char  resolved_path[PATH_MAX+NAME_MAX];
 
     #ifdef __UNIX_LIKE_OS__
@@ -354,7 +338,7 @@ int main (int argc,char *argv[]) {
     #endif
 
     if ( NULL != wan_address6_file ) {
-        es_ctx->wan_address6_file = malloc(PATH_MAX+NAME_MAX);
+        es_ctx->wan_address6_file = gnb_heap_alloc(heap, PATH_MAX+NAME_MAX);
         snprintf(es_ctx->wan_address6_file, PATH_MAX+NAME_MAX,"%s", wan_address6_file);
         if ( NULL != gnb_realpath(es_ctx->wan_address6_file,resolved_path) ) {
             strncpy(es_ctx->wan_address6_file, resolved_path, PATH_MAX);

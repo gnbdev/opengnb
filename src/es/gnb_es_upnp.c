@@ -15,10 +15,6 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__)
-#define __UNIX_LIKE_OS__ 1
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,6 +23,7 @@
 #include <pthread.h>
 #include <unistd.h>
 
+#include "gnb_platform.h"
 #ifdef __UNIX_LIKE_OS__
 #include <arpa/inet.h>
 #endif

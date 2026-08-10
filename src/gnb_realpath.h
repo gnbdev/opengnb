@@ -1,5 +1,5 @@
 /*
-   Copyright (C) gnbdev
+   Copyright (C) 2019 gnbdev
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,14 +15,15 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef GNB_WORKER_H
-#define GNB_WORKER_H
+#ifndef GNB_REALPATH_H
+#define GNB_REALPATH_H
 
-#include "gnb_worker_type.h"
+#include <stdint.h>
+#include <sys/stat.h>
 
-gnb_worker_t *gnb_worker_init(const char *name, gnb_core_t *gnb_core);
-void gnb_worker_wait_primary_worker_started(gnb_core_t *gnb_core);
-void gnb_worker_sync_time(uint64_t *now_time_sec_ptr, uint64_t *now_time_usec_ptr);
-void gnb_worker_release(gnb_worker_t *gnb_worker, gnb_core_t *gnb_core);
+char *gnb_get_file_dir(char *file_name, char *file_dir);
+char *gnb_file_path_cut(char *filename, size_t len);
+/* 从传入的文件路径中得到文件的目录和文件名，通过 realpath(Unix 平台) 或 _fullpath (Windows平台) 获得文件目录的绝对路径，与文件名合并成一个字符串返回 */
+char *gnb_realpath(char *in_path, char *resolved_path);
 
 #endif

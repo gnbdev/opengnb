@@ -20,9 +20,7 @@
 #include <stddef.h>
 #include <string.h>
 
-#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__)
-#define __UNIX_LIKE_OS__ 1
-#endif
+#include "gnb_mmap.h"
 
 #ifdef __UNIX_LIKE_OS__
 #include <sys/stat.h>
@@ -31,34 +29,10 @@
 #include <unistd.h>
 #endif
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
 
-#include <limits.h>
-
-#include "gnb_mmap.h"
-
-typedef struct _gnb_mmap_block_t {
-#ifdef __UNIX_LIKE_OS__
-    int fd;
-#endif
-
-#ifdef _WIN32
-    HANDLE file_descriptor;
-    HANDLE map_handle;
-#endif
-
-    char filename[PATH_MAX];
-    void *block;
-    size_t block_size;
-    int mmap_type;
-}gnb_mmap_block_t;
 
 #ifdef __UNIX_LIKE_OS__
-
-gnb_mmap_block_t* gnb_mmap_create(const char *filename, size_t block_size, int mmap_type) {
-    gnb_mmap_block_t *mmap_block;
+int gnb_mmap(gnb_mmap_block_t *mmap_block, const char *filename, size_t block_size, int mmap_type) {
     int fd;
     void *block;
     int oflag;
@@ -72,12 +46,12 @@ gnb_mmap_block_t* gnb_mmap_create(const char *filename, size_t block_size, int m
     }
     fd = open(filename, oflag, S_IRUSR|S_IWUSR);
     if ( -1 == fd ) {
-        return NULL;
+        return -1;
     }
     if ( mmap_type & GNB_MMAP_TYPE_CREATE) {
         if ( -1 == ftruncate(fd,block_size) ) {
             close(fd);
-            return NULL;
+            return -1;
         }
     }
     if ( mmap_type & GNB_MMAP_TYPE_READWRITE) {
@@ -88,9 +62,8 @@ gnb_mmap_block_t* gnb_mmap_create(const char *filename, size_t block_size, int m
     block = mmap(NULL, block_size, prot, MAP_SHARED, fd, 0);
     if ( NULL==block ) {
         close(fd);
-        return NULL;
+        return -1;
     }
-    mmap_block = (gnb_mmap_block_t *)malloc(sizeof(gnb_mmap_block_t));
     snprintf(mmap_block->filename, PATH_MAX, "%s", filename);
     mmap_block->fd = fd;
     mmap_block->block = block;
@@ -99,31 +72,29 @@ gnb_mmap_block_t* gnb_mmap_create(const char *filename, size_t block_size, int m
     if ( mmap_type & GNB_MMAP_TYPE_CREATE ) {
         memset(mmap_block->block, 0, block_size);
     }
-    return mmap_block;
+    return 0;
 }
 
-void gnb_mmap_release(gnb_mmap_block_t *mmap_block) {
+void gnb_munmap(gnb_mmap_block_t *mmap_block) {
     munmap(mmap_block->block,mmap_block->block_size);
     close(mmap_block->fd);
     if ( mmap_block->mmap_type & (GNB_MMAP_TYPE_CREATE|GNB_MMAP_TYPE_CLEANEXIT) ) {
         unlink(mmap_block->filename);
     }
-    free(mmap_block);
 }
 
 #endif
 
 #ifdef _WIN32
 #include "gnb_binary.h"
-gnb_mmap_block_t* gnb_mmap_create(const char *filename, size_t block_size, int mmap_type) {
+int gnb_mmap(gnb_mmap_block_t *mmap_block, const char *filename, size_t block_size, int mmap_type) {
     char mapping_buffer[PATH_MAX];
     char *mapping_name;
     void *block;
     mapping_name = gnb_bin2hex_string((void *)filename, strlen(filename), mapping_buffer);
     if ( NULL==mapping_name ) {
-        return NULL;
+        return -1;
     }
-    gnb_mmap_block_t *mmap_block;
     int oflag1;
     int oflag2;
     int oflag3;
@@ -157,7 +128,7 @@ gnb_mmap_block_t* gnb_mmap_create(const char *filename, size_t block_size, int m
         NULL);
 
     if ( INVALID_HANDLE_VALUE == file_descriptor ) {
-        return NULL;
+        return -1;
     }
     HANDLE map_handle = CreateFileMapping(
         file_descriptor,
@@ -167,15 +138,14 @@ gnb_mmap_block_t* gnb_mmap_create(const char *filename, size_t block_size, int m
         block_size,
         mapping_name);
     if ( NULL == map_handle ) {
-        return NULL;
+        return -1;
     }
     block = MapViewOfFile(map_handle,prot,0,0,block_size);
     if ( NULL==block ) {
         CloseHandle(map_handle);
         CloseHandle(file_descriptor);
-        return NULL;
+        return -1;
     }
-    mmap_block = (gnb_mmap_block_t *)malloc(sizeof(gnb_mmap_block_t));
     snprintf(mmap_block->filename, PATH_MAX, "%s", filename);
     mmap_block->file_descriptor = file_descriptor;
     mmap_block->map_handle = map_handle;
@@ -185,22 +155,16 @@ gnb_mmap_block_t* gnb_mmap_create(const char *filename, size_t block_size, int m
     if ( mmap_type & GNB_MMAP_TYPE_CREATE ) {
         memset(mmap_block->block,0,block_size);
     }
-    return mmap_block;
+    return 0;
 }
 
-void gnb_mmap_release(gnb_mmap_block_t *mmap_block){
+void gnb_munmap(gnb_mmap_block_t *mmap_block) {
     UnmapViewOfFile(mmap_block->block);
     CloseHandle(mmap_block->map_handle);
     CloseHandle(mmap_block->file_descriptor);
-    free(mmap_block);
 }
 #endif
 
-
 void* gnb_mmap_get_block(gnb_mmap_block_t *mmap_block){
     return mmap_block->block;
-}
-
-size_t gnb_mmap_get_size(gnb_mmap_block_t *mmap_block){
-    return mmap_block->block_size;
 }

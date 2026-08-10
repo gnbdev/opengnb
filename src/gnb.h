@@ -53,8 +53,10 @@
 
 typedef struct _gnb_core_t {
 	gnb_heap_t *heap;
-	char *ifname;
+	gnb_conf_t *conf;
+	gnb_ctl_block_t  *ctl_block;
 
+	char *ifname;
 	char *if_device_string;
 	gnb_node_t *local_node;
 	gnb_node_t *select_fwd_node;
@@ -70,9 +72,7 @@ typedef struct _gnb_core_t {
 	unsigned char *ed25519_private_key;
 	unsigned char *ed25519_public_key;
 
-	gnb_conf_t *conf;
 	uint64_t node_nums;
-
 	gnb_hash32_map_t *uuid_node_map;   //以节点的uuid64作为key的 node 表
 	gnb_hash32_map_t *ipv4_node_map;
 
@@ -81,7 +81,6 @@ typedef struct _gnb_core_t {
 	gnb_hash32_map_t *subnetc_node_ring_map;
 
 	//不同主模块可以按照模块内部的方式使用这些表,由使用的相关联的模块来初始化这两组表
-
 	//这组张表是整型为key
 	gnb_hash32_map_t *int32_map0;
 	gnb_hash32_map_t *int32_map1;
@@ -104,28 +103,26 @@ typedef struct _gnb_core_t {
 	gnb_payload16_t     *inet_payload;
 	gnb_payload16_t     *tun_payload;
 
-	void *platform_ctx;
-
 	gnb_worker_t   *primary_worker;
 	gnb_worker_t   *node_worker;
 	gnb_worker_t   *index_worker;
 	gnb_worker_t   *index_service_worker;
 	gnb_worker_t   *detect_worker;
-	gnb_worker_t   *upnp_worker;
-	gnb_worker_ring_t *pf_worker_ring;
 
-	struct timeval now_timeval;
-	uint64_t now_time_sec;
-	uint64_t now_time_usec;
+	gnb_worker_ring_t *pf_worker_ring;
+	//route ip frame 类型的 paylaod 的 head size
+	size_t route_frame_head_size;
 
 	//把 tun 数据读入 payload 时给pf过程构建的frame首部预留的空间
 	//这样构建的 payload 可以直接发送出去，尽量避免了pf过程发生内存拷贝
 	size_t tun_payload_offset;
 
-	//route ip frame 类型的 paylaod 的 head size
-	size_t route_frame_head_size;
-	gnb_ctl_block_t  *ctl_block;
+	struct timeval now_timeval;
+	uint64_t now_time_sec;
+	uint64_t now_time_usec;
 	gnb_log_ctx_t    *log;
+
+	void *platform_ctx;
 } gnb_core_t;
 
 #define GNB_ADDR_TYPE_NONE              (0x0)

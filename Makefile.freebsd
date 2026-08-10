@@ -1,67 +1,56 @@
-CFLAGS=-O2 -I./src -I./libs -I./libs/miniupnpc -I./libs/libnatpmp -I./libs/zlib -D NO_GZIP=1
-CLI_LDFLAGS=-s -L/usr/lib -pthread
-GNB_ES_LDFLAGS=-s -L/usr/lib -pthread
-
+GNB_CFLAGS=$(CFLAGS) -I./src -I./libs -I./libs/miniupnpc -I./libs/libnatpmp -I./libs/zlib -D NO_GZIP=1
+GNB_LDFLAGS=-s -L/usr/lib
+GNB_ES_LDFLAGS=-s -L/usr/lib
 
 ifeq ($(DEBUG),1)
 CFLAGS += -g
 else
+CFLAGS += -O2
 CLI_LDFLAGS    += -s
 GNB_ES_LDFLAGS += -s
 endif
 
-
 GNB_CRYPTO=gnb_crypto
 GNB_CTL=gnb_ctl
 GNB_ES=gnb_es
-GNB_CLI=gnb
-
+GNB=gnb
 
 include Makefile.inc
 
-
-GNB_CLI_OBJS =                             \
-       ./src/cli/gnb.o                     \
-       ./src/gnb_argv.o                    \
-       ./src/unix/unix_platform.o          \
-       ./src/freebsd/gnb_drv_freebsd.o
+GNB_OBJS =                                  \
+        ./src/cli/gnb.o                     \
+        ./src/gnb_argv.o                    \
+        ./src/unix/unix_platform.o          \
+        ./src/freebsd/gnb_drv_freebsd.o
 
 GNB_ES_OBJS += ./src/unix/unix_platform.o
 
-all:${GNB_CLI} ${GNB_CRYPTO} ${GNB_ES} ${GNB_CTL}
-
+all: $(GNB) $(GNB_CTL) $(GNB_CRYPTO) $(GNB_ES)
 
 $(GNB_CTL): $(GNB_CTL_OBJS)
-	${CC} -o ${GNB_CTL} ${GNB_CTL_OBJS} ${CLI_LDFLAGS}
+	$(CC) -o $(GNB_CTL) $(GNB_CTL_OBJS) $(GNB_LDFLAGS)
 
-
-$(GNB_ES): $(GNB_ES_OBJS) ${CRYPTO_OBJS} ${MINIUPNP_OBJS} ${LIBNATPMP_OBJS}
-	${CC} -o ${GNB_ES} ${GNB_ES_OBJS} ${CRYPTO_OBJS} ${MINIUPNP_OBJS} ${LIBNATPMP_OBJS} ${GNB_ES_LDFLAGS}
-
+$(GNB_ES): $(GNB_ES_OBJS) $(CRYPTO_OBJS) $(MINIUPNP_OBJS) $(LIBNATPMP_OBJS)
+	${CC} -o $(GNB_ES) $(GNB_ES_OBJS) $(CRYPTO_OBJS) $(MINIUPNP_OBJS) $(LIBNATPMP_OBJS) $(GNB_ES_LDFLAGS) -pthread
 
 $(GNB_CRYPTO): $(CRYPTO_OBJS) ./src/cli/gnb_crypto.o
-	${CC} -o ${GNB_CRYPTO} ./src/cli/gnb_crypto.o ${CRYPTO_OBJS} ${CLI_LDFLAGS}
+	$(CC) -o $(GNB_CRYPTO) ./src/cli/gnb_crypto.o $(CRYPTO_OBJS) $(GNB_LDFLAGS)
 
-
-$(GNB_CLI): $(GNB_OBJS) $(GNB_CLI_OBJS) $(GNB_PF_OBJS) ${CRYPTO_OBJS} ${ZLIB_OBJS}
-	${CC} -o ${GNB_CLI} ${GNB_OBJS} ${GNB_CLI_OBJS} ${GNB_PF_OBJS} ${CRYPTO_OBJS} ${ZLIB_OBJS} ${CLI_LDFLAGS}
-
+$(GNB): $(GNB_OBJS) $(GNB_CORE_OBJS) $(GNB_PF_OBJS) $(CRYPTO_OBJS) $(ZLIB_OBJS)
+	$(CC) -o $(GNB) $(GNB_OBJS) $(GNB_CORE_OBJS) $(GNB_PF_OBJS) $(CRYPTO_OBJS) $(ZLIB_OBJS) $(GNB_LDFLAGS) -pthread
 
 %.o:%.c
-	${CC} ${CFLAGS} -c -o $@ $<
+	$(CC) $(GNB_CFLAGS) -c -o $@ $<
 
-
-install:${GNB_CLI} ${GNB_CRYPTO} ${GNB_ES} ${GNB_CTL}
+install: $(GNB) $(GNB_CTL) $(GNB_CRYPTO) $(GNB_ES)
 	mkdir -p         ./bin/
-	cp ${GNB_CLI}    ./bin/
-	cp ${GNB_CTL}    ./bin/
-	cp ${GNB_CRYPTO} ./bin/
-	cp ${GNB_ES}     ./bin/
+	cp $(GNB)        ./bin/
+	cp $(GNB_CTL)    ./bin/
+	cp $(GNB_CRYPTO) ./bin/
+	cp $(GNB_ES)     ./bin/
 
-
-clean:	
+clean:
 	find . -name "*.o" -exec rm -f {} \;
-	rm -f ${GNB_CLI} ${GNB_CRYPTO} ${GNB_ES} ${GNB_CTL}
-	rm -f core
+	rm -f $(GNB) $(GNB_CTL) $(GNB_CRYPTO) $(GNB_ES)
+	rm -f core core.*
 	rm -f *.exe
-

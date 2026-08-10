@@ -18,7 +18,7 @@ All code related to the GNB project is released as open source, and the currentl
 3. Data Security
     - Reliable authentication between GNB nodes based on elliptic curve digital signature
 4. Multi-platform support
-    - GNB is developed in C language. It does not need to refer to third-party library files when compiling. It can be easily ported to the current popular operating systems. Currently supported operating systems and platforms include Linux_x86_64, Windows10_x86_64, macOS, FreeBSD_AMD64, OpenBSD_AMD64, Raspberry Pi, OpenWRT; as big as server environment, desktop system, as small as OpenWRT router with only 32M memory can run GNB network very well.
+    - GNB is developed in C language. It does not need to refer to third-party library files when compiling. It can be easily ported to the current popular operating systems. Currently supported operating systems and platforms include Linux, Windows, macOS, FreeBSD, OpenBSD NetBSD, Raspberry Pi, OpenWRT; as big as server environment, desktop system, as small as OpenWRT router with only 32M memory can run GNB network very well.
 
 
 ### Standard VPN payload forwarding
@@ -154,7 +154,7 @@ nodeA --UDP payload--- upd_over_tcp_A --TCP payload--- upd_over_tcp_B --UDP payl
 ```
 
 ## [Easy-to-deploy cross-platform OpenGNB management platform](https://github.com/cnkedao/opengnb-admin)
-
+## [Easy-to-deploy OpenGNB GUI](https://github.com/chenzq1604/opengnb-gui)
 ## GNB Quick Start
 
 * Linux platform
@@ -319,15 +319,9 @@ For details, please visit [https://aur.archlinux.org/packages/opengnb/](https://
 
 [https://aur.archlinux.org/packages/opengnb-git/](https://aur.archlinux.org/packages/opengnb-git/)
 
-[Download the compiled and released version of gnb on each platform](https://github.com/gnbdev/gnb_build "gnb_build")
-
-
-
 [gnb_udp_over_tcp](https://github.com/gnbdev/gnb_udp_over_tcp "gnb_udp_over_tcp") is a service developed for GNB that forwards UDP packets through tcp link, and can also forward data for other services based on UDP protocol.
 
 ---
 [Disclaimer](docs/disclaimer_cn.md)   
 
 Any organization or individual is free to use GNB's source code under the GPL V3 license, this also include any commercial projects. Commercial projects that utilize GNB's source code under closed-source conditions must obtain authorization from us.   
-
-

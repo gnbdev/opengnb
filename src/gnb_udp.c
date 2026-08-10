@@ -20,7 +20,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__)
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__) || defined(__NetBSD__)
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>

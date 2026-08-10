@@ -18,7 +18,7 @@
 #ifndef GNB_PLATFORM_H
 #define GNB_PLATFORM_H
 
-#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__)
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__) || defined(__NetBSD__)
 #define __UNIX_LIKE_OS__ 1
 #endif
 

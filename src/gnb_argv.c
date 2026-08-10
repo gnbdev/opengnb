@@ -25,8 +25,7 @@
 #include "gnb.h"
 #include "gnb_address_type.h"
 #include "gnb_keys.h"
-#include "gnb_dir.h"
-#include "gnb_arg_list.h"
+#include "gnb_realpath.h"
 #include "gnb_config_lite.h"
 
 extern gnb_conf_ext_lite_t gnb_conf_ext_lite;
@@ -35,7 +34,6 @@ void show_description(void);
 static void show_useage(int argc,char *argv[]);
 int check_listen_string(char *listen_string);
 void gnb_setup_listen_addr_port(char *listen_address6_string, uint16_t *port_ptr, char *sockaddress_string, int addr_type);
-void gnb_setup_es_argv(char *es_argv_string);
 
 #define GNB_OPT_INIT                   0x91
 
@@ -112,8 +110,6 @@ void gnb_setup_es_argv(char *es_argv_string);
 
 #define SET_SAFE_INDEX                 (GNB_OPT_INIT + 52)
 
-gnb_arg_list_t *gnb_es_arg_list;
-
 int is_self_test = 0;
 int is_verbose   = 0;
 int is_trace     = 0;
@@ -129,7 +125,6 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]) {
     conf = malloc( sizeof(gnb_conf_t) );
     memset(conf,0,sizeof(gnb_conf_t));
     memset(&gnb_conf_ext_lite,0,sizeof(gnb_conf_ext_lite_t));
-    gnb_es_arg_list = gnb_arg_list_init(32);
 
     char listen_sockaddress4_string[GNB_IP4_PORT_STRING_SIZE];
     memset(listen_sockaddress4_string,0,GNB_IP4_PORT_STRING_SIZE);
@@ -222,6 +217,9 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]) {
     #if defined(__OpenBSD__)
     snprintf(conf->ifname,NAME_MAX,"%s","tun0");
     #endif
+    #if defined(__NetBSD__)
+    snprintf(conf->ifname,NAME_MAX,"%s","tun0");
+    #endif
     #if defined(__linux__)
     snprintf(conf->ifname,NAME_MAX,"%s","gnb_tun");
     #endif
@@ -242,18 +240,6 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]) {
         snprintf(conf->binary_dir, PATH_MAX+NAME_MAX, "%s", "c:\\");
         #endif
     }
-
-    #ifdef __UNIX_LIKE_OS__
-    char gnb_es_bin_path[PATH_MAX+NAME_MAX];
-    snprintf(gnb_es_bin_path,   PATH_MAX+NAME_MAX, "%s/gnb_es",          conf->binary_dir);
-    gnb_arg_append(gnb_es_arg_list, gnb_es_bin_path);
-    #endif
-
-    #ifdef _WIN32
-    char gnb_es_bin_path_q[PATH_MAX+NAME_MAX];
-    snprintf(gnb_es_bin_path_q, PATH_MAX+NAME_MAX, "\"%s\\gnb_es.exe\"",  conf->binary_dir);
-    gnb_arg_append(gnb_es_arg_list, gnb_es_bin_path_q);
-    #endif
 
     int flag;
     struct option long_options[] = {
@@ -690,7 +676,6 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]) {
                 conf->direct_forwarding = 1;
             }
             break;
-
         case SET_ADDR_SECURE:
             if ( !strncmp(optarg, "on", 2) ) {
                 conf->addr_secure = 1;
@@ -719,7 +704,6 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]) {
             snprintf(conf->node_cache_file, PATH_MAX, "%s", optarg);
             break;
         case 'e':
-            gnb_setup_es_argv(optarg);
             break;
         case 'v':
             show_description();
@@ -753,7 +737,6 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]) {
         conf->multi_socket = 1;
         conf->activate_detect_worker = 1;
         conf->multi_index_type = GNB_MULTI_ADDRESS_TYPE_FULL;
-        gnb_setup_es_argv("--upnp");
     }
     if ( 0 != conf->systemd_daemon ) {
         conf->daemon = 0;
@@ -908,21 +891,6 @@ gnb_conf_t* gnb_argv(int argc,char *argv[]) {
     if ( '\0' != conf->node_cache_file[0] && NULL != gnb_realpath(conf->node_cache_file,resolved_path) ) {
         strncpy(conf->node_cache_file, resolved_path, PATH_MAX);
     }
-    #ifdef __UNIX_LIKE_OS__
-    gnb_arg_append(gnb_es_arg_list, "-b");
-    gnb_arg_append(gnb_es_arg_list, conf->map_file);
-    #endif
-
-    #ifdef _WIN32
-    char gnb_map_path_q[PATH_MAX+NAME_MAX];
-    snprintf(gnb_map_path_q,    PATH_MAX+NAME_MAX, "\"%s\"",              conf->map_file);
-    gnb_arg_append(gnb_es_arg_list, "-b");
-    gnb_arg_append(gnb_es_arg_list, gnb_map_path_q);
-    #endif
-    gnb_arg_append(gnb_es_arg_list, "--if-loop");
-    if ( 1 == conf->lite_mode ) {
-        gnb_arg_append(gnb_es_arg_list, "--upnp");
-    }
     return conf;
 }
 
@@ -950,7 +918,6 @@ static void show_useage(int argc,char *argv[]) {
     printf("  -t, --selftest                    self test\n");
     printf("  -p, --passcode                    a hexadecimal string of 32-bit unsigned integer,use to strengthen safety default:0xFFFCFFFE\n");
     printf("  -U, --unified-forwarding          \"off\",\"force\",\"auto\",\"super\",\"hyper\" default:\"auto\"; cannot be used with --pf-worker\n");
-
 
     printf("  -l, --listen                      listen address default:\"0.0.0.0:9001\"\n");
     printf("  -b, --ctl-block                   ctl block mapper file\n");
@@ -1038,23 +1005,4 @@ static void show_useage(int argc,char *argv[]) {
 
     printf("  %s -n 1001 -a \"i/0/$public_index_ip/$port\" --multi-socket=on -p $passcode\n",argv[0]);
     printf("  %s -n 1002 -a \"i/0/$public_index_ip/$port\" --multi-socket=on -p $passcode\n",argv[0]);
-}
-
-void gnb_setup_es_argv(char *es_argv_string) {
-    int num;
-    size_t len;
-    char argv_string0[1024];
-    char argv_string1[1024];
-    len = strlen(es_argv_string);
-    if ( len >1024 ) {
-        return;
-    }
-    num = sscanf(es_argv_string,"%256[^ ] %256s", argv_string0, argv_string1);
-    if ( 1 == num ) {
-        gnb_arg_append(gnb_es_arg_list, argv_string0);
-    } else if ( 2 == num ) {
-        gnb_arg_append(gnb_es_arg_list, argv_string0);
-        gnb_arg_append(gnb_es_arg_list, argv_string1);
-    }
-    return;
 }

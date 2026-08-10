@@ -16,7 +16,6 @@
 */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <limits.h>
 #undef _WIN32_WINNT
 #define _WIN32_WINNT 0x0600
@@ -28,7 +27,6 @@
 
 #include "tap-windows/tap-windows.h"
 #include "gnb.h"
-#include "gnb_exec.h"
 #include "gnb_tun_drv.h"
 #include "gnb_payload16.h"
 
@@ -130,7 +128,7 @@ static char* get_if_devicename(const char *if_deviceid) {
 int init_tun_win32(gnb_core_t *gnb_core) {
     char *deviceid;
     char *devicename;
-    gnb_core_win_ctx_t *tun_win_ctx = (gnb_core_win_ctx_t *)malloc(sizeof(gnb_core_win_ctx_t));
+    gnb_core_win_ctx_t *tun_win_ctx = (gnb_core_win_ctx_t *)gnb_heap_alloc(gnb_core->heap, sizeof(gnb_core_win_ctx_t));
     tun_win_ctx->skip_if_script = 0;
     tun_win_ctx->device_handle = INVALID_HANDLE_VALUE;
     gnb_core->platform_ctx = tun_win_ctx;
@@ -222,42 +220,9 @@ next:
 }
 
 static void if_up(gnb_core_t *gnb_core) {
-    char bin_path[PATH_MAX+NAME_MAX];
-    char bin_path_q[PATH_MAX+NAME_MAX];
-    char map_path_q[PATH_MAX+NAME_MAX];
-    gnb_core_win_ctx_t *tun_win_ctx = gnb_core->platform_ctx;
-    strncpy(gnb_core->ctl_block->conf_zone->conf_st.ifname, tun_win_ctx->if_name, NAME_MAX);
-    snprintf(bin_path,   PATH_MAX+NAME_MAX, "%s\\gnb_es.exe",     gnb_core->ctl_block->conf_zone->conf_st.binary_dir);
-    snprintf(bin_path_q, PATH_MAX+NAME_MAX, "\"%s\\gnb_es.exe\"", gnb_core->ctl_block->conf_zone->conf_st.binary_dir);
-    snprintf(map_path_q, PATH_MAX+NAME_MAX, "\"%s\"",             gnb_core->ctl_block->conf_zone->conf_st.map_file);
-
-    gnb_arg_list_t *arg_list;
-    arg_list = gnb_arg_list_init(32);
-
-    gnb_arg_append(arg_list, bin_path_q);
-    gnb_arg_append(arg_list, "-b");
-    gnb_arg_append(arg_list, map_path_q);
-    gnb_arg_append(arg_list, "--if-up");
-    gnb_exec(bin_path, gnb_core->ctl_block->conf_zone->conf_st.binary_dir, arg_list, GNB_EXEC_BACKGROUND|GNB_EXEC_WAIT);
-    gnb_arg_list_release(arg_list);
 }
 
 static void if_down(gnb_core_t *gnb_core) {
-    gnb_core_win_ctx_t *tun_win_ctx = gnb_core->platform_ctx;
-    char bin_path[PATH_MAX+NAME_MAX];
-    char bin_path_q[PATH_MAX+NAME_MAX];
-    char map_path_q[PATH_MAX+NAME_MAX];
-    snprintf(bin_path,   PATH_MAX+NAME_MAX, "%s\\gnb_es.exe",     gnb_core->ctl_block->conf_zone->conf_st.binary_dir);
-    snprintf(bin_path_q, PATH_MAX+NAME_MAX, "\"%s\\gnb_es.exe\"", gnb_core->ctl_block->conf_zone->conf_st.binary_dir);
-    snprintf(map_path_q, PATH_MAX+NAME_MAX, "\"%s\"",             gnb_core->ctl_block->conf_zone->conf_st.map_file);
-    gnb_arg_list_t *arg_list;
-    arg_list = gnb_arg_list_init(32);
-    gnb_arg_append(arg_list, bin_path_q);
-    gnb_arg_append(arg_list, "-b");
-    gnb_arg_append(arg_list, map_path_q);
-    gnb_arg_append(arg_list, "--if-down");
-    gnb_exec(bin_path, gnb_core->ctl_block->conf_zone->conf_st.binary_dir, arg_list, GNB_EXEC_BACKGROUND|GNB_EXEC_WAIT);
-    gnb_arg_list_release(arg_list);
 }
 
 static int ntod(uint32_t mask) {
@@ -420,7 +385,7 @@ static int close_tun_win32(gnb_core_t *gnb_core) {
 }
 
 static int release_tun_win32(gnb_core_t *gnb_core) {
-    free(gnb_core->platform_ctx);
+    gnb_heap_free(gnb_core->heap, gnb_core->platform_ctx);
     return 0;
 }
 

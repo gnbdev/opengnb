@@ -16,6 +16,7 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdarg.h>
 #include <time.h>
 #include <sys/time.h>
@@ -23,6 +24,8 @@
 
 #include "gnb.h"
 #include "gnb_core.h"
+#include "gnb_arg_list.h"
+#include "gnb_exec.h"
 #include "gnb_time.h"
 #include "gnb_address.h"
 #include "gnb_arg_list.h"
@@ -33,15 +36,19 @@
 #include <windows.h>
 #endif
 
-
 gnb_core_t *gnb_core;
+gnb_core_t *gnb_core_new;
+
+#define GNB_CORE_FLAG_UNSET   0
+#define GNB_CORE_FLAG_START   1
+#define GNB_CORE_FLAG_RESTART 2
+int gnb_core_flag;
 
 int gnb_daemon();
 void save_pid(const char *pid_file);
 gnb_conf_t* gnb_argv(int argc,char *argv[]);
 void primary_process_loop(gnb_core_t *gnb_core);
 extern gnb_pf_t *gnb_pf_mods[];
-extern gnb_arg_list_t *gnb_es_arg_list;
 extern int is_self_test;
 
 void signal_alrm_handler(int signum) {
@@ -49,16 +56,24 @@ void signal_alrm_handler(int signum) {
 }
 
 void signal_handler(int signum) {
+    #ifdef __UNIX_LIKE_OS__
+    if ( SIGHUP == signum ) {
+        gnb_core_flag = GNB_CORE_FLAG_RESTART;
+        gnb_core_stop(gnb_core);
+        return;
+    }
+    #endif
+    
     if ( SIGTERM == signum ) {
         goto finish;
     }
     if ( SIGINT == signum ) {
         goto finish;
     }
-
 finish:
     gnb_core_stop(gnb_core);
     unlink(gnb_core->conf->pid_file);
+    printf("\ngnb process exit\n");
     exit(0);
 }
 
@@ -221,6 +236,8 @@ static void self_test() {
             }
         }
 
+        GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST route_frame_head_size %lu\n", gnb_core->route_frame_head_size);
+
         GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST num of index=%d\n", gnb_core->index_address_ring.address_list->num);
         for ( i=0; i< gnb_core->index_address_ring.address_list->num; i++ ) {
             GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST index node '%s'\n",
@@ -230,15 +247,6 @@ static void self_test() {
         GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE,"SELF-TEST num of fwd node:%d\n", gnb_core->fwd_node_ring.num);
         for ( i=0; i<gnb_core->fwd_node_ring.num; i++ ) {
             GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST fwd node=%llu\n", gnb_core->fwd_node_ring.nodes[i]->uuid64);
-        }
-        for ( i=0; i<gnb_es_arg_list->argc; i++ ) {
-            GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST gnb_es argv[%d]='%s'\n", i, gnb_es_arg_list->argv[i]);
-        }
-        ret = gnb_arg_list_to_string(gnb_es_arg_list, es_arg_string, GNB_ARG_STRING_MAX_SIZE);
-        if ( 0 == ret ) {
-            GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST exec gnb_es argv '%s'\n", es_arg_string);
-        } else {
-            GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "SELF-TEST will not exec 'gnb_es'\n");
         }
     }
 }
@@ -267,6 +275,7 @@ void log_out_description(gnb_log_ctx_t *log) {
 
 void show_description() {
     printf("%s\n", GNB_VERSION_STRING);
+    printf("%s\n", GNB_BUILD_STRING);
     printf("%s\n", GNB_COPYRIGHT_STRING);
     printf("Site: %s\n", GNB_URL_STRING);
     #if defined(GNB_OPENWRT_BUILD)
@@ -286,6 +295,71 @@ void show_description() {
     printf("\n");
     printf("%s\n", GNB_BUILD_STRING);
 }
+static void exec_loop_script(gnb_core_t *gnb_core, const char *script_file_name) {
+    char script_dir[PATH_MAX];
+    char script_file[PATH_MAX+NAME_MAX];
+    int arg_list_size = 1;
+    pid_t  pid = 0;
+    gnb_arg_list_t *arg_list = (gnb_arg_list_t *)alloca( sizeof(gnb_arg_list_t) + sizeof(char *) * arg_list_size );
+    arg_list->size = arg_list_size;
+    arg_list->argc = 0;
+    arg_list->data_prt = arg_list->data;
+    strncpy(script_dir, gnb_core->conf->conf_dir, PATH_MAX);
+    strncat(script_dir, "/scripts", PATH_MAX-strlen(script_dir));
+    snprintf(script_file, PATH_MAX+NAME_MAX,"%s/%s", script_dir, script_file_name);
+    gnb_arg_append(arg_list, script_file);
+    pid = gnb_exec(script_file, script_dir, arg_list, GNB_EXEC_WAIT);
+    return;
+}
+
+#define GNB_EXEC_SCRIPT_INTERVAL_TIME_SEC  (60)
+void gnb_primary_process_loop( gnb_core_t *gnb_core ) {
+    int ret;
+    uint64_t last_exec_loop_script_ts_sec = 0;
+    do {
+        ret = gettimeofday(&gnb_core->now_timeval,NULL);
+        if ( 0!=ret ) {
+            perror("gettimeofday");
+            exit(1);
+        }
+        gnb_core->now_time_sec  = gnb_core->now_timeval.tv_sec;
+        gnb_core->now_time_usec = gnb_core->now_timeval.tv_sec * 1000000 + gnb_core->now_timeval.tv_usec;
+        gnb_core->ctl_block->status_zone->keep_alive_ts_sec = (uint64_t)gnb_core->now_timeval.tv_sec;
+        gnb_log_file_rotate(gnb_core->log);
+        #ifdef __UNIX_LIKE_OS__
+        sleep(1);
+        #endif
+        #ifdef _WIN32
+        Sleep(1000);
+        #endif
+        if ( gnb_core->ctl_block->status_zone->keep_alive_ts_sec - last_exec_loop_script_ts_sec > GNB_EXEC_SCRIPT_INTERVAL_TIME_SEC ) {
+            #if defined(__FreeBSD__)
+            exec_loop_script(gnb_core,"if_loop_freebsd.sh");
+            #endif
+
+            #if defined(__APPLE__)
+            exec_loop_script(gnb_core,"if_loop_darwin.sh");
+            #endif
+
+            #if defined(__OpenBSD__)
+            exec_loop_script(gnb_core,"if_loop_openbsd.sh");
+            #endif
+
+            #if defined(__NetBSD__)
+            exec_loop_script(gnb_core,"if_loop_netbsd.sh");
+            #endif
+
+            #if defined(__linux__)
+            exec_loop_script(gnb_core,"if_loop_linux.sh");
+            #endif
+
+            #if defined(_WIN32)
+            #endif
+            last_exec_loop_script_ts_sec = gnb_core->ctl_block->status_zone->keep_alive_ts_sec;
+        }
+    } while(1);
+}
+
 
 int main (int argc,char *argv[]) {
     gnb_conf_t *conf;
@@ -300,7 +374,6 @@ int main (int argc,char *argv[]) {
     #endif
 
     conf = gnb_argv(argc, argv);
-
     if ( 0 == conf->public_index_service ) {
         if ( 0 == conf->lite_mode ) {
             //加载 node.conf
@@ -320,14 +393,11 @@ int main (int argc,char *argv[]) {
     #ifdef __UNIX_LIKE_OS__
     signal(SIGPIPE, SIG_IGN);
     signal(SIGALRM, signal_alrm_handler);
-
     signal(SIGTERM, signal_handler);
     signal(SIGINT,  signal_handler);
-
     if ( gnb_core->conf->daemon ) {
         gnb_daemon();
     }
-
     save_pid(gnb_core->conf->pid_file);
     #endif
 
@@ -344,11 +414,42 @@ int main (int argc,char *argv[]) {
     } else {
         gnb_core_index_service_start(gnb_core);
     }
-    primary_process_loop(gnb_core);
+    
+primary_process_loop:
+    gnb_core_flag = GNB_CORE_FLAG_START;
+    gnb_primary_process_loop(gnb_core);
+    if ( 1 == conf->public_index_service || 1 == conf->lite_mode ) {
+        goto finish;
+    }
+    if ( GNB_CORE_FLAG_RESTART != gnb_core_flag ) {
+        goto finish;
+    }
 
+    // hot restart gnb
+    conf = gnb_argv(argc, argv);
+    free(conf);
+
+    unlink(gnb_core->conf->map_file);
+    
+    local_node_file_config(conf);
+    gnb_core_new = gnb_core_create(conf);
+    if ( NULL == gnb_core_new ) {
+        printf("hot restart​ gnb core create error!\n");
+        return 1;
+    }
+
+    GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "hot restart​ new gnb core created!\n");
+
+    gnb_hot_restart_prepare(gnb_core_new,gnb_core);
+    gnb_core_release(gnb_core);
+    gnb_core = gnb_core_new;
+    gnb_core_start(gnb_core);
+    GNB_LOG1(gnb_core->log, GNB_LOG_ID_CORE, "hot restart​ finish!\n");
+    goto primary_process_loop;
+
+finish:
     #ifdef _WIN32
     WSACleanup();
     #endif
-
     return 0;
 }

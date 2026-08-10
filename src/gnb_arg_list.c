@@ -15,37 +15,35 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
+#include "gnb_platform.h"
 #include <string.h>
 #include "gnb_arg_list.h"
 
-gnb_arg_list_t *gnb_arg_list_init(int size) {
-    gnb_arg_list_t *arg_list = (gnb_arg_list_t *)malloc( sizeof(gnb_arg_list_t) + sizeof(char *) * size );
+gnb_arg_list_t *gnb_arg_list_init(gnb_heap_t *heap, uint32_t size) {
+    gnb_arg_list_t *arg_list = (gnb_arg_list_t *)gnb_heap_alloc(heap, sizeof(gnb_arg_list_t) + sizeof(char *) * size);
     arg_list->size = size;
     arg_list->argc = 0;
+    arg_list->data_prt = arg_list->data;
     return arg_list;
 }
 
-void gnb_arg_list_release(gnb_arg_list_t *arg_list) {
-    int i;
-    if ( arg_list->argc > 0 ) {
-        for ( i=0; i<arg_list->argc; i++ ) {
-            free(arg_list->argv[i]);
-        }
-    }
-    free(arg_list);
-}
-
-int gnb_arg_append(gnb_arg_list_t *arg_list,const char *arg) {
+int gnb_arg_append(gnb_arg_list_t *arg_list, const char *arg) {
     if ( arg_list->argc >= arg_list->size ) {
         return -1;
     }
-    arg_list->argv[arg_list->argc] = strdup(arg);
+    arg_list->argv[arg_list->argc] = arg_list->data_prt;
+    while ( arg_list->data_prt < (arg_list->data+GNB_ARG_STRING_MAX_SIZE-1) ) {
+        if ('\0' == *arg) {
+            break;
+        }
+        *(arg_list->data_prt++) = *(arg++);
+    }
+    *(arg_list->data_prt++) = '\0';
     arg_list->argc++;
     return 0;
 }
 
-int gnb_arg_list_to_string(gnb_arg_list_t *arg_list, char *string, size_t string_len) {
+int gnb_arg_list_to_string(gnb_arg_list_t *arg_list, char *string, uint32_t string_len) {
     int i;
     size_t argv_len;
     char *p = string;
@@ -71,20 +69,19 @@ int gnb_arg_list_to_string(gnb_arg_list_t *arg_list, char *string, size_t string
 #define SPACE_SEPARATOR         0
 #define SINGLE_QUOTES_SEPARATOR 1
 #define DOUBLE_QUOTES_SEPARATOR 2
-
 #define ARG_SEPARATOR           0
 #define ARG_STRING              1
-
-gnb_arg_list_t *gnb_arg_string_to_list(char *string, int num) {
+gnb_arg_list_t *gnb_arg_string_to_list(gnb_heap_t *heap,char *string, uint32_t size) {
     int status = ARG_SEPARATOR;
     int separator = SPACE_SEPARATOR;
     char *arg;
     char *arg_p;
-    arg = malloc(GNB_ARG_MAX_SIZE);
+    arg = gnb_heap_alloc(heap,GNB_ARG_MAX_SIZE);
     arg_p = arg;
     char *p;
     p = (char *)string;
-    gnb_arg_list_t *arg_list = gnb_arg_list_init(num);
+
+    gnb_arg_list_t *arg_list = gnb_arg_list_init(heap, size);
     int c = 0;
     while (*p) {
         if ( c>=GNB_ARG_STRING_MAX_SIZE ) {
@@ -140,6 +137,5 @@ next:
         *arg_p = '\0';
         gnb_arg_append(arg_list,arg);
     }
-    free(arg);
     return arg_list;
 }
