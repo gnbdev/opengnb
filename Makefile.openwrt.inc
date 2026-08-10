@@ -41,7 +41,7 @@ GNB_CORE_OBJS =                                  \
        ./src/gnb_doubly_linked_list.o            \
        ./src/gnb_alloc.o                         \
        ./src/gnb_mmap.o                          \
-       ./src/gnb_dir.o                           \
+       ./src/gnb_realpath.o                      \
        ./src/gnb_arg_list.o                      \
        ./src/gnb_log.o                           \
        ./src/gnb_hash32.o                        \
@@ -49,8 +49,7 @@ GNB_CORE_OBJS =                                  \
        ./src/gnb_nodeid.o                        \
        ./libs/hash/murmurhash.o
 
-
-GNB_PF_OBJS =                                    \
+GNB_PF_OBJS   =                                  \
       ./src/gnb_pf.o                             \
       ./src/gnb_unified_forwarding.o             \
       ./src/packet_filter/gnb_pf_route.o         \
@@ -58,7 +57,6 @@ GNB_PF_OBJS =                                    \
       ./src/packet_filter/gnb_pf_crypto_arc4.o   \
       ./src/packet_filter/gnb_pf_zip.o           \
       ./src/packet_filter/gnb_pf_dump.o
-
 
 GNB_ES_OBJS =                                    \
       ./src/cli/gnb_es.o                         \
@@ -77,16 +75,16 @@ GNB_ES_OBJS =                                    \
       ./src/gnb_log.o                            \
       ./src/gnb_alloc.o                          \
       ./src/gnb_mmap.o                           \
-      ./src/gnb_dir.o                            \
+      ./src/gnb_realpath.o                       \
       ./src/gnb_hash32.o                         \
       ./src/gnb_conf.o                           \
       ./src/gnb_arg_list.o                       \
       ./src/gnb_nodeid.o                         \
       ./libs/hash/murmurhash.o
 
-
 GNB_CTL_OBJS =                                   \
        ./src/cli/gnb_ctl.o                       \
+       ./src/gnb_alloc.o                         \
        ./src/ctl/gnb_ctl_dump.o                  \
        ./src/gnb_ctl_block.o                     \
        ./src/gnb_ctl_block_set.o                 \
