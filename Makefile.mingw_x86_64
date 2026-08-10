@@ -6,7 +6,7 @@ GNB_ES_LDFLAGS=-s -static -L/usr/x86_64-w64-mingw32/lib/ -lwsock32 -lws2_32 -lip
 GNB_CRYPTO=gnb_crypto.exe
 GNB_CTL=gnb_ctl.exe
 GNB_ES=gnb_es.exe
-GNB_CLI=gnb.exe
+GNB=gnb.exe
 
 include Makefile.inc
 
