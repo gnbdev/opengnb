@@ -3,7 +3,7 @@ GNB_LDFLAGS=-Wl,--gc-sections -L/usr/lib
 GNB_ES_LDFLAGS=-Wl,--gc-sections -L/usr/lib
 
 ifeq ($(DEBUG),1)
-GNB_CFLAGSS += -g
+GNB_CFLAGS += -g
 else
 GNB_CFLAGS += -O2
 GNB_LDFLAGS    += -s

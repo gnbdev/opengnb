@@ -1,9 +1,9 @@
 #Makefile.openwrt is only used for compiling and building on the OpenWRT platform.
 #Note:charleschan<hollidgelongsun157@gmail.com> made great efforts for OpenGNB porting to OpenWRT platform and provides technical supoort.
 
-GNB_CFLAGS=$(CFLAGS) -I./src -I./libs -D_GNU_SOURCE -DNO_GZIP=1 -DWITHOUT_MINIUPNPC -DGNB_OPENWRT_BUILD=1
+GNB_CFLAGS=$(CFLAGS) -I./src -I./libs -D_GNU_SOURCE -DNO_GZIP=1 -DWITHOUT_MINIUPNPC -DGNB_SKIP_BUILD_TIME=1 -DGNB_OPENWRT_BUILD=1
 GNB_LDFLAGS=$(LDFLAGS)
-GNB_ES_LDFLAGS=-Wl,--gc-sections
+GNB_ES_LDFLAGS=$(LDFLAGS)
 
 GNB_ES=gnb_es
 GNB_CRYPTO=gnb_crypto
@@ -12,11 +12,11 @@ GNB=gnb
 
 include Makefile.openwrt.inc
 
-GNB_OBJS =                             \
-       ./src/cli/gnb.o                     \
-       ./src/gnb_argv.o                    \
-       ./src/unix/unix_platform.o          \
-       ./src/linux/gnb_drv_linux.o
+GNB_OBJS =                                  \
+        ./src/cli/gnb.o                     \
+        ./src/gnb_argv.o                    \
+        ./src/unix/unix_platform.o          \
+        ./src/linux/gnb_drv_linux.o
 
 GNB_ES_OBJS += ./src/unix/unix_platform.o
 

@@ -3,10 +3,10 @@ GNB_LDFLAGS=-s -L/usr/lib
 GNB_ES_LDFLAGS=-s -L/usr/lib
 
 ifeq ($(DEBUG),1)
-CFLAGS += -g
+GNB_CFLAGS += -g
 else
-CFLAGS += -O2
-CLI_LDFLAGS    += -s
+GNB_CFLAGS += -O2
+GNB_LDFLAGS    += -s
 GNB_ES_LDFLAGS += -s
 endif
 
