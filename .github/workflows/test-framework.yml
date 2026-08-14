@@ -1,0 +1,47 @@
+name: 测试框架冒烟
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    name: Linux 框架冒烟
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - name: 运行框架冒烟（零个生产测试）
+        run: |
+          echo '仅运行测试框架冒烟，生产测试数量为 0。'
+          make -f tests/Makefile PLATFORM=linux CC=gcc test-framework
+
+  windows:
+    name: Windows MinGW64 框架冒烟
+    runs-on: windows-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - name: 配置 MSYS2 MinGW64
+        uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884 # v2.32.0
+        with:
+          msystem: MINGW64
+          update: false
+          install: >-
+            mingw-w64-x86_64-gcc
+            make
+      - name: 运行框架冒烟（零个生产测试）
+        shell: msys2 {0}
+        run: |
+          echo '仅运行测试框架冒烟，生产测试数量为 0。'
+          make -f tests/Makefile PLATFORM=mingw CC=gcc test-framework

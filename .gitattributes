@@ -1,1 +1,8 @@
 *.sh linguist-language=c
+
+# 第三方 Unity 归档必须保持上游原始字节
+/libs/Unity/LICENSE.txt -text whitespace=-trailing-space
+/libs/Unity/SHA256SUMS -text
+/libs/Unity/src/unity.c -text whitespace=-trailing-space
+/libs/Unity/src/unity.h -text whitespace=-trailing-space
+/libs/Unity/src/unity_internals.h -text whitespace=-trailing-space
